@@ -568,13 +568,26 @@ input{font-family:inherit}
             <option value="driving">driving</option>
             <option value="anxious">anxious</option>
             <option value="playful">playful</option>
+            <option value="cinematic">cinematic</option>
+            <option value="dreamy">dreamy</option>
           </select>
           <select class="pill sm" id="dirMath" title="Math source">
             <option value="pi">&pi;</option>
+            <option value="e">e</option>
+            <option value="phi">&phi;</option>
+            <option value="sqrt2">&radic;2</option>
+            <option value="sqrt3">&radic;3</option>
+            <option value="ln2">ln 2</option>
             <option value="fib">fib</option>
+            <option value="lucas">lucas</option>
             <option value="primes">primes</option>
+            <option value="tribonacci">tribonacci</option>
+            <option value="thue">thue-morse</option>
+            <option value="collatz">collatz</option>
             <option value="sine">sine</option>
-            <option value="ca">CA</option>
+            <option value="logistic">logistic</option>
+            <option value="ca">CA rule30</option>
+            <option value="ca90">CA rule90</option>
           </select>
           <select class="pill sm" id="dirRoot" title="Root">
             <option value="0">C</option><option value="1">C#</option><option value="2">D</option>
@@ -588,14 +601,59 @@ input{font-family:inherit}
             <option value="dorian">dorian</option>
             <option value="phrygian">phrygian</option>
             <option value="mixo">mixolydian</option>
+            <option value="lydian">lydian</option>
             <option value="pent_maj">pent maj</option>
             <option value="pent_min">pent min</option>
             <option value="blues">blues</option>
             <option value="raga_yaman">yaman</option>
             <option value="raga_bhairavi">bhairavi</option>
+            <option value="raga_todi">todi</option>
+            <option value="hirajoshi">hirajoshi</option>
+            <option value="whole">whole-tone</option>
+            <option value="chromatic">chromatic</option>
           </select>
-          <input class="pill sm" id="dirSeed" type="number" value="1" min="0" style="width:64px" title="Seed (deterministic)">
+          <input class="pill sm" id="dirSeed" type="number" value="1" min="0" style="width:56px" title="Seed (deterministic)">
           <button class="pill sm" id="dirCompose">COMPOSE</button>
+        </div>
+        <div class="pat-bar" id="dirBar2">
+          <span class="pat-status" style="margin-right:4px">VARIATION</span>
+          <select class="pill sm" id="dirMotifLen" title="Motif length (notes)">
+            <option value="4">motif 4</option>
+            <option value="6">motif 6</option>
+            <option value="8" selected>motif 8</option>
+            <option value="12">motif 12</option>
+          </select>
+          <input class="pill sm" id="dirOffset" type="number" value="0" min="0" style="width:56px" title="Digit offset">
+          <input class="pill sm" id="dirStride" type="number" value="1" min="1" max="12" style="width:56px" title="Digit stride">
+          <select class="pill sm" id="dirDir" title="Direction">
+            <option value="fwd">forward</option>
+            <option value="rev">reverse</option>
+            <option value="zig">zigzag</option>
+          </select>
+          <select class="pill sm" id="dirDensity" title="Density">
+            <option value="sparse">sparse</option>
+            <option value="medium" selected>medium</option>
+            <option value="dense">dense</option>
+          </select>
+          <select class="pill sm" id="dirTransform" title="Section C transform">
+            <option value="mirror">mirror</option>
+            <option value="retrograde">retrograde</option>
+            <option value="invert">invert</option>
+            <option value="shift">shift +4</option>
+            <option value="combo" selected>combo</option>
+            <option value="random">random</option>
+          </select>
+          <select class="pill sm" id="dirSwing" title="Rhythmic feel">
+            <option value="straight" selected>straight</option>
+            <option value="legato">legato</option>
+            <option value="staccato">staccato</option>
+          </select>
+          <label class="pat-status" style="display:flex;align-items:center;gap:4px;cursor:pointer">
+            <input type="checkbox" id="dirAuto" style="margin:0"> auto-improve
+          </label>
+        </div>
+        <div class="pat-bar" id="dirScoreBar" style="display:none">
+          <span class="pat-status" id="dirScore">SCORE —</span>
         </div>
         <div id="seqGrid"><table id="seqTable"></table></div>
       </div>
@@ -1555,20 +1613,23 @@ function synthNoteToRow(note,oct){
 var DRUMS=['KICK','SNARE','HI-HAT','CLAP','TOM','CRASH','PERC','COWBELL'];
 var DRUM_KEYS=['1','2','3','4','5','6','7','8'];
 
-function playDrum(index){
+function playDrum(index,vel){
   ensureAudio();
   var now=actx.currentTime;
   var master=getMasterGain();
   if(!chainBuilt)initChain();
+  if(vel===undefined||vel===null) vel=1;
+  vel=Math.max(0,Math.min(1,vel));
 
   if(isRecording&&isPlaying){
     drumPattern[index][currentStep]=1;
+    drumVel[index][currentStep]=1;
   }
 
   switch(index){
     case 0:/* KICK */{
       var o=actx.createOscillator();o.type='sine';
-      var g=actx.createGain();g.gain.setValueAtTime(1,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.5);
+      var g=actx.createGain();g.gain.setValueAtTime(1*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.5);
       o.frequency.setValueAtTime(190,now);o.frequency.exponentialRampToValueAtTime(38,now+0.08);
       o.connect(g);g.connect(master);o.start(now);o.stop(now+0.5);
     }break;
@@ -1577,7 +1638,7 @@ function playDrum(index){
       var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=Math.random()*2-1;
       var n=actx.createBufferSource();n.buffer=buf;
       var bp=actx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2000;bp.Q.value=1;
-      var g=actx.createGain();g.gain.setValueAtTime(0.8,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.15);
+      var g=actx.createGain();g.gain.setValueAtTime(0.8*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.15);
       n.connect(bp);bp.connect(g);g.connect(master);n.start(now);
     }break;
     case 2:/* HI-HAT */{
@@ -1585,7 +1646,7 @@ function playDrum(index){
       var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=Math.random()*2-1;
       var n=actx.createBufferSource();n.buffer=buf;
       var hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=9000;
-      var g=actx.createGain();g.gain.setValueAtTime(0.5,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.05);
+      var g=actx.createGain();g.gain.setValueAtTime(0.5*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.05);
       n.connect(hp);hp.connect(g);g.connect(master);n.start(now);
     }break;
     case 3:/* CLAP */{
@@ -1595,13 +1656,13 @@ function playDrum(index){
         var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=Math.random()*2-1;
         var n=actx.createBufferSource();n.buffer=buf;
         var bp=actx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1500;bp.Q.value=0.5;
-        var g=actx.createGain();g.gain.setValueAtTime(0.6,now+offset);g.gain.exponentialRampToValueAtTime(0.001,now+offset+0.08);
+        var g=actx.createGain();g.gain.setValueAtTime(0.6*vel,now+offset);g.gain.exponentialRampToValueAtTime(0.001,now+offset+0.08);
         n.connect(bp);bp.connect(g);g.connect(master);n.start(now+offset);
       }
     }break;
     case 4:/* TOM */{
       var o=actx.createOscillator();o.type='sine';
-      var g=actx.createGain();g.gain.setValueAtTime(0.8,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+      var g=actx.createGain();g.gain.setValueAtTime(0.8*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.3);
       o.frequency.setValueAtTime(140,now);o.frequency.exponentialRampToValueAtTime(50,now+0.1);
       o.connect(g);g.connect(master);o.start(now);o.stop(now+0.3);
     }break;
@@ -1610,19 +1671,19 @@ function playDrum(index){
       var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=Math.random()*2-1;
       var n=actx.createBufferSource();n.buffer=buf;
       var hp=actx.createBiquadFilter();hp.type='highpass';hp.frequency.value=5000;
-      var g=actx.createGain();g.gain.setValueAtTime(0.4,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.8);
+      var g=actx.createGain();g.gain.setValueAtTime(0.4*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.8);
       n.connect(hp);hp.connect(g);g.connect(master);n.start(now);
     }break;
     case 6:/* PERC */{
       var o=actx.createOscillator();o.type='triangle';
-      var g=actx.createGain();g.gain.setValueAtTime(0.6,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.1);
+      var g=actx.createGain();g.gain.setValueAtTime(0.6*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.1);
       o.frequency.setValueAtTime(520,now);o.frequency.exponentialRampToValueAtTime(160,now+0.05);
       o.connect(g);g.connect(master);o.start(now);o.stop(now+0.1);
     }break;
     case 7:/* COWBELL */{
       var o1=actx.createOscillator();o1.type='square';o1.frequency.value=820;
       var o2=actx.createOscillator();o2.type='square';o2.frequency.value=560;
-      var g=actx.createGain();g.gain.setValueAtTime(0.4,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+      var g=actx.createGain();g.gain.setValueAtTime(0.4*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.3);
       var bp=actx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=800;bp.Q.value=3;
       o1.connect(bp);o2.connect(bp);bp.connect(g);g.connect(master);
       o1.start(now);o2.start(now);o1.stop(now+0.3);o2.stop(now+0.3);
@@ -1640,12 +1701,19 @@ var baseOctave=4;
 /* scale lanes: index 0 = lowest row (row 7), index 7 = highest row (row 0) */
 var synthScale=['C','D','E','F','G','A','B','C'];
 var synthScaleOcts=[0,0,0,0,0,0,0,1];
+/* dynamics + duration — parallel to synthPattern/drumPattern.
+   velocity 0..1 (peak gain multiplier); length in steps (min 1, synth only). */
+var synthVel=[], synthLen=[], drumVel=[];
 
 function initPatterns(){
   synthPattern=[];drumPattern=[];
+  synthVel=[];synthLen=[];drumVel=[];
   for(var r=0;r<8;r++){
     synthPattern[r]=new Array(stepCount).fill(0);
     drumPattern[r]=new Array(stepCount).fill(0);
+    synthVel[r]=new Array(stepCount).fill(1);
+    synthLen[r]=new Array(stepCount).fill(1);
+    drumVel[r]=new Array(stepCount).fill(1);
   }
 }
 initPatterns();
@@ -1654,8 +1722,14 @@ function resizePatterns(newCount){
   for(var r=0;r<8;r++){
     while(synthPattern[r].length<newCount)synthPattern[r].push(0);
     while(drumPattern[r].length<newCount)drumPattern[r].push(0);
+    while(synthVel[r].length<newCount)synthVel[r].push(1);
+    while(synthLen[r].length<newCount)synthLen[r].push(1);
+    while(drumVel[r].length<newCount)drumVel[r].push(1);
     synthPattern[r].length=newCount;
     drumPattern[r].length=newCount;
+    synthVel[r].length=newCount;
+    synthLen[r].length=newCount;
+    drumVel[r].length=newCount;
   }
   stepCount=newCount;
   if(currentStep>=stepCount)currentStep=0;
@@ -1684,12 +1758,17 @@ function startPlayback(){
     for(var r=0;r<8;r++){
       if(synthPattern[r][currentStep]){
         var ni=7-r;
-        triggerSeqNote(synthNotes[ni],synthOcts[ni]);
+        var vel=synthVel[r][currentStep]; if(vel===undefined) vel=1;
+        var len=synthLen[r][currentStep]; if(!len||len<1) len=1;
+        triggerSeqNote(synthNotes[ni],synthOcts[ni],vel,len);
       }
     }
     /* play drums */
     for(var r=0;r<8;r++){
-      if(drumPattern[r][currentStep]) playDrum(r);
+      if(drumPattern[r][currentStep]){
+        var dvel=drumVel[r][currentStep]; if(dvel===undefined) dvel=1;
+        playDrum(r,dvel);
+      }
     }
     highlightStep(currentStep);
     updatePatStatus();
@@ -1697,18 +1776,22 @@ function startPlayback(){
   },msPerStep);
 }
 
-function triggerSeqNote(note,oct){
+function triggerSeqNote(note,oct,vel,lenSteps){
   ensureAudio();
   if(!chainBuilt)initChain();
+  if(vel===undefined||vel===null) vel=1;
+  vel=Math.max(0,Math.min(1,vel));
+  if(!lenSteps||lenSteps<1) lenSteps=1;
   var filter=getFilter();
   var voice=createVoice(note,oct,actx,filter);
   var now=actx.currentTime;
-  var dur=60/(bpm*4);
+  var stepSec=60/(bpm*4);
+  var dur=stepSec*lenSteps;
   var atk=Math.min(synth.attack,dur*0.3);
   var dec=Math.min(synth.decay,dur*0.3);
   voice.env.gain.setValueAtTime(0,now);
-  voice.env.gain.linearRampToValueAtTime(1,now+atk);
-  voice.env.gain.linearRampToValueAtTime(synth.sustain,now+atk+dec);
+  voice.env.gain.linearRampToValueAtTime(vel,now+atk);
+  voice.env.gain.linearRampToValueAtTime(synth.sustain*vel,now+atk+dec);
   voice.env.gain.linearRampToValueAtTime(0,now+dur);
   var nds=voice.nodes;
   setTimeout(function(){nds.forEach(function(nd){try{nd.stop()}catch(e){}})},(dur+synth.release)*1000+50);
@@ -2020,6 +2103,7 @@ vizLoop();
 function buildSeqGrid(){
   var table=document.getElementById('seqTable');table.innerHTML='';
   var pat=patLayer==='synth'?synthPattern:drumPattern;
+  var vel=patLayer==='synth'?synthVel:drumVel;
   var labels=patLayer==='synth'?['C'+(baseOctave+1),'B','A','G','F','E','D','C'+baseOctave]:DRUMS;
 
   for(var r=0;r<8;r++){
@@ -2028,7 +2112,18 @@ function buildSeqGrid(){
     for(var c=0;c<stepCount;c++){
       var td=document.createElement('td');
       td.dataset.row=r;td.dataset.col=c;
-      if(pat[r][c]) td.classList.add(patLayer==='synth'?'on-synth':'on-drum');
+      if(pat[r][c]){
+        td.classList.add(patLayer==='synth'?'on-synth':'on-drum');
+        var v=vel[r][c]; if(v===undefined) v=1;
+        /* velocity → opacity band: min 0.35 to stay visible */
+        td.style.opacity=String(0.35+0.65*Math.max(0,Math.min(1,v)));
+        if(patLayer==='synth' && synthLen[r][c]>1){
+          td.style.boxShadow='inset -3px 0 0 var(--accent)';
+          td.title='len='+synthLen[r][c]+' · vel='+v.toFixed(2);
+        }else{
+          td.title='vel='+v.toFixed(2);
+        }
+      }
       tr.appendChild(td);
     }
     table.appendChild(tr);
@@ -2042,8 +2137,15 @@ function buildSeqGrid(){
       e.preventDefault();painting=true;
       var r=parseInt(td.dataset.row),c=parseInt(td.dataset.col);
       var p=patLayer==='synth'?synthPattern:drumPattern;
-      paintVal=p[r][c]?0:1;p[r][c]=paintVal;
+      var v=patLayer==='synth'?synthVel:drumVel;
+      paintVal=p[r][c]?0:1;
+      p[r][c]=paintVal;
+      v[r][c]=1;
+      if(patLayer==='synth') synthLen[r][c]=1;
       td.classList.toggle(patLayer==='synth'?'on-synth':'on-drum',!!paintVal);
+      td.style.opacity=paintVal?'1':'';
+      td.style.boxShadow='';
+      td.title=paintVal?'vel=1.00':'';
     });
     table.addEventListener('pointermove',function(e){
       if(!painting)return;
@@ -2051,8 +2153,14 @@ function buildSeqGrid(){
       if(!el||!el.dataset||el.dataset.row===undefined)return;
       var r=parseInt(el.dataset.row),c=parseInt(el.dataset.col);
       var p=patLayer==='synth'?synthPattern:drumPattern;
+      var v=patLayer==='synth'?synthVel:drumVel;
       p[r][c]=paintVal;
+      v[r][c]=1;
+      if(patLayer==='synth') synthLen[r][c]=1;
       el.classList.toggle(patLayer==='synth'?'on-synth':'on-drum',!!paintVal);
+      el.style.opacity=paintVal?'1':'';
+      el.style.boxShadow='';
+      el.title=paintVal?'vel=1.00':'';
     });
     document.addEventListener('pointerup',function(){painting=false});
     table._bound=true;
@@ -2096,7 +2204,11 @@ document.querySelectorAll('[data-steps]').forEach(function(btn){
 });
 document.getElementById('patClear').addEventListener('click',function(){
   var p=patLayer==='synth'?synthPattern:drumPattern;
-  for(var r=0;r<8;r++)for(var c=0;c<stepCount;c++)p[r][c]=0;
+  var v=patLayer==='synth'?synthVel:drumVel;
+  for(var r=0;r<8;r++)for(var c=0;c<stepCount;c++){
+    p[r][c]=0; v[r][c]=1;
+    if(patLayer==='synth') synthLen[r][c]=1;
+  }
   buildSeqGrid();
 });
 
@@ -2145,11 +2257,21 @@ function makeRng(seed){
   };
 }
 
+/* digit/value tables for irrational constants (≥120 digits each) */
+var CONST_DIGITS={
+  pi:   '31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679',
+  e:    '27182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274',
+  phi:  '16180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374',
+  sqrt2:'14142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727',
+  sqrt3:'17320508075688772935274463415058723669428052538103806280558069794519330169088000370811461867572485756',
+  ln2:  '06931471805599453094172321214581765680755001343602552541206800094933936219696947156058633269964186875'
+};
+
 function mathDigits(name,len){
   var a=[],i;
-  if(name==='pi'){
-    var pi='31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679';
-    for(i=0;i<len;i++) a.push(parseInt(pi.charAt(i%pi.length),10));
+  if(CONST_DIGITS[name]){
+    var s=CONST_DIGITS[name];
+    for(i=0;i<len;i++) a.push(parseInt(s.charAt(i%s.length),10));
     return a;
   }
   if(name==='fib'){
@@ -2157,13 +2279,41 @@ function mathDigits(name,len){
     for(i=0;i<len;i++){ a.push(x%10); var z=(x+y)%997; x=y; y=z; }
     return a;
   }
+  if(name==='lucas'){
+    var lx=2,ly=1;
+    for(i=0;i<len;i++){ a.push(lx%10); var lz=(lx+ly)%997; lx=ly; ly=lz; }
+    return a;
+  }
+  if(name==='tribonacci'){
+    var t1=0,t2=1,t3=1;
+    for(i=0;i<len;i++){ a.push(t3%10); var t4=(t1+t2+t3)%997; t1=t2; t2=t3; t3=t4; }
+    return a;
+  }
   if(name==='primes'){
     var n=2;
     while(a.length<len){
-      var p=true;
-      for(var j=2;j*j<=n;j++){ if(n%j===0){p=false;break;} }
-      if(p) a.push(n);
+      var pr=true;
+      for(var j=2;j*j<=n;j++){ if(n%j===0){pr=false;break;} }
+      if(pr) a.push(n);
       n++;
+    }
+    return a;
+  }
+  if(name==='thue'){
+    /* Thue-Morse: a[n] = parity of popcount(n) — 0/1, scaled to 0..9 */
+    for(i=0;i<len;i++){
+      var n2=i,bits=0;
+      while(n2){ bits+=n2&1; n2>>>=1; }
+      a.push((bits&1)?7:2);
+    }
+    return a;
+  }
+  if(name==='collatz'){
+    /* Collatz orbit lengths starting at i+1, mod 10 */
+    for(i=0;i<len;i++){
+      var v=i+1,steps=0;
+      while(v!==1 && steps<200){ v=(v&1)?(3*v+1):(v>>1); steps++; }
+      a.push(steps%10);
     }
     return a;
   }
@@ -2171,30 +2321,70 @@ function mathDigits(name,len){
     for(i=0;i<len;i++) a.push(Math.round((Math.sin(i*0.37)*0.5+0.5)*9));
     return a;
   }
-  if(name==='ca'){
-    /* Rule 30, center seed; return a flat snapshot (row at mid-evolution) */
-    var w=len, row=new Array(w).fill(0); row[w>>1]=1;
+  if(name==='logistic'){
+    /* logistic map at r=3.91, chaotic regime */
+    var x=0.31;
+    for(i=0;i<len;i++){ x=3.91*x*(1-x); a.push(Math.floor(x*10)%10); }
+    return a;
+  }
+  if(name==='ca'||name==='ca90'){
+    var rule=(name==='ca90')?90:30;
+    var w=Math.max(len,32), row=new Array(w).fill(0); row[w>>1]=1;
     for(var s=0;s<8;s++){
       var nx=new Array(w).fill(0);
       for(i=0;i<w;i++){
         var L=row[(i-1+w)%w],C=row[i],R=row[(i+1)%w];
-        nx[i]=(30>>((L<<2)|(C<<1)|R))&1;
+        nx[i]=(rule>>((L<<2)|(C<<1)|R))&1;
       }
       row=nx;
     }
-    return row;
+    return row.slice(0,len);
   }
   for(i=0;i<len;i++) a.push(i%10);
   return a;
 }
 
 var INTENT_PROFILES={
-  meditative:{density:.22, kick:[0,32],                              snare:[16,48],                      hat:.28, accentPrimes:true,  sparseIntro:true},
-  devotional:{density:.32, kick:[0,8,16,24,32,40,48,56],             snare:[12,28,44,60],                hat:.5,  accentPrimes:true,  sparseIntro:true},
-  driving:   {density:.55, kick:[0,8,16,24,32,40,48,56],             snare:[4,12,20,28,36,44,52,60],     hat:.82, accentPrimes:false, sparseIntro:false},
-  anxious:   {density:.48, kick:[0,14,30,46],                        snare:[7,23,39,55],                 hat:.6,  accentPrimes:true,  sparseIntro:false},
-  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],                 hat:.7,  accentPrimes:false, sparseIntro:true}
+  meditative:{density:.22, kick:[0,32],                              snare:[16,48],                  hat:.28, kickVel:.85, snareVel:.6,  hatVel:.35, accentPrimes:true,  sparseIntro:true,  laneBias:'high', avgLen:2.2},
+  devotional:{density:.32, kick:[0,8,16,24,32,40,48,56],             snare:[12,28,44,60],            hat:.5,  kickVel:.75, snareVel:.65, hatVel:.45, accentPrimes:true,  sparseIntro:true,  laneBias:'mid',  avgLen:1.6},
+  driving:   {density:.55, kick:[0,8,16,24,32,40,48,56],             snare:[4,12,20,28,36,44,52,60], hat:.82, kickVel:.95, snareVel:.85, hatVel:.55, accentPrimes:false, sparseIntro:false, laneBias:'mid',  avgLen:1.0},
+  anxious:   {density:.48, kick:[0,14,30,46],                        snare:[7,23,39,55],             hat:.6,  kickVel:.7,  snareVel:.85, hatVel:.5,  accentPrimes:true,  sparseIntro:false, laneBias:'high', avgLen:0.9},
+  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],             hat:.7,  kickVel:.8,  snareVel:.7,  hatVel:.5,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:1.2}
 };
+var DENSITY_MULT={sparse:.55, medium:1.0, dense:1.6};
+var SWING_PROFILE={
+  straight:{lenMul:1.0, accentEvery:4},
+  legato:  {lenMul:2.0, accentEvery:4},
+  staccato:{lenMul:0.5, accentEvery:2}
+};
+var TRANSFORM_OPTS=['mirror','retrograde','invert','shift','combo','random'];
+
+/* helpers for compose */
+function placeSynth(r,c,vel,len){
+  if(c<0||c>=64||r<0||r>7) return;
+  synthPattern[r][c]=1;
+  synthVel[r][c]=Math.max(0.15,Math.min(1,vel));
+  synthLen[r][c]=Math.max(1,Math.round(len));
+}
+function placeDrum(r,c,vel){
+  if(c<0||c>=64||r<0||r>7) return;
+  drumPattern[r][c]=1;
+  drumVel[r][c]=Math.max(0.15,Math.min(1,vel));
+}
+function transformMotif(motif,kind,rng){
+  var L=motif.length, out=[];
+  if(kind==='random') kind=TRANSFORM_OPTS[Math.floor(rng()*5)];
+  for(var i=0;i<L;i++){
+    var m=motif[i];
+    var nr=m.row, ns=m.step;
+    if(kind==='mirror'||kind==='combo'){ ns=(15-m.step+16)%16; }
+    if(kind==='retrograde'){ var src2=motif[L-1-i]; nr=src2.row; ns=src2.step; }
+    if(kind==='invert'||kind==='combo'){ nr=7-nr; }
+    if(kind==='shift'||kind==='combo'){ ns=(ns+4)%16; }
+    out.push({row:nr,step:ns});
+  }
+  return out;
+}
 
 function composeMusic(opts){
   opts=opts||{};
@@ -2203,8 +2393,17 @@ function composeMusic(opts){
   var intent=opts.intent||'meditative';
   var math=opts.math||'pi';
   var seed=opts.seed|0; if(!seed) seed=1;
+  var motifLen=Math.max(2,Math.min(16,opts.motifLen|0||8));
+  var offset=Math.max(0,opts.offset|0);
+  var stride=Math.max(1,opts.stride|0||1);
+  var dir=opts.dir||'fwd';
+  var densityKey=opts.density||'medium';
+  var transform=opts.transform||'combo';
+  var swing=opts.swing||'straight';
   var rng=makeRng(seed);
   var profile=INTENT_PROFILES[intent]||INTENT_PROFILES.meditative;
+  var dMul=DENSITY_MULT[densityKey]||1;
+  var sw=SWING_PROFILE[swing]||SWING_PROFILE.straight;
 
   setScaleLanes(rootIdx,scaleName);
 
@@ -2215,65 +2414,115 @@ function composeMusic(opts){
     resizePatterns(64);
   }
   for(var r=0;r<8;r++){
-    for(var c=0;c<64;c++){ synthPattern[r][c]=0; drumPattern[r][c]=0; }
+    for(var c=0;c<64;c++){
+      synthPattern[r][c]=0; drumPattern[r][c]=0;
+      synthVel[r][c]=1; synthLen[r][c]=1; drumVel[r][c]=1;
+    }
   }
 
-  var src=mathDigits(math,128);
-
-  /* --- SYNTH: motif derived from math, varied across 4 sections --- */
-  var motifLen=8, motif=[];
+  /* derive motif from math source with variation knobs */
+  var srcLen=Math.max(160,offset+motifLen*stride+32);
+  var srcRaw=mathDigits(math,srcLen);
+  var src=[];
   for(var i=0;i<motifLen;i++){
-    var v=src[i]|0;
-    motif.push({row:7-(v%8), step:(i*2)%16});
+    var idx=offset+i*stride;
+    src.push(srcRaw[idx%srcRaw.length]|0);
+  }
+  if(dir==='rev') src.reverse();
+  if(dir==='zig'){
+    var z=[],lo=0,hi=src.length-1;
+    while(lo<=hi){ z.push(src[lo++]); if(lo<=hi) z.push(src[hi--]); }
+    src=z;
   }
 
-  /* A: intro 0-15 — sparse, first half of motif, high lanes favored if meditative */
-  motif.slice(0,4).forEach(function(m){
-    if(rng()<0.85) synthPattern[m.row][m.step]=1;
-  });
+  /* lane bias: nudge into preferred register */
+  function laneFor(v){
+    var base=v%8;
+    if(profile.laneBias==='high') return Math.min(7, Math.max(2, base));
+    if(profile.laneBias==='low')  return Math.min(5, base);
+    return base;
+  }
 
-  /* B: statement 16-31 — full motif */
-  motif.forEach(function(m){ synthPattern[m.row][16+m.step]=1; });
+  /* spacing per motif note: stride controls sparsity inside the bar */
+  var motif=[];
+  var spacing=Math.max(1,Math.floor(16/motifLen));
+  for(var k=0;k<motifLen;k++){
+    motif.push({row:7-laneFor(src[k]|0), step:(k*spacing)%16});
+  }
 
-  /* C: variation 32-47 — mirror time + shift lane + density fills */
-  motif.forEach(function(m,i){
-    var mStep=((motifLen-1-i)*2)%16;
-    var shiftedRow=(m.row+2)%8;
-    if(rng()<0.9) synthPattern[shiftedRow][32+mStep]=1;
-    if(rng()<profile.density){
-      var fillRow=7-((src[(i+8)%src.length]|0)%8);
-      var fillStep=32+(((i*2+1))%16);
-      synthPattern[fillRow][fillStep]=1;
+  var baseLen=Math.max(1,Math.round(profile.avgLen*sw.lenMul));
+
+  /* A: intro 0-15 — first ~half of motif, gentler velocities, longer notes */
+  motif.slice(0,Math.ceil(motifLen/2)).forEach(function(m,i){
+    if(rng()<0.85){
+      var v=0.45+0.25*rng();
+      placeSynth(m.row, m.step, v, baseLen+1);
     }
   });
 
-  /* D: resolve 48-63 — return to motif then land on root */
-  motif.slice(0,3).forEach(function(m,i){
-    synthPattern[m.row][48+i*2]=1;
+  /* B: statement 16-31 — full motif at strong velocity, downbeats accented */
+  motif.forEach(function(m,i){
+    var step=16+m.step;
+    var accent=(step%sw.accentEvery===0);
+    var v=accent?0.95:0.7+0.2*rng();
+    placeSynth(m.row, step, v, baseLen);
   });
-  synthPattern[7][56]=1; /* low root */
-  synthPattern[0][62]=1; /* high tonic */
-  synthPattern[7][63]=1; /* low root tail */
 
-  /* --- DRUMS: kick/snare/hat from intent profile, math-driven accents --- */
-  profile.kick.forEach(function(s){ if(s<64) drumPattern[0][s]=1; });
-  profile.snare.forEach(function(s){ if(s<64) drumPattern[1][s]=1; });
+  /* C: variation 32-47 — apply chosen transform + density fills */
+  var transformed=transformMotif(motif,transform,rng);
+  transformed.forEach(function(m,i){
+    if(rng()<0.9){
+      var step=32+m.step;
+      var v=0.6+0.3*rng();
+      placeSynth(m.row, step, v, baseLen);
+    }
+    if(rng()<profile.density*dMul){
+      var fillRow=7-((srcRaw[(i+offset+motifLen)%srcRaw.length]|0)%8);
+      var fillStep=32+(((i*spacing+1))%16);
+      placeSynth(fillRow, fillStep, 0.4+0.25*rng(), Math.max(1,baseLen-1));
+    }
+  });
+
+  /* D: resolve 48-63 — re-state shortened motif, land on root with sustain */
+  motif.slice(0,Math.min(3,motifLen)).forEach(function(m,i){
+    placeSynth(m.row, 48+i*spacing, 0.6, baseLen);
+  });
+  placeSynth(7, 56, 0.9, 4); /* low root, sustained */
+  placeSynth(0, 60, 0.75, 4); /* high tonic */
+  placeSynth(7, 60, 0.85, 4); /* root + tonic chord */
+
+  /* --- DRUMS --- */
+  profile.kick.forEach(function(s,i){
+    if(s<64){
+      var accent=(s===0||s===16||s===32||s===48);
+      placeDrum(0, s, profile.kickVel*(accent?1:0.85));
+    }
+  });
+  profile.snare.forEach(function(s){
+    if(s<64) placeDrum(1, s, profile.snareVel);
+  });
+  /* hat with ghost-note dynamics */
+  var hatProb=Math.max(0,Math.min(1,profile.hat*dMul));
   for(var c=0;c<64;c++){
-    if(rng()<profile.hat) drumPattern[2][c]=1;
+    if(rng()<hatProb){
+      var accent=(c%4===0);
+      placeDrum(2, c, accent?profile.hatVel:profile.hatVel*0.45);
+    }
   }
   if(profile.accentPrimes){
-    mathDigits('primes',22).forEach(function(p){
-      if(p<64) drumPattern[6][p]=1; /* PERC lane */
+    mathDigits('primes',24).forEach(function(p){
+      if(p<64) placeDrum(6, p, 0.55);
     });
   }
-  drumPattern[5][16]=1; /* CRASH on section B */
-  drumPattern[3][32]=1; /* CLAP on section C */
-  if(intent==='driving'||intent==='playful') drumPattern[7][48]=1; /* COWBELL into D */
+  /* section markers */
+  placeDrum(5, 16, 0.7); /* CRASH section B */
+  placeDrum(3, 32, 0.85); /* CLAP section C */
+  if(intent==='driving'||intent==='playful') placeDrum(7, 48, 0.7); /* COWBELL into D */
 
-  /* sparse intro: thin hi-hat in first 16 steps */
+  /* sparse intro: thin hi-hat */
   if(profile.sparseIntro){
     for(c=0;c<16;c++){
-      if(rng()<0.55) drumPattern[2][c]=0;
+      if(rng()<0.55){ drumPattern[2][c]=0; }
     }
   }
 
@@ -2281,15 +2530,164 @@ function composeMusic(opts){
   updatePatStatus();
 }
 
+/* ── EVALUATION LOOP ──
+   Score the current pattern on density, motion, repetition, drive, balance,
+   and silence. Each metric returns a target-shaped score 0..1; overall
+   is the mean × 100. Verdict is the worst-scoring axis. */
+function evaluateMusic(){
+  var sOn=0,dOn=0, kicks=0, rowsUsed={}, c, r;
+  var synthSteps=[]; /* per-step: list of rows that fired, in order */
+  for(c=0;c<64;c++){
+    var rowsAt=[];
+    for(r=0;r<8;r++){
+      if(synthPattern[r][c]){ sOn++; rowsAt.push(r); rowsUsed[r]=1; }
+      if(drumPattern[r][c]){ dOn++; if(r===0) kicks++; }
+    }
+    synthSteps.push(rowsAt);
+  }
+  /* repetition: hamming between halves */
+  var diff=0, total=0;
+  for(r=0;r<8;r++) for(c=0;c<32;c++){
+    if(synthPattern[r][c]!==synthPattern[r][c+32]) diff++;
+    total++;
+    if(drumPattern[r][c]!==drumPattern[r][c+32]) diff++;
+    total++;
+  }
+  /* motion: avg leap between consecutive synth notes */
+  var leapSum=0, leapN=0, prevRow=null;
+  for(c=0;c<64;c++){
+    for(r=0;r<8;r++){
+      if(synthPattern[r][c]){
+        if(prevRow!==null){ leapSum+=Math.abs(r-prevRow); leapN++; }
+        prevRow=r;
+      }
+    }
+  }
+  /* silence windows: any 8-step window with zero events? */
+  var silentWindows=0;
+  for(c=0;c<=56;c++){
+    var any=0;
+    for(var w=0;w<8&&!any;w++){
+      for(r=0;r<8;r++){
+        if(synthPattern[r][c+w]||drumPattern[r][c+w]){ any=1; break; }
+      }
+    }
+    if(!any) silentWindows++;
+  }
+
+  var synthDensity=sOn/(8*64);     /* target ~0.10..0.28 */
+  var drumDensity =dOn/(8*64);     /* target ~0.12..0.40 */
+  var uniqRows=Object.keys(rowsUsed).length; /* target >=4 */
+  var repRatio=total?diff/total:0; /* target ~0.20..0.55 (some change, not chaos) */
+  var avgLeap=leapN?leapSum/leapN:0; /* target ~1.5..3.5 */
+  var driveOk=kicks>=4?1:kicks/4;    /* need at least 4 kicks */
+
+  function band(v,lo,hi){
+    if(v<lo) return Math.max(0,1-(lo-v)/lo);
+    if(v>hi) return Math.max(0,1-(v-hi)/Math.max(0.0001,hi));
+    return 1;
+  }
+  var scores={
+    density:    band(synthDensity,0.08,0.30),
+    drumDensity:band(drumDensity, 0.12,0.42),
+    motion:     uniqRows>=4?1:uniqRows/4,
+    repetition: band(repRatio,0.18,0.58),
+    leap:       band(avgLeap,1.2,3.8),
+    drive:      driveOk,
+    silence:    silentWindows===0?1:Math.max(0,1-silentWindows*0.15)
+  };
+  var keys=Object.keys(scores), sum=0;
+  keys.forEach(function(k){ sum+=scores[k]; });
+  var overall=Math.round(100*sum/keys.length);
+
+  var worstK=keys[0], worstV=scores[worstK];
+  keys.forEach(function(k){ if(scores[k]<worstV){worstV=scores[k]; worstK=k;} });
+  var verdict='balanced';
+  if(worstV<0.7){
+    if(worstK==='density')     verdict=synthDensity<0.08?'too sparse (synth)':'too dense (synth)';
+    else if(worstK==='drumDensity') verdict=drumDensity<0.12?'too sparse (drums)':'too dense (drums)';
+    else if(worstK==='motion') verdict='too few pitch lanes';
+    else if(worstK==='repetition') verdict=repRatio<0.18?'too repetitive':'too random';
+    else if(worstK==='leap')   verdict=avgLeap<1.2?'too static':'too jumpy';
+    else if(worstK==='drive')  verdict='not enough kick';
+    else if(worstK==='silence') verdict=silentWindows+' silent windows';
+  }
+  return {
+    overall:overall, verdict:verdict, scores:scores,
+    synthDensity:synthDensity, drumDensity:drumDensity,
+    uniqRows:uniqRows, repRatio:repRatio, avgLeap:avgLeap, kicks:kicks
+  };
+}
+
+function renderScore(ev,seedUsed,attempts){
+  var bar=document.getElementById('dirScoreBar');
+  var el=document.getElementById('dirScore');
+  bar.style.display='flex';
+  el.textContent='SCORE '+ev.overall+'/100 · '+ev.verdict
+    +' · syn '+(ev.synthDensity*100|0)+'%'
+    +' drum '+(ev.drumDensity*100|0)+'%'
+    +' rows '+ev.uniqRows
+    +' rep '+(ev.repRatio*100|0)+'%'
+    +' leap '+ev.avgLeap.toFixed(1)
+    +(attempts>1?' · seed '+seedUsed+' (best of '+attempts+')':'');
+}
+
 document.getElementById('dirCompose').addEventListener('click',function(){
-  composeMusic({
+  var o={
     intent: document.getElementById('dirIntent').value,
     math:   document.getElementById('dirMath').value,
     root:   parseInt(document.getElementById('dirRoot').value,10),
     scale:  document.getElementById('dirScale').value,
-    seed:   parseInt(document.getElementById('dirSeed').value,10)||1
-  });
+    seed:   parseInt(document.getElementById('dirSeed').value,10)||1,
+    motifLen: parseInt(document.getElementById('dirMotifLen').value,10),
+    offset:   parseInt(document.getElementById('dirOffset').value,10)||0,
+    stride:   parseInt(document.getElementById('dirStride').value,10)||1,
+    dir:      document.getElementById('dirDir').value,
+    density:  document.getElementById('dirDensity').value,
+    transform:document.getElementById('dirTransform').value,
+    swing:    document.getElementById('dirSwing').value
+  };
+  var auto=document.getElementById('dirAuto').checked;
+  if(!auto){
+    composeMusic(o);
+    renderScore(evaluateMusic(),o.seed,1);
+    return;
+  }
+  /* auto-improve: try up to 12 seeds, keep the best score */
+  var best=null, bestSeed=o.seed, bestEv=null;
+  for(var k=0;k<12;k++){
+    var trySeed=o.seed+k;
+    composeMusic(Object.assign({},o,{seed:trySeed}));
+    var ev=evaluateMusic();
+    if(!best||ev.overall>best){
+      best=ev.overall; bestSeed=trySeed; bestEv=ev;
+      /* snapshot grids */
+      var snap={s:[],d:[],sv:[],sl:[],dv:[]};
+      for(var r=0;r<8;r++){
+        snap.s[r]=synthPattern[r].slice();
+        snap.d[r]=drumPattern[r].slice();
+        snap.sv[r]=synthVel[r].slice();
+        snap.sl[r]=synthLen[r].slice();
+        snap.dv[r]=drumVel[r].slice();
+      }
+      bestSnap=snap;
+    }
+    if(best>=88) break;
+  }
+  /* restore best */
+  if(typeof bestSnap!=='undefined' && bestSnap){
+    for(var r=0;r<8;r++){
+      synthPattern[r]=bestSnap.s[r];
+      drumPattern[r]=bestSnap.d[r];
+      synthVel[r]=bestSnap.sv[r];
+      synthLen[r]=bestSnap.sl[r];
+      drumVel[r]=bestSnap.dv[r];
+    }
+    buildSeqGrid();
+  }
+  renderScore(bestEv,bestSeed,12);
 });
+var bestSnap=null;
 
 /* ── SAMPLER ── */
 var samplerPads=[null,null,null,null];
