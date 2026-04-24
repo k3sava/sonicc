@@ -284,6 +284,12 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 .dir-stem.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
 .dir-stem-auto{text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
 .dir-stems.locked .dir-stem:not(.dir-stem-auto){opacity:0.55;pointer-events:none}
+.dir-flrs{height:30px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface-solid);color:var(--text-dim);font-family:var(--font-label);font-size:0.7rem;letter-spacing:0.04em;cursor:pointer;transition:all var(--motion-fast)}
+.dir-flrs:hover{border-color:var(--accent);color:var(--text)}
+.dir-flrs.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.dir-pinned-seed{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-family:var(--font-label);font-size:0.6rem;color:var(--text-muted);background:var(--surface-solid);cursor:pointer}
+.dir-pinned-seed:hover{border-color:var(--accent);color:var(--accent)}
+.dir-pinned-seed .x{opacity:0.5;margin-left:2px}
 .dir-action{display:flex;justify-content:center}
 .dir-compose{height:40px;padding:0 36px;border:none;border-radius:var(--input-radius);background:var(--accent);color:var(--accent-contrast);font-family:var(--font-label);font-size:0.8rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all var(--motion-fast);box-shadow:0 2px 8px rgba(37,99,235,0.25)}
 .dir-compose:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.35);filter:brightness(1.05)}
@@ -848,6 +854,22 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
               </div>
             </div>
 
+            <div class="dir-group dir-group-wide">
+              <span class="dir-label">Flourish</span>
+              <div class="dir-group-row dir-stems">
+                <button type="button" class="dir-flrs" data-flrs="jazz" title="Pad voicings gain diatonic 7ths">jazz</button>
+                <button type="button" class="dir-flrs" data-flrs="atonal" title="Section C transform ignores the scale">atonal</button>
+                <button type="button" class="dir-flrs" data-flrs="glide" title="Lead notes glide between pitches">glide</button>
+                <button type="button" class="dir-flrs" data-flrs="cosmos" title="Reverb tail extends dramatically">cosmos</button>
+                <button type="button" class="dir-flrs" data-flrs="grit" title="Adds a subtle noise texture layer">grit</button>
+                <button type="button" class="dir-flrs" data-flrs="augment" title="Doubles all note lengths post-compose">augment</button>
+                <span style="flex:1;min-width:8px"></span>
+                <button type="button" class="dir-icon" id="dirSting" title="Play a quick 3-note cadence">sting</button>
+                <button type="button" class="dir-icon" id="dirPin" title="Pin current seed — remember this take">pin</button>
+              </div>
+              <div class="dir-group-row" id="dirPinnedRow" style="display:none;flex-wrap:wrap;gap:4px;margin-top:4px"></div>
+            </div>
+
           </div>
 
           <div class="dir-action">
@@ -1250,7 +1272,18 @@ var PRESETS={
   gamelan:{waveform:'_gamelan',attack:.002,decay:.8,sustain:.3,release:2,filterFreq:10000,filterRes:2,fx:{reverb:true}},
   bansuri:{waveform:'_bansuri',attack:.08,decay:.15,sustain:.7,release:.5,filterFreq:3000,filterRes:3,fx:{reverb:true,tremolo:true}},
   oud:{waveform:'_oud',attack:.002,decay:.3,sustain:.1,release:.4,filterFreq:3000,filterRes:2,fx:{reverb:true}},
-  steelpan:{waveform:'_steelpan',attack:.001,decay:.5,sustain:.25,release:.8,filterFreq:9000,filterRes:1,fx:{reverb:true,delay:true}}
+  steelpan:{waveform:'_steelpan',attack:.001,decay:.5,sustain:.25,release:.8,filterFreq:9000,filterRes:1,fx:{reverb:true,delay:true}},
+  /* ── curated additions ── */
+  paper:{waveform:'_paper',attack:.001,decay:.08,sustain:.0,release:.1,filterFreq:8000,filterRes:1,fx:{reverb:true}},
+  felt:{waveform:'_felt',attack:.005,decay:.4,sustain:.2,release:.7,filterFreq:2400,filterRes:1,fx:{reverb:true}},
+  ronroco:{waveform:'_ronroco',attack:.001,decay:.25,sustain:.08,release:.4,filterFreq:5500,filterRes:3,fx:{reverb:true}},
+  typewriter:{waveform:'_typewriter',attack:.0005,decay:.04,sustain:0,release:.05,filterFreq:6000,filterRes:2,fx:{}},
+  tanpura:{waveform:'_tanpura',attack:.2,decay:.4,sustain:.85,release:1.8,filterFreq:2800,filterRes:2,fx:{reverb:true}},
+  celesta:{waveform:'_celesta',attack:.001,decay:.5,sustain:.15,release:1.2,filterFreq:11000,filterRes:1,fx:{reverb:true}},
+  whistle:{waveform:'_whistle',attack:.04,decay:.1,sustain:.75,release:.35,filterFreq:6000,filterRes:2,fx:{reverb:true,tremolo:true}},
+  cello:{waveform:'_cello',attack:.12,decay:.2,sustain:.78,release:.9,filterFreq:4200,filterRes:2,fx:{reverb:true}},
+  harmonium:{waveform:'_harmonium',attack:.04,decay:.12,sustain:.88,release:.5,filterFreq:4000,filterRes:1,fx:{reverb:true,chorus:true}},
+  blast:{waveform:'_blast',attack:.005,decay:.5,sustain:.4,release:1.8,filterFreq:1200,filterRes:3,fx:{reverb:true,dist:true}}
 };
 
 function applyPreset(name){
@@ -1341,6 +1374,13 @@ function getReverb(){
   if(!fxNodes.reverb){
     fxNodes.reverb=actx.createConvolver();
     fxNodes.reverb.buffer=createImpulse(2,2.5);
+    fxNodes.reverb._cosmos=false;
+  }
+  /* expansive tail when cosmos flourish is active */
+  var wantCosmos=!!(window._flourish&&window._flourish.cosmos);
+  if(wantCosmos!==fxNodes.reverb._cosmos){
+    fxNodes.reverb.buffer=wantCosmos?createImpulse(8,1.2):createImpulse(2,2.5);
+    fxNodes.reverb._cosmos=wantCosmos;
   }
   return fxNodes.reverb;
 }
@@ -1653,7 +1693,11 @@ function createVoice(note,oct,ctx,dest){
       mod.connect(modG);
       var car=ctx.createOscillator();car.type='sine';car.frequency.value=freq;car.detune.value=synth.detune;
       modG.connect(car.frequency);car.connect(env);
-      mod.start();car.start();nodes.push(mod,car);
+      /* slow microtonal drift on the modulator — shimmer rather than vibrato */
+      var drift=ctx.createOscillator();drift.type='sine';drift.frequency.value=0.37;
+      var driftG=ctx.createGain();driftG.gain.value=freq*0.015;
+      drift.connect(driftG);driftG.connect(mod.frequency);
+      mod.start();car.start();drift.start();nodes.push(mod,car,drift);
     }break;
     case 'organ':{
       /* additive harmonics: fundamental + 2nd + 3rd + 4th partials (drawbar-style) */
@@ -1855,6 +1899,100 @@ function createVoice(note,oct,ctx,dest){
       mod.start();car.start();o2a.start();o2b.start();o3.start();exc.start();
       nodes.push(mod,car,o2a,o2b,o3,exc);
     }break;
+    /* ── curated additions ── */
+    case '_paper':{ /* short scratchy texture — rustled sheets */
+      var bufLen=ctx.sampleRate*0.12;var buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<bufLen;i++){ d[i]=(Math.random()*2-1)*(1-i/bufLen)*0.6 + Math.sin(i*0.5)*0.1*(Math.random()-0.5); }
+      var n=ctx.createBufferSource();n.buffer=buf;
+      var hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=1500;
+      n.connect(hp);hp.connect(env);n.start();nodes.push(n);
+    }break;
+    case '_felt':{ /* dampened piano — triangle + lowpass + slight hammer noise */
+      var osc=ctx.createOscillator();osc.type='triangle';osc.frequency.value=freq;osc.detune.value=synth.detune;
+      var hammerLen=ctx.sampleRate*0.015;var hb=ctx.createBuffer(1,hammerLen,ctx.sampleRate);
+      var hd=hb.getChannelData(0);for(var i=0;i<hammerLen;i++)hd[i]=(Math.random()*2-1)*(1-i/hammerLen);
+      var hn=ctx.createBufferSource();hn.buffer=hb;
+      var hg=ctx.createGain();hg.gain.value=0.08;hn.connect(hg);hg.connect(env);
+      var lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;
+      osc.connect(lp);lp.connect(env);
+      osc.start();hn.start();nodes.push(osc,hn);
+    }break;
+    case '_ronroco':{ /* small Andean lute — octave-doubled triangle with decay */
+      var o1=ctx.createOscillator();o1.type='triangle';o1.frequency.value=freq;o1.detune.value=synth.detune-4;
+      var o2=ctx.createOscillator();o2.type='triangle';o2.frequency.value=freq*2;o2.detune.value=synth.detune+4;
+      var g1=ctx.createGain();g1.gain.value=0.55;var g2=ctx.createGain();g2.gain.value=0.35;
+      o1.connect(g1);g1.connect(env);o2.connect(g2);g2.connect(env);
+      o1.start();o2.start();nodes.push(o1,o2);
+    }break;
+    case '_typewriter':{ /* mechanical clack — short noise burst + wooden resonance */
+      var bufLen=ctx.sampleRate*0.04;var buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+      var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/bufLen*8);
+      var n=ctx.createBufferSource();n.buffer=buf;
+      var bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2400;bp.Q.value=4;
+      var wood=ctx.createOscillator();wood.type='square';wood.frequency.value=180;
+      var wg=ctx.createGain();wg.gain.value=0.12;wood.connect(wg);wg.connect(env);
+      n.connect(bp);bp.connect(env);
+      n.start();wood.start();setTimeout(function(){try{wood.stop()}catch(e){}},50);
+      nodes.push(n,wood);
+    }break;
+    case '_tanpura':{ /* Indian drone — rich buzz via sawtooth + octave + minor beating */
+      var o1=ctx.createOscillator();o1.type='sawtooth';o1.frequency.value=freq;o1.detune.value=synth.detune;
+      var o2=ctx.createOscillator();o2.type='sawtooth';o2.frequency.value=freq;o2.detune.value=synth.detune+6;
+      var o3=ctx.createOscillator();o3.type='sine';o3.frequency.value=freq*2;
+      var g1=ctx.createGain();g1.gain.value=0.35;var g2=ctx.createGain();g2.gain.value=0.3;var g3=ctx.createGain();g3.gain.value=0.2;
+      o1.connect(g1);g1.connect(env);o2.connect(g2);g2.connect(env);o3.connect(g3);g3.connect(env);
+      o1.start();o2.start();o3.start();nodes.push(o1,o2,o3);
+    }break;
+    case '_celesta':{ /* tuned metallic bell — FM with 5th harmonic emphasis */
+      var mod=ctx.createOscillator();mod.type='sine';mod.frequency.value=freq*3;
+      var modG=ctx.createGain();modG.gain.value=freq*0.8;
+      mod.connect(modG);
+      var car=ctx.createOscillator();car.type='sine';car.frequency.value=freq;car.detune.value=synth.detune;
+      modG.connect(car.frequency);car.connect(env);
+      var high=ctx.createOscillator();high.type='sine';high.frequency.value=freq*5;
+      var hg=ctx.createGain();hg.gain.value=0.15;high.connect(hg);hg.connect(env);
+      mod.start();car.start();high.start();nodes.push(mod,car,high);
+    }break;
+    case '_whistle':{ /* human whistle — sine + tiny vibrato + breath noise */
+      var osc=ctx.createOscillator();osc.type='sine';osc.frequency.value=freq;osc.detune.value=synth.detune;
+      var lfo=ctx.createOscillator();lfo.type='sine';lfo.frequency.value=5.2;
+      var lfoG=ctx.createGain();lfoG.gain.value=6;
+      lfo.connect(lfoG);lfoG.connect(osc.detune);
+      var bufLen=ctx.sampleRate*0.5;var buf=ctx.createBuffer(1,bufLen,ctx.sampleRate);
+      var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=(Math.random()*2-1)*0.04;
+      var n=ctx.createBufferSource();n.buffer=buf;n.loop=true;
+      var hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=3000;
+      n.connect(hp);hp.connect(env);
+      osc.connect(env);
+      osc.start();lfo.start();n.start();nodes.push(osc,lfo,n);
+    }break;
+    case '_cello':{ /* bowed string — saw + slow attack + subtle vibrato */
+      var osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=freq;osc.detune.value=synth.detune;
+      var lfo=ctx.createOscillator();lfo.type='sine';lfo.frequency.value=4.5;
+      var lfoG=ctx.createGain();lfoG.gain.value=4;
+      lfo.connect(lfoG);lfoG.connect(osc.detune);
+      var lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;lp.Q.value=1.3;
+      osc.connect(lp);lp.connect(env);
+      osc.start();lfo.start();nodes.push(osc,lfo);
+    }break;
+    case '_harmonium':{ /* reedy bellows — stacked saws with comb-like filtering */
+      var o1=ctx.createOscillator();o1.type='sawtooth';o1.frequency.value=freq;o1.detune.value=synth.detune-3;
+      var o2=ctx.createOscillator();o2.type='sawtooth';o2.frequency.value=freq;o2.detune.value=synth.detune+3;
+      var o3=ctx.createOscillator();o3.type='square';o3.frequency.value=freq*2;
+      var g1=ctx.createGain();g1.gain.value=0.35;var g2=ctx.createGain();g2.gain.value=0.35;var g3=ctx.createGain();g3.gain.value=0.12;
+      o1.connect(g1);g1.connect(env);o2.connect(g2);g2.connect(env);o3.connect(g3);g3.connect(env);
+      o1.start();o2.start();o3.start();nodes.push(o1,o2,o3);
+    }break;
+    case '_blast':{ /* low brass thunderclap — saw + sub sine + sweep envelope */
+      var osc=ctx.createOscillator();osc.type='sawtooth';osc.frequency.value=freq*0.5;osc.detune.value=synth.detune-6;
+      var sub=ctx.createOscillator();sub.type='sine';sub.frequency.value=freq*0.25;
+      var g=ctx.createGain();g.gain.value=0.45;osc.connect(g);g.connect(env);
+      var sg=ctx.createGain();sg.gain.value=0.55;sub.connect(sg);sg.connect(env);
+      var lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=800;lp.Q.value=2;
+      g.disconnect();g.connect(lp);lp.connect(env);
+      osc.start();sub.start();nodes.push(osc,sub);
+    }break;
     default:{
       var osc=ctx.createOscillator();osc.type=wf;
       osc.frequency.value=freq;osc.detune.value=synth.detune;
@@ -1959,10 +2097,14 @@ function playDrum(index,vel){
         n.connect(bp);bp.connect(g);g.connect(master);n.start(now+offset);
       }
     }break;
-    case 4:/* TOM */{
+    case 4:/* TOM — pitched "talking" sweep: up-then-down at higher velocities */
+    {
       var o=actx.createOscillator();o.type='sine';
       var g=actx.createGain();g.gain.setValueAtTime(0.8*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.3);
-      o.frequency.setValueAtTime(140,now);o.frequency.exponentialRampToValueAtTime(50,now+0.1);
+      var hi=160+(vel>0.75?80:0);
+      o.frequency.setValueAtTime(hi,now);
+      o.frequency.exponentialRampToValueAtTime(hi*1.15,now+0.04); /* quick 'up' inflection */
+      o.frequency.exponentialRampToValueAtTime(50,now+0.16);
       o.connect(g);g.connect(master);o.start(now);o.stop(now+0.3);
     }break;
     case 5:/* CRASH */{
@@ -2258,6 +2400,18 @@ function triggerSeqNote(note,oct,vel,lenSteps){
   voice.env.gain.linearRampToValueAtTime(vel,now+atk);
   voice.env.gain.linearRampToValueAtTime(synth.sustain*vel,now+atk+dec);
   voice.env.gain.linearRampToValueAtTime(0,now+dur);
+  /* glide: ramp first osc's frequency from last note's freq if within window */
+  if(window._flourish&&window._flourish.glide && _lastLeadTime && (now-_lastLeadTime)<0.18){
+    var targetFreq=noteFreq(note,oct);
+    voice.nodes.forEach(function(n){
+      if(n && n.frequency && n.frequency.setValueAtTime){
+        n.frequency.cancelScheduledValues(now);
+        n.frequency.setValueAtTime(_lastLeadFreq,now);
+        n.frequency.linearRampToValueAtTime(targetFreq,now+0.09);
+      }
+    });
+  }
+  _lastLeadTime=now; _lastLeadFreq=noteFreq(note,oct);
   var nds=voice.nodes;
   setTimeout(function(){nds.forEach(function(nd){try{nd.stop()}catch(e){}})},(dur+synth.release)*1000+50);
 }
@@ -3202,6 +3356,40 @@ function composeMusic(opts){
     }
   }
 
+  /* ── FLOURISHES ── applied last so they operate on the finished arrangement */
+  var flr=opts.flourishes||[];
+  function hasFlr(n){ return flr.indexOf(n)>=0; }
+
+  /* jazz — schedule a diatonic 7th over each pad section downbeat */
+  if(hasFlr('jazz')){
+    [0,16,32,48].forEach(function(s){
+      var n7=synthScale[6]||synthScale[0];
+      var oct7=baseOctave+(synthScaleOcts[6]||0);
+      auxEvents.push({step:s, preset:'pad', note:n7, oct:oct7, vel:0.32, len:16});
+    });
+  }
+  /* atonal — section C relocates some synth hits to off-scale rows */
+  if(hasFlr('atonal')){
+    for(var c=32;c<48;c++){
+      for(var r=0;r<8;r++){
+        if(synthPattern[r][c] && rng()<0.4){
+          synthPattern[r][c]=0;
+          var nr=(r+1+Math.floor(rng()*6))%8;
+          synthPattern[nr][c]=1;
+          synthVel[nr][c]=synthVel[r][c]||0.7;
+          synthLen[nr][c]=synthLen[r][c]||1;
+          synthVel[r][c]=1; synthLen[r][c]=1;
+        }
+      }
+    }
+  }
+  /* augment — double every synth note length, clamped */
+  if(hasFlr('augment')){
+    for(var r=0;r<8;r++) for(var c=0;c<64;c++){
+      if(synthPattern[r][c]) synthLen[r][c]=Math.min(8,(synthLen[r][c]||1)*2);
+    }
+  }
+
   buildSeqGrid();
   updatePatStatus();
 }
@@ -3397,7 +3585,8 @@ document.getElementById('dirCompose').addEventListener('click',function(){
     density:  document.getElementById('dirDensity').value,
     transform:document.getElementById('dirTransform').value,
     swing:    document.getElementById('dirSwing').value,
-    stems:    stems
+    stems:    stems,
+    flourishes: getActiveFlourishes()
   };
   var auto=document.getElementById('dirAuto').checked;
   if(!auto){
@@ -3486,23 +3675,113 @@ document.getElementById('dirSeedInc').addEventListener('click',function(){
 /* stem chips — AUTO toggles lock on the others; individual chips toggle on/off */
 (function wireStemChips(){
   var chips=document.querySelectorAll('.dir-stem');
-  var stemRow=document.querySelector('.dir-stems');
+  var stemRow=document.querySelectorAll('.dir-stems')[0]; /* the stems row, not flourish */
   function syncLock(){
     var autoOn=document.querySelector('.dir-stem[data-stem="auto"]').classList.contains('active');
     stemRow.classList.toggle('locked',autoOn);
   }
   chips.forEach(function(chip){
     chip.addEventListener('click',function(){
-      if(chip.dataset.stem==='auto'){
-        chip.classList.toggle('active');
-      }else{
-        chip.classList.toggle('active');
-      }
+      chip.classList.toggle('active');
       syncLock();
     });
   });
   syncLock();
 })();
+
+/* flourish chips + sting + pin */
+(function wireFlourish(){
+  document.querySelectorAll('.dir-flrs').forEach(function(chip){
+    chip.addEventListener('click',function(){ chip.classList.toggle('active'); });
+  });
+  var sting=document.getElementById('dirSting');
+  if(sting){
+    sting.addEventListener('click',function(){
+      ensureAudio(); if(!chainBuilt) initChain();
+      /* 3-note cadence in current scale: V → IV → I, sharp + bright */
+      var idxs=[4,3,0], delays=[0,140,310];
+      idxs.forEach(function(sIdx,i){
+        setTimeout(function(){
+          var n=synthScale[sIdx], oct=baseOctave+(synthScaleOcts[sIdx]||0);
+          triggerAuxVoice('pluck',n,oct,0.85,2,getBus('lead'));
+        },delays[i]);
+      });
+    });
+  }
+  var pin=document.getElementById('dirPin');
+  var pinnedRow=document.getElementById('dirPinnedRow');
+  var pinned=[];
+  if(pin){
+    pin.addEventListener('click',function(){
+      var seed=parseInt(document.getElementById('dirSeed').value,10)||1;
+      if(pinned.indexOf(seed)>=0) return;
+      pinned.push(seed); renderPinned();
+    });
+  }
+  function renderPinned(){
+    pinnedRow.innerHTML='';
+    pinnedRow.style.display=pinned.length?'flex':'none';
+    pinned.forEach(function(s){
+      var chip=document.createElement('button');
+      chip.className='dir-pinned-seed'; chip.type='button';
+      chip.innerHTML='seed '+s+'<span class="x">×</span>';
+      chip.addEventListener('click',function(e){
+        if(e.offsetX>chip.clientWidth-20){
+          pinned=pinned.filter(function(x){return x!==s}); renderPinned();
+        }else{
+          document.getElementById('dirSeed').value=s;
+        }
+      });
+      pinnedRow.appendChild(chip);
+    });
+  }
+})();
+
+/* read currently-active flourish set */
+function getActiveFlourishes(){
+  var arr=[];
+  document.querySelectorAll('.dir-flrs.active').forEach(function(c){ arr.push(c.dataset.flrs); });
+  return arr;
+}
+
+/* shared flourish state — consulted by realtime audio paths */
+window._flourish={jazz:false,atonal:false,glide:false,cosmos:false,grit:false,augment:false};
+window._gritNode=null;
+function applyFlourishRealtime(k,on){
+  if(k==='grit'){
+    if(on){
+      if(!window._gritNode){
+        ensureAudio(); if(!chainBuilt) initChain();
+        var len=actx.sampleRate*2, buf=actx.createBuffer(1,len,actx.sampleRate);
+        var d=buf.getChannelData(0);
+        for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*0.015;
+        var src=actx.createBufferSource(); src.buffer=buf; src.loop=true;
+        var hp=actx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=2000;
+        var g=actx.createGain(); g.gain.value=0.6;
+        src.connect(hp); hp.connect(g); g.connect(getBus('aux'));
+        src.start();
+        window._gritNode={src:src, g:g};
+      }
+    }else if(window._gritNode){
+      try{ window._gritNode.src.stop(); }catch(e){}
+      window._gritNode=null;
+    }
+  }
+}
+/* hook chip toggles to realtime applicators + shared state */
+document.querySelectorAll('.dir-flrs').forEach(function(chip){
+  chip.addEventListener('click',function(){
+    /* chip.classList already toggled by prior listener; read current state */
+    setTimeout(function(){
+      var k=chip.dataset.flrs, on=chip.classList.contains('active');
+      window._flourish[k]=on;
+      applyFlourishRealtime(k,on);
+    },0);
+  });
+});
+
+/* glide — pitch ramps between consecutive lead notes within 150 ms */
+var _lastLeadTime=0, _lastLeadFreq=0;
 
 /* ── MIXER UI ── 5 channel strips driving the track buses */
 (function initMixer(){
