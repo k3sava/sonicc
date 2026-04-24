@@ -1672,14 +1672,17 @@ function initChain(){
     fl.wet.connect(master);
   }
 
-  /* Connect master -> panner -> destination + analyser */
+  /* Final wiring: lead chain ends at leadBus; all buses feed masterGain;
+     masterGain → panner → destination. (Lead-only routing was a bug.) */
+  var masterGain=getMasterGain();
   if(!fxNodes.panner){fxNodes.panner=actx.createStereoPanner()}
   fxNodes.panner.pan.value=synth.pan||0;
   try{fxNodes.panner.disconnect()}catch(e){}
-  master.connect(fxNodes.panner);
+  try{masterGain.disconnect()}catch(e){}
+  masterGain.connect(fxNodes.panner);
   fxNodes.panner.connect(actx.destination);
   if(analyser){
-    try{master.connect(analyser)}catch(e){}
+    try{masterGain.connect(analyser)}catch(e){}
   }
 
   chainBuilt=true;
