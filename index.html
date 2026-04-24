@@ -257,7 +257,17 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 .pat-status{font-family:var(--font-label);font-size:0.75rem;color:var(--text-dim);flex:1;text-align:center;text-transform:var(--heading-case)}
 
 /* ── MUSIC DIRECTOR PANEL ── */
-.dir-panel{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(to bottom,var(--accent-soft),transparent)}
+.dir-panel{display:flex;flex-direction:column;gap:12px;padding:14px 16px;overflow-y:auto;background:linear-gradient(to bottom,var(--accent-soft),transparent);flex:1}
+.dir-panel::-webkit-scrollbar{width:4px}
+.dir-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* Quick-start cards — tap to preset the whole director and compose */
+.dir-starts{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:900px){.dir-starts{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:500px){.dir-starts{grid-template-columns:repeat(2,1fr)}}
+.dir-start{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-solid);cursor:pointer;transition:all var(--motion-fast);text-align:left;min-height:64px}
+.dir-start:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.12)}
+.dir-start-name{font-family:var(--font-ui);font-size:0.85rem;font-weight:600;color:var(--text);letter-spacing:0.01em}
+.dir-start-sub{font-family:var(--font-label);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:lowercase}
 .dir-groups{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
 .dir-group{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--card-radius);background:var(--surface-solid);min-width:0}
 .dir-group-wide{flex:2 1 320px}
@@ -705,6 +715,34 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
       <!-- COMPOSE MODE — Music Director (its own top-level mode) -->
       <div class="mode-panel" id="composePanel" data-mode="compose">
         <div class="dir-panel" id="dirPanel">
+          <!-- Quick starts — tap any card to set everything + compose -->
+          <div class="dir-starts" id="dirStarts" aria-label="Quick starts">
+            <button type="button" class="dir-start" data-start="meditative">
+              <span class="dir-start-name">Meditative</span>
+              <span class="dir-start-sub">A minor · &pi; · bhairavi</span>
+            </button>
+            <button type="button" class="dir-start" data-start="driving">
+              <span class="dir-start-name">Driving</span>
+              <span class="dir-start-sub">E · primes · dense</span>
+            </button>
+            <button type="button" class="dir-start" data-start="cinematic">
+              <span class="dir-start-name">Cinematic</span>
+              <span class="dir-start-sub">D &middot; &phi; &middot; cosmos</span>
+            </button>
+            <button type="button" class="dir-start" data-start="dreamy">
+              <span class="dir-start-name">Dreamy</span>
+              <span class="dir-start-sub">C &middot; fib &middot; legato</span>
+            </button>
+            <button type="button" class="dir-start" data-start="devotional">
+              <span class="dir-start-name">Devotional</span>
+              <span class="dir-start-sub">A &middot; primes &middot; yaman</span>
+            </button>
+            <button type="button" class="dir-start" data-start="playful">
+              <span class="dir-start-name">Playful</span>
+              <span class="dir-start-sub">G &middot; fib &middot; pent maj</span>
+            </button>
+          </div>
+
           <div class="dir-groups">
 
             <div class="dir-group">
@@ -3782,6 +3820,33 @@ document.querySelectorAll('.dir-flrs').forEach(function(chip){
 
 /* glide — pitch ramps between consecutive lead notes within 150 ms */
 var _lastLeadTime=0, _lastLeadFreq=0;
+
+/* ── QUICK STARTS ── one tap sets intent + key + source + flourishes and composes */
+var DIR_PRESETS={
+  meditative:{intent:'meditative',root:9,scale:'raga_bhairavi',math:'pi',   density:'sparse',swing:'legato',   transform:'mirror',  flrs:[]},
+  driving:   {intent:'driving',   root:4,scale:'minor',        math:'primes',density:'dense', swing:'staccato',transform:'combo',   flrs:['grit']},
+  cinematic: {intent:'cinematic', root:2,scale:'minor',        math:'phi',  density:'medium',swing:'legato',   transform:'combo',   flrs:['cosmos']},
+  dreamy:    {intent:'dreamy',    root:0,scale:'lydian',       math:'fib',  density:'sparse',swing:'legato',   transform:'mirror',  flrs:['cosmos','glide']},
+  devotional:{intent:'devotional',root:9,scale:'raga_yaman',   math:'primes',density:'medium',swing:'straight',transform:'retrograde',flrs:[]},
+  playful:   {intent:'playful',   root:7,scale:'pent_maj',     math:'fib',  density:'medium',swing:'staccato',transform:'random',  flrs:['jazz']}
+};
+document.querySelectorAll('.dir-start').forEach(function(card){
+  card.addEventListener('click',function(){
+    var p=DIR_PRESETS[card.dataset.start]; if(!p) return;
+    var set=function(id,v){ var el=document.getElementById(id); if(el){ el.value=String(v); el.dispatchEvent(new Event('change')); } };
+    set('dirIntent',p.intent); set('dirRoot',p.root); set('dirScale',p.scale); set('dirMath',p.math);
+    set('dirDensity',p.density); set('dirSwing',p.swing); set('dirTransform',p.transform);
+    /* reset flourish chips to only the preset's set */
+    document.querySelectorAll('.dir-flrs').forEach(function(c){
+      var want=p.flrs.indexOf(c.dataset.flrs)>=0;
+      if(c.classList.contains('active')!==want){ c.click(); }
+    });
+    /* ensure AUTO stems is on so the director picks the stem count */
+    var auto=document.querySelector('.dir-stem[data-stem="auto"]');
+    if(auto && !auto.classList.contains('active')) auto.click();
+    document.getElementById('dirCompose').click();
+  });
+});
 
 /* ── MIXER UI ── 5 channel strips driving the track buses */
 (function initMixer(){
