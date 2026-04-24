@@ -217,6 +217,51 @@ input{font-family:inherit}
 /* ── PATTERN MODE ── */
 #patternPanel .pat-bar{display:flex;align-items:center;gap:8px;padding:12px 16px;flex-shrink:0;flex-wrap:wrap}
 .pat-status{font-family:var(--font-label);font-size:0.75rem;color:var(--text-dim);flex:1;text-align:center;text-transform:var(--heading-case)}
+
+/* ── MUSIC DIRECTOR PANEL ── */
+.dir-panel{display:flex;flex-direction:column;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(to bottom,var(--accent-soft),transparent)}
+.dir-groups{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+.dir-group{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--card-radius);background:var(--surface-solid);min-width:0}
+.dir-group-wide{flex:2 1 320px}
+.dir-group-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.dir-label{font-family:var(--font-label);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);font-weight:600}
+.dir-mini{font-family:var(--font-label);font-size:0.62rem;color:var(--text-dim);letter-spacing:0.05em;text-transform:uppercase;padding:0 2px}
+.dir-group .pill.sm{height:32px;padding:0 10px;font-size:0.72rem;min-width:0}
+.dir-group select.pill.sm{padding-right:22px}
+.dir-step{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:var(--input-radius);overflow:hidden;height:32px;background:var(--surface-solid)}
+.dir-step input{width:44px;height:32px;border:none;outline:none;text-align:center;font-family:var(--font-label);font-size:0.72rem;color:var(--text);background:transparent;-moz-appearance:textfield}
+.dir-step input::-webkit-outer-spin-button,.dir-step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dir-step-btn{width:26px;height:32px;border:none;background:transparent;color:var(--text-dim);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all var(--motion-fast)}
+.dir-step-btn:hover{background:var(--accent-soft);color:var(--accent)}
+.dir-seed-input{width:70px;height:32px;padding:0 8px;border:1px solid var(--border);border-radius:var(--input-radius);background:var(--surface-solid);font-family:var(--font-label);font-size:0.72rem;color:var(--text);text-align:center;outline:none;-moz-appearance:textfield}
+.dir-seed-input::-webkit-outer-spin-button,.dir-seed-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.dir-seed-input:focus{border-color:var(--accent)}
+.dir-icon{height:32px;padding:0 10px;border:1px solid var(--border);border-radius:var(--input-radius);background:var(--surface-solid);color:var(--text-dim);font-family:var(--font-label);font-size:0.7rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:all var(--motion-fast)}
+.dir-icon:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.dir-check{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-label);font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;user-select:none}
+.dir-check input{margin:0;cursor:pointer;accent-color:var(--accent)}
+.dir-action{display:flex;justify-content:center}
+.dir-compose{height:40px;padding:0 36px;border:none;border-radius:var(--input-radius);background:var(--accent);color:var(--accent-contrast);font-family:var(--font-label);font-size:0.8rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all var(--motion-fast);box-shadow:0 2px 8px rgba(37,99,235,0.25)}
+.dir-compose:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.35);filter:brightness(1.05)}
+.dir-compose:active{transform:translateY(0)}
+.dir-score{display:flex;flex-direction:column;gap:6px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--card-radius);background:var(--surface-solid)}
+.dir-score[hidden]{display:none}
+.dir-score-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dir-score-badge{font-family:var(--font-label);font-size:0.95rem;font-weight:700;color:var(--accent);letter-spacing:0.04em;padding:2px 10px;border:1px solid var(--accent);border-radius:var(--input-radius);background:var(--accent-soft)}
+.dir-score-verdict{font-family:var(--font-label);font-size:0.78rem;color:var(--text);text-transform:uppercase;letter-spacing:0.06em}
+.dir-score-seed{font-family:var(--font-label);font-size:0.65rem;color:var(--text-dim);margin-left:auto;letter-spacing:0.05em;text-transform:uppercase}
+.dir-score-chips{display:flex;flex-wrap:wrap;gap:6px}
+.dir-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-family:var(--font-label);font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;border:1px solid var(--border);background:var(--surface-solid);color:var(--text-muted)}
+.dir-chip.ok{border-color:#10b981;color:#065f46;background:rgba(16,185,129,0.08)}
+.dir-chip.warn{border-color:#f59e0b;color:#92400e;background:rgba(245,158,11,0.08)}
+.dir-chip.fail{border-color:#ef4444;color:#991b1b;background:rgba(239,68,68,0.08)}
+.dir-chip .dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block}
+@media (max-width:720px){
+  .dir-panel{padding:10px 12px;gap:8px}
+  .dir-groups{gap:6px}
+  .dir-group{padding:6px 8px}
+  .dir-compose{padding:0 24px;font-size:0.72rem}
+}
 #seqGrid{flex:1;overflow:auto;scrollbar-width:none;padding:8px 16px 16px;display:flex;flex-direction:column}
 #seqGrid::-webkit-scrollbar{display:none}
 #seqTable{border-collapse:separate;border-spacing:3px;width:100%;flex:1}
@@ -560,100 +605,150 @@ input{font-family:inherit}
           <button class="pill sm" data-steps="64">64</button>
           <button class="pill sm" id="patClear">CLEAR</button>
         </div>
-        <div class="pat-bar" id="dirBar">
-          <span class="pat-status" style="margin-right:4px">DIRECTOR</span>
-          <select class="pill sm" id="dirIntent" title="Intent">
-            <option value="meditative">meditative</option>
-            <option value="devotional">devotional</option>
-            <option value="driving">driving</option>
-            <option value="anxious">anxious</option>
-            <option value="playful">playful</option>
-            <option value="cinematic">cinematic</option>
-            <option value="dreamy">dreamy</option>
-          </select>
-          <select class="pill sm" id="dirMath" title="Math source">
-            <option value="pi">&pi;</option>
-            <option value="e">e</option>
-            <option value="phi">&phi;</option>
-            <option value="sqrt2">&radic;2</option>
-            <option value="sqrt3">&radic;3</option>
-            <option value="ln2">ln 2</option>
-            <option value="fib">fib</option>
-            <option value="lucas">lucas</option>
-            <option value="primes">primes</option>
-            <option value="tribonacci">tribonacci</option>
-            <option value="thue">thue-morse</option>
-            <option value="collatz">collatz</option>
-            <option value="sine">sine</option>
-            <option value="logistic">logistic</option>
-            <option value="ca">CA rule30</option>
-            <option value="ca90">CA rule90</option>
-          </select>
-          <select class="pill sm" id="dirRoot" title="Root">
-            <option value="0">C</option><option value="1">C#</option><option value="2">D</option>
-            <option value="3">D#</option><option value="4">E</option><option value="5">F</option>
-            <option value="6">F#</option><option value="7">G</option><option value="8">G#</option>
-            <option value="9">A</option><option value="10">A#</option><option value="11">B</option>
-          </select>
-          <select class="pill sm" id="dirScale" title="Scale">
-            <option value="major">major</option>
-            <option value="minor">minor</option>
-            <option value="dorian">dorian</option>
-            <option value="phrygian">phrygian</option>
-            <option value="mixo">mixolydian</option>
-            <option value="lydian">lydian</option>
-            <option value="pent_maj">pent maj</option>
-            <option value="pent_min">pent min</option>
-            <option value="blues">blues</option>
-            <option value="raga_yaman">yaman</option>
-            <option value="raga_bhairavi">bhairavi</option>
-            <option value="raga_todi">todi</option>
-            <option value="hirajoshi">hirajoshi</option>
-            <option value="whole">whole-tone</option>
-            <option value="chromatic">chromatic</option>
-          </select>
-          <input class="pill sm" id="dirSeed" type="number" value="1" min="0" style="width:56px" title="Seed (deterministic)">
-          <button class="pill sm" id="dirCompose">COMPOSE</button>
-        </div>
-        <div class="pat-bar" id="dirBar2">
-          <span class="pat-status" style="margin-right:4px">VARIATION</span>
-          <select class="pill sm" id="dirMotifLen" title="Motif length (notes)">
-            <option value="4">motif 4</option>
-            <option value="6">motif 6</option>
-            <option value="8" selected>motif 8</option>
-            <option value="12">motif 12</option>
-          </select>
-          <input class="pill sm" id="dirOffset" type="number" value="0" min="0" style="width:56px" title="Digit offset">
-          <input class="pill sm" id="dirStride" type="number" value="1" min="1" max="12" style="width:56px" title="Digit stride">
-          <select class="pill sm" id="dirDir" title="Direction">
-            <option value="fwd">forward</option>
-            <option value="rev">reverse</option>
-            <option value="zig">zigzag</option>
-          </select>
-          <select class="pill sm" id="dirDensity" title="Density">
-            <option value="sparse">sparse</option>
-            <option value="medium" selected>medium</option>
-            <option value="dense">dense</option>
-          </select>
-          <select class="pill sm" id="dirTransform" title="Section C transform">
-            <option value="mirror">mirror</option>
-            <option value="retrograde">retrograde</option>
-            <option value="invert">invert</option>
-            <option value="shift">shift +4</option>
-            <option value="combo" selected>combo</option>
-            <option value="random">random</option>
-          </select>
-          <select class="pill sm" id="dirSwing" title="Rhythmic feel">
-            <option value="straight" selected>straight</option>
-            <option value="legato">legato</option>
-            <option value="staccato">staccato</option>
-          </select>
-          <label class="pat-status" style="display:flex;align-items:center;gap:4px;cursor:pointer">
-            <input type="checkbox" id="dirAuto" style="margin:0"> auto-improve
-          </label>
-        </div>
-        <div class="pat-bar" id="dirScoreBar" style="display:none">
-          <span class="pat-status" id="dirScore">SCORE —</span>
+        <div class="dir-panel" id="dirPanel">
+          <div class="dir-groups">
+
+            <div class="dir-group">
+              <span class="dir-label">Mood</span>
+              <div class="dir-group-row">
+                <select class="pill sm" id="dirIntent" title="Intent — shapes dynamics, drum grammar, register">
+                  <option value="meditative">meditative</option>
+                  <option value="devotional">devotional</option>
+                  <option value="driving">driving</option>
+                  <option value="anxious">anxious</option>
+                  <option value="playful">playful</option>
+                  <option value="cinematic">cinematic</option>
+                  <option value="dreamy">dreamy</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="dir-group">
+              <span class="dir-label">Key</span>
+              <div class="dir-group-row">
+                <select class="pill sm" id="dirRoot" title="Root note">
+                  <option value="0">C</option><option value="1">C#</option><option value="2">D</option>
+                  <option value="3">D#</option><option value="4">E</option><option value="5">F</option>
+                  <option value="6">F#</option><option value="7">G</option><option value="8">G#</option>
+                  <option value="9">A</option><option value="10">A#</option><option value="11">B</option>
+                </select>
+                <select class="pill sm" id="dirScale" title="Scale / mode">
+                  <option value="major">major</option>
+                  <option value="minor">minor</option>
+                  <option value="dorian">dorian</option>
+                  <option value="phrygian">phrygian</option>
+                  <option value="mixo">mixolydian</option>
+                  <option value="lydian">lydian</option>
+                  <option value="pent_maj">pent maj</option>
+                  <option value="pent_min">pent min</option>
+                  <option value="blues">blues</option>
+                  <option value="raga_yaman">yaman</option>
+                  <option value="raga_bhairavi">bhairavi</option>
+                  <option value="raga_todi">todi</option>
+                  <option value="hirajoshi">hirajoshi</option>
+                  <option value="whole">whole-tone</option>
+                  <option value="chromatic">chromatic</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="dir-group dir-group-wide">
+              <span class="dir-label">Source &amp; Motif</span>
+              <div class="dir-group-row">
+                <select class="pill sm" id="dirMath" title="Math source — seeds the motif">
+                  <option value="pi">&pi;</option>
+                  <option value="e">e</option>
+                  <option value="phi">&phi;</option>
+                  <option value="sqrt2">&radic;2</option>
+                  <option value="sqrt3">&radic;3</option>
+                  <option value="ln2">ln 2</option>
+                  <option value="fib">fib</option>
+                  <option value="lucas">lucas</option>
+                  <option value="primes">primes</option>
+                  <option value="tribonacci">tribonacci</option>
+                  <option value="thue">thue-morse</option>
+                  <option value="collatz">collatz</option>
+                  <option value="sine">sine</option>
+                  <option value="logistic">logistic</option>
+                  <option value="ca">CA rule30</option>
+                  <option value="ca90">CA rule90</option>
+                </select>
+                <select class="pill sm" id="dirMotifLen" title="Motif length in notes">
+                  <option value="4">4 notes</option>
+                  <option value="6">6 notes</option>
+                  <option value="8" selected>8 notes</option>
+                  <option value="12">12 notes</option>
+                </select>
+                <span class="dir-mini">offset</span>
+                <div class="dir-step">
+                  <button type="button" class="dir-step-btn" data-target="dirOffset" data-delta="-1" aria-label="Decrease offset">&minus;</button>
+                  <input id="dirOffset" type="number" value="0" min="0" title="Start N digits into the sequence">
+                  <button type="button" class="dir-step-btn" data-target="dirOffset" data-delta="1" aria-label="Increase offset">+</button>
+                </div>
+                <span class="dir-mini">stride</span>
+                <div class="dir-step">
+                  <button type="button" class="dir-step-btn" data-target="dirStride" data-delta="-1" aria-label="Decrease stride">&minus;</button>
+                  <input id="dirStride" type="number" value="1" min="1" max="12" title="Take every Nth digit">
+                  <button type="button" class="dir-step-btn" data-target="dirStride" data-delta="1" aria-label="Increase stride">+</button>
+                </div>
+                <select class="pill sm" id="dirDir" title="Traversal direction">
+                  <option value="fwd">forward</option>
+                  <option value="rev">reverse</option>
+                  <option value="zig">zigzag</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="dir-group">
+              <span class="dir-label">Feel</span>
+              <div class="dir-group-row">
+                <select class="pill sm" id="dirDensity" title="Overall note density">
+                  <option value="sparse">sparse</option>
+                  <option value="medium" selected>medium</option>
+                  <option value="dense">dense</option>
+                </select>
+                <select class="pill sm" id="dirTransform" title="Section C transformation">
+                  <option value="mirror">mirror</option>
+                  <option value="retrograde">retrograde</option>
+                  <option value="invert">invert</option>
+                  <option value="shift">shift +4</option>
+                  <option value="combo" selected>combo</option>
+                  <option value="random">random</option>
+                </select>
+                <select class="pill sm" id="dirSwing" title="Note-length feel">
+                  <option value="straight" selected>straight</option>
+                  <option value="legato">legato</option>
+                  <option value="staccato">staccato</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="dir-group">
+              <span class="dir-label">Seed</span>
+              <div class="dir-group-row">
+                <input class="dir-seed-input" id="dirSeed" type="number" value="1" min="0" title="Deterministic seed — same inputs give same music">
+                <button type="button" class="dir-icon" id="dirSeedRand" title="Random seed">rand</button>
+                <button type="button" class="dir-icon" id="dirSeedInc" title="Seed +1">+1</button>
+                <label class="dir-check" title="Try up to 12 seeds, keep the best-scoring">
+                  <input type="checkbox" id="dirAuto"> auto
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="dir-action">
+            <button type="button" class="dir-compose" id="dirCompose">&#9654; Compose</button>
+          </div>
+
+          <div class="dir-score" id="dirScoreBar" hidden>
+            <div class="dir-score-head">
+              <span class="dir-score-badge" id="dirScoreBadge">&mdash;</span>
+              <span class="dir-score-verdict" id="dirScoreVerdict">&mdash;</span>
+              <span class="dir-score-seed" id="dirScoreSeed"></span>
+            </div>
+            <div class="dir-score-chips" id="dirScoreChips"></div>
+          </div>
         </div>
         <div id="seqGrid"><table id="seqTable"></table></div>
       </div>
@@ -2222,11 +2317,16 @@ var SCALES={
   dorian:       [0,2,3,5,7,9,10],
   phrygian:     [0,1,3,5,7,8,10],
   mixo:         [0,2,4,5,7,9,10],
+  lydian:       [0,2,4,6,7,9,11],
   pent_maj:     [0,2,4,7,9,0,2],
   pent_min:     [0,3,5,7,10,0,3],
   blues:        [0,3,5,6,7,10,0],
   raga_yaman:   [0,2,4,6,7,9,11],
-  raga_bhairavi:[0,1,3,5,7,8,10]
+  raga_bhairavi:[0,1,3,5,7,8,10],
+  raga_todi:    [0,1,3,6,7,8,11],
+  hirajoshi:    [0,2,3,7,8,0,2],
+  whole:        [0,2,4,6,8,10,0],
+  chromatic:    [0,1,2,3,4,5,6]
 };
 var ROOT_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 
@@ -2349,7 +2449,9 @@ var INTENT_PROFILES={
   devotional:{density:.32, kick:[0,8,16,24,32,40,48,56],             snare:[12,28,44,60],            hat:.5,  kickVel:.75, snareVel:.65, hatVel:.45, accentPrimes:true,  sparseIntro:true,  laneBias:'mid',  avgLen:1.6},
   driving:   {density:.55, kick:[0,8,16,24,32,40,48,56],             snare:[4,12,20,28,36,44,52,60], hat:.82, kickVel:.95, snareVel:.85, hatVel:.55, accentPrimes:false, sparseIntro:false, laneBias:'mid',  avgLen:1.0},
   anxious:   {density:.48, kick:[0,14,30,46],                        snare:[7,23,39,55],             hat:.6,  kickVel:.7,  snareVel:.85, hatVel:.5,  accentPrimes:true,  sparseIntro:false, laneBias:'high', avgLen:0.9},
-  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],             hat:.7,  kickVel:.8,  snareVel:.7,  hatVel:.5,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:1.2}
+  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],             hat:.7,  kickVel:.8,  snareVel:.7,  hatVel:.5,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:1.2},
+  cinematic: {density:.35, kick:[0,16,32,48],                        snare:[16,48],                  hat:.25, kickVel:.95, snareVel:.8,  hatVel:.3,  accentPrimes:true,  sparseIntro:true,  laneBias:'low',  avgLen:3.0},
+  dreamy:    {density:.25, kick:[0,24,40],                           snare:[20,52],                  hat:.35, kickVel:.6,  snareVel:.45, hatVel:.4,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:2.6}
 };
 var DENSITY_MULT={sparse:.55, medium:1.0, dense:1.6};
 var SWING_PROFILE={
@@ -2621,15 +2723,32 @@ function evaluateMusic(){
 
 function renderScore(ev,seedUsed,attempts){
   var bar=document.getElementById('dirScoreBar');
-  var el=document.getElementById('dirScore');
-  bar.style.display='flex';
-  el.textContent='SCORE '+ev.overall+'/100 · '+ev.verdict
-    +' · syn '+(ev.synthDensity*100|0)+'%'
-    +' drum '+(ev.drumDensity*100|0)+'%'
-    +' rows '+ev.uniqRows
-    +' rep '+(ev.repRatio*100|0)+'%'
-    +' leap '+ev.avgLeap.toFixed(1)
-    +(attempts>1?' · seed '+seedUsed+' (best of '+attempts+')':'');
+  bar.hidden=false;
+  var badge=document.getElementById('dirScoreBadge');
+  var verdict=document.getElementById('dirScoreVerdict');
+  var seedEl=document.getElementById('dirScoreSeed');
+  var chips=document.getElementById('dirScoreChips');
+  badge.textContent=ev.overall+'/100';
+  verdict.textContent=ev.verdict;
+  seedEl.textContent='seed '+seedUsed+(attempts>1?' · best of '+attempts:'');
+  var labels={
+    density:'syn '+(ev.synthDensity*100|0)+'%',
+    drumDensity:'drum '+(ev.drumDensity*100|0)+'%',
+    motion:'rows '+ev.uniqRows,
+    repetition:'rep '+(ev.repRatio*100|0)+'%',
+    leap:'leap '+ev.avgLeap.toFixed(1),
+    drive:'kicks '+ev.kicks,
+    silence:'flow'
+  };
+  chips.innerHTML='';
+  Object.keys(labels).forEach(function(k){
+    var s=ev.scores[k]||0;
+    var cls=s>=0.8?'ok':s>=0.55?'warn':'fail';
+    var chip=document.createElement('span');
+    chip.className='dir-chip '+cls;
+    chip.innerHTML='<span class="dot"></span>'+labels[k];
+    chips.appendChild(chip);
+  });
 }
 
 document.getElementById('dirCompose').addEventListener('click',function(){
@@ -2688,6 +2807,28 @@ document.getElementById('dirCompose').addEventListener('click',function(){
   renderScore(bestEv,bestSeed,12);
 });
 var bestSnap=null;
+
+/* director stepper buttons (+ / −) */
+document.querySelectorAll('.dir-step-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var id=btn.dataset.target, delta=parseInt(btn.dataset.delta,10)||0;
+    var inp=document.getElementById(id); if(!inp) return;
+    var min=inp.min!==''?parseInt(inp.min,10):-Infinity;
+    var max=inp.max!==''?parseInt(inp.max,10):Infinity;
+    var v=(parseInt(inp.value,10)||0)+delta;
+    v=Math.max(min,Math.min(max,v));
+    inp.value=v;
+    inp.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+});
+/* seed helpers */
+document.getElementById('dirSeedRand').addEventListener('click',function(){
+  document.getElementById('dirSeed').value=Math.floor(Math.random()*99999)+1;
+});
+document.getElementById('dirSeedInc').addEventListener('click',function(){
+  var s=document.getElementById('dirSeed');
+  s.value=(parseInt(s.value,10)||0)+1;
+});
 
 /* ── SAMPLER ── */
 var samplerPads=[null,null,null,null];
