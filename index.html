@@ -311,7 +311,14 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 .dir-pinned-seed{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-family:var(--font-label);font-size:0.6rem;color:var(--text-muted);background:var(--surface-solid);cursor:pointer}
 .dir-pinned-seed:hover{border-color:var(--accent);color:var(--accent)}
 .dir-pinned-seed .x{opacity:0.5;margin-left:2px}
-.dir-action{display:flex;justify-content:center}
+.dir-action{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.dir-compose-song{background:transparent;color:var(--accent);border:1px solid var(--accent);box-shadow:none}
+.dir-compose-song:hover{background:var(--accent-soft);transform:translateY(-1px)}
+.dir-song-strip{display:flex;gap:4px;padding:8px 0;flex-wrap:wrap;justify-content:center}
+.dir-song-strip[hidden]{display:none}
+.dir-song-section{padding:4px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface-solid);font-family:var(--font-label);font-size:0.62rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-dim);cursor:pointer;transition:all var(--motion-fast)}
+.dir-song-section:hover{border-color:var(--accent);color:var(--accent)}
+.dir-song-section.active{background:var(--accent);color:var(--accent-contrast);border-color:var(--accent);font-weight:600}
 .dir-compose{height:40px;padding:0 36px;border:none;border-radius:var(--input-radius);background:var(--accent);color:var(--accent-contrast);font-family:var(--font-label);font-size:0.8rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all var(--motion-fast);box-shadow:0 2px 8px rgba(37,99,235,0.25)}
 .dir-compose:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.35);filter:brightness(1.05)}
 .dir-compose:active{transform:translateY(0)}
@@ -939,8 +946,10 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
           </div>
 
           <div class="dir-action">
-            <button type="button" class="dir-compose" id="dirCompose">&#9654; Compose</button>
+            <button type="button" class="dir-compose" id="dirCompose">&#9654; Compose Layer</button>
+            <button type="button" class="dir-compose dir-compose-song" id="dirComposeSong" title="Generate a multi-section song (intro → verse → chorus → bridge → outro) and play through it">Make a song</button>
           </div>
+          <div class="dir-song-strip" id="dirSongStrip" hidden></div>
 
           <div class="dir-score" id="dirScoreBar" hidden>
             <div class="dir-score-head">
@@ -2366,6 +2375,16 @@ function startPlayback(){
     highlightStep(currentStep);
     updatePatStatus();
     currentStep=(currentStep+1)%stepCount;
+    /* SONG MODE: at the wrap, advance to the next section */
+    if(songMode && currentStep===0 && songSections.length){
+      songIdx++;
+      if(songIdx>=songSections.length){
+        if(songLoop){ songIdx=0; }
+        else { stopPlayback(); songMode=false; renderSongStrip(); return; }
+      }
+      loadSection(songSections[songIdx].snap);
+      renderSongStrip();
+    }
   },msPerStep);
 }
 
@@ -3910,6 +3929,105 @@ var DIR_PRESETS={
   devotional:{intent:'devotional',root:9,scale:'raga_yaman',   math:'primes',density:'medium',swing:'straight',transform:'retrograde',flrs:[]},
   playful:   {intent:'playful',   root:7,scale:'pent_maj',     math:'fib',  density:'medium',swing:'staccato',transform:'random',  flrs:['jazz']}
 };
+/* ── SONG MODE — multi-section playback ──
+   A song = ordered list of pattern snapshots. Playback advances at the
+   start of each step-0 boundary. Stops after the last section unless
+   loop is requested. */
+var songSections=[];   /* [{name, snap}] */
+var songIdx=0;
+var songMode=false;
+var songLoop=false;
+
+function snapshotSection(name){
+  return {
+    name:name,
+    s: synthPattern.map(function(r){return r.slice()}),
+    d: drumPattern.map(function(r){return r.slice()}),
+    sv:synthVel.map(function(r){return r.slice()}),
+    sl:synthLen.map(function(r){return r.slice()}),
+    dv:drumVel.map(function(r){return r.slice()}),
+    b: bassPattern.map(function(r){return r.slice()}),
+    bv:bassVel.map(function(r){return r.slice()}),
+    bl:bassLen.map(function(r){return r.slice()}),
+    p: padPattern.map(function(r){return r.slice()}),
+    pv:padVel.map(function(r){return r.slice()}),
+    pl:padLen.map(function(r){return r.slice()}),
+    aux:auxEvents.slice()
+  };
+}
+function loadSection(snap){
+  for(var r=0;r<8;r++){
+    synthPattern[r]=snap.s[r].slice(); drumPattern[r]=snap.d[r].slice();
+    synthVel[r]=snap.sv[r].slice(); synthLen[r]=snap.sl[r].slice(); drumVel[r]=snap.dv[r].slice();
+  }
+  for(r=0;r<4;r++){
+    bassPattern[r]=snap.b[r].slice(); bassVel[r]=snap.bv[r].slice(); bassLen[r]=snap.bl[r].slice();
+  }
+  for(r=0;r<3;r++){
+    padPattern[r]=snap.p[r].slice(); padVel[r]=snap.pv[r].slice(); padLen[r]=snap.pl[r].slice();
+  }
+  auxEvents=snap.aux.slice();
+  buildSeqGrid();
+}
+function renderSongStrip(){
+  var strip=document.getElementById('dirSongStrip');
+  if(!strip) return;
+  if(!songSections.length){ strip.hidden=true; return; }
+  strip.hidden=false; strip.innerHTML='';
+  songSections.forEach(function(sec,i){
+    var pill=document.createElement('button');
+    pill.type='button';
+    pill.className='dir-song-section'+(i===songIdx?' active':'');
+    pill.textContent=sec.name;
+    pill.addEventListener('click',function(){
+      songIdx=i; loadSection(songSections[i].snap);
+      renderSongStrip();
+    });
+    strip.appendChild(pill);
+  });
+}
+
+function makeSong(){
+  var intent=document.getElementById('dirIntent').value;
+  var root=parseInt(document.getElementById('dirRoot').value,10);
+  var scale=document.getElementById('dirScale').value;
+  var math=document.getElementById('dirMath').value;
+  var seed=parseInt(document.getElementById('dirSeed').value,10)||1;
+  var flrs=getActiveFlourishes();
+  var energetic=['driving','playful','anxious'].indexOf(intent)>=0;
+  var SECTIONS=energetic?[
+    {name:'intro', stems:['drums','bass'],                                      density:'sparse'},
+    {name:'verse', stems:['drums','bass','pad','lead'],                          density:'medium'},
+    {name:'chorus',stems:['drums','bass','pad','lead','arp','perc'],             density:'dense'},
+    {name:'verse', stems:['drums','bass','pad','lead','counter'],                density:'medium'},
+    {name:'chorus',stems:['drums','bass','pad','lead','arp','perc','auxperc'],   density:'dense'},
+    {name:'outro', stems:['drums','bass','pad'],                                 density:'sparse'}
+  ]:[
+    {name:'intro', stems:['drone','pad'],                                        density:'sparse'},
+    {name:'verse', stems:['drone','pad','bass','pluck'],                         density:'medium'},
+    {name:'chorus',stems:['drone','pad','bass','lead','arp'],                    density:'medium'},
+    {name:'bridge',stems:['drone','pad','counter','pluck'],                      density:'sparse'},
+    {name:'chorus',stems:['drone','pad','bass','lead','arp','perc'],             density:'dense'},
+    {name:'outro', stems:['drone','pad'],                                        density:'sparse'}
+  ];
+  songSections=[];
+  SECTIONS.forEach(function(sec,i){
+    composeMusic({
+      intent:intent, root:root, scale:scale, math:math,
+      seed:seed+i, motifLen:8, offset:i*4, stride:1, dir:'fwd',
+      density:sec.density, transform:i%2?'mirror':'combo', swing:'straight',
+      stems:sec.stems, flourishes:flrs
+    });
+    songSections.push({name:sec.name, snap:snapshotSection(sec.name)});
+  });
+  /* normalize entries — strip wraps the snapshot inside .snap; loadSection wants the flat snap */
+  songIdx=0;
+  loadSection(songSections[0].snap);
+  songMode=true;
+  renderSongStrip();
+}
+document.getElementById('dirComposeSong').addEventListener('click',makeSong);
+
 /* ── INSPIRATION SOURCES — text + now ──
    Each derives a complete director-opts payload (intent, key, scale,
    density, swing, motif length, seed, transform, flourishes) and fires
