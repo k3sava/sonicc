@@ -338,6 +338,28 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 
 /* ── KNOBS (stereo-style) ── */
 .knobs-row{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
+/* ── NEW CONTROLS: ADSR curve, XY pad, sliders ── */
+.adsr-svg{width:100%;height:88px;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--card-radius);cursor:crosshair;touch-action:none}
+.adsr-svg .adsr-area{fill:var(--accent-soft)}
+.adsr-svg .adsr-line{fill:none;stroke:var(--accent);stroke-width:1.5}
+.adsr-svg .adsr-handle{fill:var(--surface-solid);stroke:var(--accent);stroke-width:1.5;cursor:grab;r:6}
+.adsr-svg .adsr-handle:hover,.adsr-svg .adsr-handle:active{fill:var(--accent);cursor:grabbing}
+.adsr-svg .adsr-tick{stroke:var(--border);stroke-width:0.5}
+.adsr-svg .adsr-label{fill:var(--text-dim);font-family:var(--font-label);font-size:7px;letter-spacing:0.1em;text-transform:uppercase}
+.xy-pad{position:relative;width:100%;aspect-ratio:1.6/1;background:var(--surface-solid);border:1px solid var(--border);border-radius:var(--card-radius);cursor:crosshair;touch-action:none;overflow:hidden}
+.xy-grid{position:absolute;inset:0;background-image:linear-gradient(to right,var(--border) 1px,transparent 1px),linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:25% 20%;opacity:0.5}
+.xy-dot{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--accent);border:2px solid var(--surface-solid);box-shadow:0 2px 6px rgba(37,99,235,0.45);transform:translate(-50%,-50%);left:50%;top:50%;pointer-events:none;transition:transform 40ms ease}
+.xy-readout{position:absolute;bottom:4px;right:8px;font-family:var(--font-label);font-size:0.62rem;color:var(--text-dim);letter-spacing:0.06em;pointer-events:none}
+.slider-row{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.slider-ctrl{display:flex;align-items:center;gap:10px;font-family:var(--font-label)}
+.slider-label{font-size:0.6rem;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;width:32px;flex-shrink:0}
+.slider-val{font-size:0.66rem;color:var(--text);letter-spacing:0.04em;min-width:40px;text-align:right}
+.slider-ctrl input[type="range"]{flex:1;height:28px;accent-color:var(--accent);min-width:0}
+/* adv section (knobs) — collapsed look */
+.adv-section .drawer-label{opacity:0.55}
+@media (max-width:900px){
+  .adv-section{display:none} /* hide knobs on touch — sliders/curve/XY pad are primary */
+}
 .knob-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:ns-resize;user-select:none}
 .knob-wrap:hover .knob-svg{filter:brightness(1.1)}
 .knob-label{font-family:var(--font-label);font-size:0.5rem;color:var(--text-dim);text-transform:var(--heading-case);letter-spacing:0.06em}
@@ -850,7 +872,42 @@ THEN ASSIGN TO PADS Q W E R</div>
         <div class="fx-row" id="fxRow"></div>
       </div>
       <div class="drawer-section">
-        <div class="drawer-label">ENVELOPE &amp; FILTER</div>
+        <div class="drawer-label">ENVELOPE</div>
+        <svg id="adsrCurve" class="adsr-svg" viewBox="0 0 240 80" preserveAspectRatio="none" aria-label="ADSR envelope — drag the handles"></svg>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-label">FILTER</div>
+        <div id="xyPad" class="xy-pad" aria-label="Cutoff (X) and Resonance (Y) — drag">
+          <div class="xy-grid"></div>
+          <div class="xy-dot" id="xyDot"></div>
+          <div class="xy-readout" id="xyReadout">—</div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-label">LEVELS</div>
+        <div class="slider-row">
+          <label class="slider-ctrl">
+            <span class="slider-label">VOL</span>
+            <input type="range" id="sliderVol" min="0" max="100" value="78">
+            <span class="slider-val" id="sliderVolVal">78%</span>
+          </label>
+          <label class="slider-ctrl">
+            <span class="slider-label">DTN</span>
+            <div class="dir-step" style="display:inline-flex">
+              <button type="button" class="dir-step-btn" data-dtn="-1">&minus;</button>
+              <input id="stepperDtn" type="number" value="0" min="-100" max="100" style="width:50px">
+              <button type="button" class="dir-step-btn" data-dtn="1">+</button>
+            </div>
+          </label>
+          <label class="slider-ctrl">
+            <span class="slider-label">PAN</span>
+            <input type="range" id="sliderPan" min="-100" max="100" value="0" class="slider-centred">
+            <span class="slider-val" id="sliderPanVal">C</span>
+          </label>
+        </div>
+      </div>
+      <div class="drawer-section adv-section">
+        <div class="drawer-label">ADVANCED</div>
         <div class="knobs-row" id="knobsRow"></div>
       </div>
       <div class="drawer-section" style="padding:8px 12px">
@@ -3715,6 +3772,10 @@ function updateDrawerUI(){
       if(wrap)updateKnobVisual(wrap,def);
     });
   }
+  /* new widgets: ADSR curve, XY pad, level sliders */
+  if(window._renderADSR) window._renderADSR();
+  if(window._syncXYPad) window._syncXYPad();
+  if(window._syncLevels) window._syncLevels();
 }
 
 function updateKnobById(id){
@@ -3723,6 +3784,156 @@ function updateKnobById(id){
   var wrap=document.querySelector('.knob-wrap[data-knob="'+id+'"]');
   if(wrap)updateKnobVisual(wrap,def);
 }
+
+/* ── ADSR CURVE WIDGET ──
+   One SVG envelope visual replaces four knobs. Handles are draggable;
+   values round-trip through synth.attack/decay/sustain/release and the
+   existing knob row stays in sync via updateKnobById(). */
+(function initADSR(){
+  var svg=document.getElementById('adsrCurve');
+  if(!svg) return;
+  var W=240,H=80,pad=6;
+  /* time mapping: fixed widths for A + D + sustain-plateau + R inside the canvas.
+     Plateau always takes 40% of width; A/D/R share the other 60% proportionally. */
+  function layout(){
+    var a=synth.attack, d=synth.decay, r=synth.release;
+    var sum=a+d+r||0.01;
+    var adrWidth=(W-pad*2)*0.6;
+    var plateau=(W-pad*2)*0.4;
+    var xA=pad+(a/sum)*adrWidth;
+    var xD=xA+(d/sum)*adrWidth;
+    var xS=xD+plateau;
+    var xR=xS+(r/sum)*adrWidth;
+    var susY=pad+(1-synth.sustain)*(H-pad*2);
+    return {xA:xA,xD:xD,xS:xS,xR:xR,susY:susY};
+  }
+  function render(){
+    var L=layout();
+    svg.innerHTML=
+      '<polygon class="adsr-area" points="'+pad+','+ (H-pad) +' '+L.xA+','+pad+' '+L.xD+','+L.susY+' '+L.xS+','+L.susY+' '+L.xR+','+(H-pad)+'"/>'+
+      '<polyline class="adsr-line" points="'+pad+','+ (H-pad) +' '+L.xA+','+pad+' '+L.xD+','+L.susY+' '+L.xS+','+L.susY+' '+L.xR+','+(H-pad)+'"/>'+
+      '<circle class="adsr-handle" data-h="a" cx="'+L.xA+'" cy="'+pad+'"/>'+
+      '<circle class="adsr-handle" data-h="d" cx="'+L.xD+'" cy="'+L.susY+'"/>'+
+      '<circle class="adsr-handle" data-h="s" cx="'+L.xS+'" cy="'+L.susY+'"/>'+
+      '<circle class="adsr-handle" data-h="r" cx="'+L.xR+'" cy="'+(H-pad)+'"/>'+
+      '<text class="adsr-label" x="'+pad+'" y="'+(H-1)+'">A D S R</text>';
+    bindHandles();
+  }
+  function bindHandles(){
+    svg.querySelectorAll('.adsr-handle').forEach(function(h){
+      h.addEventListener('pointerdown',function(e){
+        e.preventDefault();
+        var rect=svg.getBoundingClientRect();
+        var kind=h.dataset.h;
+        function onMove(ev){
+          var x=Math.max(pad,Math.min(W-pad,(ev.clientX-rect.left)*W/rect.width));
+          var y=Math.max(pad,Math.min(H-pad,(ev.clientY-rect.top)*H/rect.height));
+          var wd=W-pad*2, hd=H-pad*2;
+          if(kind==='a'){ synth.attack=Math.max(0.001,Math.min(2,((x-pad)/wd)*2)); updateKnobById('attack'); }
+          else if(kind==='d'){ var dur=Math.max(0.01,Math.min(2,((x-pad)/wd)*2 - synth.attack)); synth.decay=Math.max(0.01,dur); updateKnobById('decay'); synth.sustain=Math.max(0,Math.min(1,1-(y-pad)/hd)); updateKnobById('sustain'); }
+          else if(kind==='s'){ synth.sustain=Math.max(0,Math.min(1,1-(y-pad)/hd)); updateKnobById('sustain'); }
+          else if(kind==='r'){ var remaining=(x-pad)/wd - 0.6; synth.release=Math.max(0.01,Math.min(3,remaining*3)); updateKnobById('release'); }
+          render();
+        }
+        function onUp(){ document.removeEventListener('pointermove',onMove); document.removeEventListener('pointerup',onUp); }
+        document.addEventListener('pointermove',onMove);
+        document.addEventListener('pointerup',onUp);
+      });
+    });
+  }
+  window._renderADSR=render;
+  render();
+})();
+
+/* ── XY PAD WIDGET — cutoff (X) × resonance (Y) ── */
+(function initXYPad(){
+  var pad=document.getElementById('xyPad');
+  var dot=document.getElementById('xyDot');
+  var readout=document.getElementById('xyReadout');
+  if(!pad||!dot) return;
+  function setFromXY(xPct,yPct){
+    var freqMin=50, freqMax=15000;
+    /* log-scale cutoff for musicality */
+    var cutoff=freqMin*Math.pow(freqMax/freqMin,xPct);
+    var res=0.1+yPct*19.9;
+    synth.filterFreq=cutoff;
+    synth.filterRes=res;
+    if(fxNodes.filter){
+      fxNodes.filter.frequency.setTargetAtTime(cutoff,actx.currentTime,0.01);
+      fxNodes.filter.Q.setTargetAtTime(res,actx.currentTime,0.01);
+    }
+    updateKnobById('filterFreq');
+    updateKnobById('filterRes');
+    syncXYFromSynth();
+  }
+  function syncXYFromSynth(){
+    var freqMin=50,freqMax=15000;
+    var xPct=Math.log(Math.max(freqMin,synth.filterFreq)/freqMin)/Math.log(freqMax/freqMin);
+    var yPct=(synth.filterRes-0.1)/19.9;
+    xPct=Math.max(0,Math.min(1,xPct));
+    yPct=Math.max(0,Math.min(1,yPct));
+    dot.style.left=(xPct*100)+'%';
+    dot.style.top=((1-yPct)*100)+'%';
+    var fmt=synth.filterFreq>=1000?(synth.filterFreq/1000).toFixed(1)+'k':Math.round(synth.filterFreq);
+    readout.textContent='cut '+fmt+' · res '+synth.filterRes.toFixed(1);
+  }
+  var dragging=false;
+  function handlePointer(e){
+    var rect=pad.getBoundingClientRect();
+    var x=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+    var y=Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height));
+    setFromXY(x,1-y); /* invert Y so up = more resonance */
+  }
+  pad.addEventListener('pointerdown',function(e){ e.preventDefault(); dragging=true; pad.setPointerCapture(e.pointerId); handlePointer(e); });
+  pad.addEventListener('pointermove',function(e){ if(dragging) handlePointer(e); });
+  pad.addEventListener('pointerup',function(){ dragging=false; });
+  pad.addEventListener('pointercancel',function(){ dragging=false; });
+  window._syncXYPad=syncXYFromSynth;
+  syncXYFromSynth();
+})();
+
+/* ── LEVEL SLIDERS — vol / dtn stepper / pan ── */
+(function initLevelSliders(){
+  var v=document.getElementById('sliderVol');
+  var vOut=document.getElementById('sliderVolVal');
+  var p=document.getElementById('sliderPan');
+  var pOut=document.getElementById('sliderPanVal');
+  var dtn=document.getElementById('stepperDtn');
+  function fmtPan(n){ var v=n/100; return v===0?'C':v<0?'L'+Math.round(-v*100):'R'+Math.round(v*100); }
+  function syncFromSynth(){
+    v.value=Math.round(synth.volume*100); vOut.textContent=v.value+'%';
+    p.value=Math.round((synth.pan||0)*100); pOut.textContent=fmtPan(parseInt(p.value,10));
+    dtn.value=Math.round(synth.detune||0);
+  }
+  v.addEventListener('input',function(){
+    var nv=parseInt(v.value,10)/100;
+    synth.volume=nv;
+    if(fxNodes.masterGain) fxNodes.masterGain.gain.setTargetAtTime(nv,actx.currentTime,0.01);
+    vOut.textContent=Math.round(nv*100)+'%';
+    updateKnobById('volume');
+  });
+  p.addEventListener('input',function(){
+    var np=parseInt(p.value,10)/100;
+    synth.pan=np;
+    if(fxNodes.panner) fxNodes.panner.pan.setTargetAtTime(np,actx.currentTime,0.01);
+    pOut.textContent=fmtPan(parseInt(p.value,10));
+    updateKnobById('pan');
+  });
+  dtn.addEventListener('input',function(){
+    var dv=parseInt(dtn.value,10)||0;
+    synth.detune=dv; applyDetune(dv);
+    updateKnobById('detune');
+  });
+  document.querySelectorAll('[data-dtn]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var d=parseInt(btn.dataset.dtn,10);
+      dtn.value=Math.max(-100,Math.min(100,(parseInt(dtn.value,10)||0)+d));
+      dtn.dispatchEvent(new Event('input'));
+    });
+  });
+  window._syncLevels=syncFromSynth;
+  syncFromSynth();
+})();
 
 /* ── DRAWER TOGGLE (MOBILE) ── */
 var mobileDrawerOpen=false;
