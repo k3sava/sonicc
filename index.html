@@ -42,6 +42,18 @@ input{font-family:inherit}
   height:52px;min-height:52px;display:flex;align-items:center;
   background:var(--surface-solid);border-bottom:var(--card-border);
   padding:0 16px;gap:10px;user-select:none;
+  transition:opacity 400ms ease;
+}
+/* chrome fade during play: header + control bar dim when performing */
+body.performing #header,body.performing #controlBar{opacity:0.4}
+body.performing #header:hover,body.performing #controlBar:hover,
+body.performing #header:focus-within,body.performing #controlBar:focus-within{opacity:1}
+#controlBar{transition:opacity 400ms ease}
+/* touch-target floor: every pill reaches 44 px on coarse pointers */
+@media (pointer:coarse){
+  .pill,.pill.sm,.bpm-btn,.dir-icon,.dir-stem,.theme-sw-btn{min-height:44px}
+  .dir-step-btn{min-height:40px;min-width:40px}
+  .dir-seed-input{min-height:40px}
 }
 #header-left{display:flex;align-items:center;flex-shrink:0;gap:10px}
 #header-center{display:flex;align-items:center;gap:4px;flex:1;justify-content:center;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -1926,6 +1938,7 @@ function startPlayback(){
   ensureAudio();
   if(!chainBuilt)initChain();
   isPlaying=true;
+  document.body.classList.add('performing');
   var playBtn=document.getElementById('btnPlay');
   playBtn.innerHTML='STOP<span class="shortcut">\u2423</span>';
   playBtn.classList.add('active');
@@ -2049,6 +2062,7 @@ function triggerAuxVoice(presetName,note,oct,vel,lenSteps){
 
 function stopPlayback(){
   isPlaying=false;
+  document.body.classList.remove('performing');
   if(seqInterval){clearInterval(seqInterval);seqInterval=null;}
   var playBtn=document.getElementById('btnPlay');
   playBtn.innerHTML='PLAY<span class="shortcut">\u2423</span>';
