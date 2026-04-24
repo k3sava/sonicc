@@ -2058,12 +2058,95 @@ function startPlayback(){
   },msPerStep);
 }
 
+/* ── SAMPLE ENGINE ──
+   Optional layer: if audio/manifest.json exists, named instruments
+   (piano, strings, sitar, …) play as pitch-shifted samples through the
+   master bus. Missing manifest or missing samples → synth fallback.
+
+   manifest.json schema:
+     { "instruments": {
+         "piano":   { "samples":[{"note":"C3","url":"piano/c3.mp3"}, …] },
+         "sitar":   { "samples":{"C3":"sitar/c3.mp3", …} },
+         "drumKit": { "samples":{"kick":"drums/kick.mp3", …} }
+       } }
+
+   Drop CC0 samples into ./audio/<pack>/ and list them above. */
+var SampleEngine=(function(){
+  var manifest=null, attempted=false, buffers={}, loadPromises={};
+  var NOTE_IDX={'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11};
+  function midi(note,oct){ return (oct+1)*12+(NOTE_IDX[note]||0); }
+  function parseNote(s){
+    var m=String(s).match(/^([A-G][#b]?)(-?\d+)$/);
+    if(!m) return null;
+    return {midi: midi(m[1], parseInt(m[2],10)) };
+  }
+  function loadManifest(){
+    if(attempted) return Promise.resolve(manifest);
+    attempted=true;
+    return fetch('audio/manifest.json',{cache:'force-cache'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(m){ manifest=m; return m; })
+      .catch(function(){ manifest=null; return null; });
+  }
+  function loadInstrument(name){
+    if(loadPromises[name]) return loadPromises[name];
+    loadPromises[name]=loadManifest().then(function(m){
+      if(!m||!m.instruments||!m.instruments[name]) return null;
+      var def=m.instruments[name];
+      if(!def.samples) return null;
+      var entries=Array.isArray(def.samples)
+        ? def.samples
+        : Object.keys(def.samples).map(function(k){return {note:k,url:def.samples[k]}});
+      return Promise.all(entries.map(function(s){
+        return fetch('audio/'+s.url).then(function(r){ if(!r.ok) throw 0; return r.arrayBuffer(); })
+          .then(function(ab){ return new Promise(function(resolve){
+            actx.decodeAudioData(ab,function(buf){ resolve({key:s.note, midi:(parseNote(s.note)||{}).midi, buffer:buf}); },function(){resolve(null)});
+          });}).catch(function(){return null});
+      })).then(function(all){
+        buffers[name]=all.filter(Boolean);
+        return buffers[name];
+      });
+    });
+    return loadPromises[name];
+  }
+  function play(name, note, oct, vel, lenSec, dest){
+    if(!actx||!buffers[name]||!buffers[name].length) return false;
+    var target=midi(note,oct);
+    var best=buffers[name][0], bd=Infinity;
+    buffers[name].forEach(function(s){
+      if(s.midi==null) return;
+      var d=Math.abs(s.midi-target);
+      if(d<bd){bd=d; best=s;}
+    });
+    var src=actx.createBufferSource();
+    src.buffer=best.buffer;
+    src.playbackRate.value=Math.pow(2,(target-(best.midi||target))/12);
+    var g=actx.createGain();
+    var now=actx.currentTime;
+    g.gain.setValueAtTime(0,now);
+    g.gain.linearRampToValueAtTime(Math.max(0,Math.min(1,vel)),now+0.005);
+    g.gain.setValueAtTime(vel,now+Math.max(0.01,lenSec-0.05));
+    g.gain.linearRampToValueAtTime(0,now+lenSec);
+    src.connect(g); g.connect(dest||getMasterGain());
+    src.start(now);
+    src.stop(now+lenSec+0.2);
+    return true;
+  }
+  /* Lazy-load an instrument the first time someone asks for it */
+  function ensure(name){ if(!buffers[name]) loadInstrument(name); }
+  return {load:loadInstrument, play:play, isReady:function(n){return !!(buffers[n]&&buffers[n].length)}, ensure:ensure};
+})();
+
 function triggerSeqNote(note,oct,vel,lenSteps){
   ensureAudio();
   if(!chainBuilt)initChain();
   if(vel===undefined||vel===null) vel=1;
   vel=Math.max(0,Math.min(1,vel));
   if(!lenSteps||lenSteps<1) lenSteps=1;
+  var stepSec=60/(bpm*4);
+  /* Try sample engine first — falls through to synth if no samples */
+  SampleEngine.ensure(activePreset);
+  if(SampleEngine.isReady(activePreset) && SampleEngine.play(activePreset,note,oct,vel,stepSec*lenSteps,getFilter())) return;
   var filter=getFilter();
   var voice=createVoice(note,oct,actx,filter);
   var now=actx.currentTime;
@@ -2089,6 +2172,9 @@ function triggerAuxVoice(presetName,note,oct,vel,lenSteps){
   if(vel===undefined||vel===null) vel=1;
   vel=Math.max(0,Math.min(1,vel));
   if(!lenSteps||lenSteps<1) lenSteps=1;
+  var stepSec=60/(bpm*4);
+  SampleEngine.ensure(presetName);
+  if(SampleEngine.isReady(presetName) && SampleEngine.play(presetName,note,oct,vel,stepSec*lenSteps,getMasterGain())) return;
   var saved=synth;
   /* build a synth snapshot from the preset — keep user volume/detune/pan */
   synth={
