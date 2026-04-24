@@ -274,6 +274,8 @@ input{font-family:inherit}
 #seqTable td:hover{border-color:var(--accent)}
 #seqTable td.on-synth{background:var(--text)}
 #seqTable td.on-drum{background:var(--accent)}
+#seqTable td.on-bass{background:#7c3aed}
+#seqTable td.on-pad{background:#10b981}
 #seqTable td.playhead{box-shadow:inset 0 0 0 2px var(--accent)}
 #seqTable .row-label{
   width:48px;min-width:48px;border:none;background:transparent;
@@ -597,8 +599,10 @@ input{font-family:inherit}
       <!-- PATTERN MODE -->
       <div class="mode-panel" id="patternPanel" data-mode="pattern">
         <div class="pat-bar">
-          <button class="pill sm active" id="patLayerSynth">SYNTH</button>
-          <button class="pill sm" id="patLayerDrum">DRUMS</button>
+          <button class="pill sm active" id="patLayerSynth" data-layer="synth">LEAD</button>
+          <button class="pill sm" id="patLayerBass" data-layer="bass">BASS</button>
+          <button class="pill sm" id="patLayerPad" data-layer="pad">PAD</button>
+          <button class="pill sm" id="patLayerDrum" data-layer="drum">DRUMS</button>
           <span class="pat-status" id="patStatus">SYNTH &middot; 16 STEPS</span>
           <button class="pill sm active" data-steps="16">16</button>
           <button class="pill sm" data-steps="32">32</button>
@@ -1799,16 +1803,50 @@ var synthScaleOcts=[0,0,0,0,0,0,0,1];
 /* dynamics + duration — parallel to synthPattern/drumPattern.
    velocity 0..1 (peak gain multiplier); length in steps (min 1, synth only). */
 var synthVel=[], synthLen=[], drumVel=[];
+/* multi-voice arrangement: bass (4 lanes) and pad (3 lanes) tracks —
+   each played through its own preset via triggerAuxVoice(). */
+var bassPattern=[], bassVel=[], bassLen=[];
+var padPattern=[],  padVel=[],  padLen=[];
+var bassPreset='sub';   /* hardcoded for now — low sine, mild dist */
+var padPreset='pad';    /* long attack, reverb */
+/* bass lane → scale-degree voicing (low register).
+   scaleIdx refers to the synthScale index (0 = lowest lane note). */
+var BASS_LANES=[
+  {scaleIdx:7, octOff:-1}, /* octave root */
+  {scaleIdx:4, octOff:-1}, /* fifth */
+  {scaleIdx:0, octOff:-1}, /* low root */
+  {scaleIdx:0, octOff:-2}  /* very low root */
+];
+/* pad lane → diatonic chord tones at base register */
+var PAD_LANES=[
+  {scaleIdx:4, octOff:0}, /* fifth */
+  {scaleIdx:2, octOff:0}, /* third */
+  {scaleIdx:0, octOff:0}  /* root */
+];
+var BASS_LABELS=['OCT','5TH','ROOT','SUB'];
+var PAD_LABELS=['5TH','3RD','ROOT'];
 
 function initPatterns(){
   synthPattern=[];drumPattern=[];
   synthVel=[];synthLen=[];drumVel=[];
+  bassPattern=[];bassVel=[];bassLen=[];
+  padPattern=[];padVel=[];padLen=[];
   for(var r=0;r<8;r++){
     synthPattern[r]=new Array(stepCount).fill(0);
     drumPattern[r]=new Array(stepCount).fill(0);
     synthVel[r]=new Array(stepCount).fill(1);
     synthLen[r]=new Array(stepCount).fill(1);
     drumVel[r]=new Array(stepCount).fill(1);
+  }
+  for(r=0;r<4;r++){
+    bassPattern[r]=new Array(stepCount).fill(0);
+    bassVel[r]=new Array(stepCount).fill(1);
+    bassLen[r]=new Array(stepCount).fill(1);
+  }
+  for(r=0;r<3;r++){
+    padPattern[r]=new Array(stepCount).fill(0);
+    padVel[r]=new Array(stepCount).fill(1);
+    padLen[r]=new Array(stepCount).fill(1);
   }
 }
 initPatterns();
@@ -1825,6 +1863,22 @@ function resizePatterns(newCount){
     synthVel[r].length=newCount;
     synthLen[r].length=newCount;
     drumVel[r].length=newCount;
+  }
+  for(r=0;r<4;r++){
+    while(bassPattern[r].length<newCount)bassPattern[r].push(0);
+    while(bassVel[r].length<newCount)bassVel[r].push(1);
+    while(bassLen[r].length<newCount)bassLen[r].push(1);
+    bassPattern[r].length=newCount;
+    bassVel[r].length=newCount;
+    bassLen[r].length=newCount;
+  }
+  for(r=0;r<3;r++){
+    while(padPattern[r].length<newCount)padPattern[r].push(0);
+    while(padVel[r].length<newCount)padVel[r].push(1);
+    while(padLen[r].length<newCount)padLen[r].push(1);
+    padPattern[r].length=newCount;
+    padVel[r].length=newCount;
+    padLen[r].length=newCount;
   }
   stepCount=newCount;
   if(currentStep>=stepCount)currentStep=0;
@@ -1856,6 +1910,28 @@ function startPlayback(){
         var vel=synthVel[r][currentStep]; if(vel===undefined) vel=1;
         var len=synthLen[r][currentStep]; if(!len||len<1) len=1;
         triggerSeqNote(synthNotes[ni],synthOcts[ni],vel,len);
+      }
+    }
+    /* play bass — each lane voiced at a scale degree, through bassPreset */
+    for(var r=0;r<4;r++){
+      if(bassPattern[r][currentStep]){
+        var bl=BASS_LANES[r];
+        var bNote=synthScale[bl.scaleIdx];
+        var bOct=baseOctave+(synthScaleOcts[bl.scaleIdx]||0)+bl.octOff;
+        triggerAuxVoice(bassPreset,bNote,bOct,
+          bassVel[r][currentStep]!==undefined?bassVel[r][currentStep]:1,
+          bassLen[r][currentStep]||1);
+      }
+    }
+    /* play pad — sustained chord tones through padPreset */
+    for(var r=0;r<3;r++){
+      if(padPattern[r][currentStep]){
+        var pl=PAD_LANES[r];
+        var pNote=synthScale[pl.scaleIdx];
+        var pOct=baseOctave+(synthScaleOcts[pl.scaleIdx]||0)+pl.octOff;
+        triggerAuxVoice(padPreset,pNote,pOct,
+          padVel[r][currentStep]!==undefined?padVel[r][currentStep]:1,
+          padLen[r][currentStep]||1);
       }
     }
     /* play drums */
@@ -1890,6 +1966,44 @@ function triggerSeqNote(note,oct,vel,lenSteps){
   voice.env.gain.linearRampToValueAtTime(0,now+dur);
   var nds=voice.nodes;
   setTimeout(function(){nds.forEach(function(nd){try{nd.stop()}catch(e){}})},(dur+synth.release)*1000+50);
+}
+
+/* Trigger a voice through an arbitrary preset by temporarily swapping the
+   global `synth` config. createVoice reads `synth.waveform/detune` and
+   triggerSeqNote reads the envelope fields, so a synchronous swap works. */
+function triggerAuxVoice(presetName,note,oct,vel,lenSteps){
+  ensureAudio();
+  if(!chainBuilt)initChain();
+  var p=PRESETS[presetName]; if(!p) return;
+  if(vel===undefined||vel===null) vel=1;
+  vel=Math.max(0,Math.min(1,vel));
+  if(!lenSteps||lenSteps<1) lenSteps=1;
+  var saved=synth;
+  /* build a synth snapshot from the preset — keep user volume/detune/pan */
+  synth={
+    waveform:p.waveform,
+    attack:p.attack,decay:p.decay,sustain:p.sustain,release:p.release,
+    filterFreq:p.filterFreq,filterRes:p.filterRes,
+    volume:saved.volume,detune:saved.detune||0,pan:saved.pan||0,
+    fx:saved.fx
+  };
+  try{
+    var master=getMasterGain();
+    var voice=createVoice(note,oct,actx,master);
+    var now=actx.currentTime;
+    var stepSec=60/(bpm*4);
+    var dur=stepSec*lenSteps;
+    var atk=Math.min(p.attack,dur*0.3);
+    var dec=Math.min(p.decay,dur*0.3);
+    voice.env.gain.setValueAtTime(0,now);
+    voice.env.gain.linearRampToValueAtTime(vel,now+atk);
+    voice.env.gain.linearRampToValueAtTime(p.sustain*vel,now+atk+dec);
+    voice.env.gain.linearRampToValueAtTime(0,now+dur);
+    var nds=voice.nodes;
+    setTimeout(function(){nds.forEach(function(nd){try{nd.stop()}catch(e){}})},(dur+p.release)*1000+50);
+  } finally {
+    synth=saved;
+  }
 }
 
 function stopPlayback(){
@@ -2195,26 +2309,34 @@ vizLoop();
 })();
 
 /* ── PATTERN GRID ── */
+/* Resolve the active layer's backing arrays, row count, row labels, and
+   CSS class. Centralises the SYNTH / DRUM / BASS / PAD dispatch. */
+function getLayer(name){
+  name=name||patLayer;
+  if(name==='drum')  return {pat:drumPattern, vel:drumVel,  len:null,     rows:8, cls:'on-drum',  labels:DRUMS,       name:'DRUM'};
+  if(name==='bass')  return {pat:bassPattern, vel:bassVel,  len:bassLen,  rows:4, cls:'on-bass',  labels:BASS_LABELS, name:'BASS'};
+  if(name==='pad')   return {pat:padPattern,  vel:padVel,   len:padLen,   rows:3, cls:'on-pad',   labels:PAD_LABELS,  name:'PAD'};
+  return {pat:synthPattern, vel:synthVel, len:synthLen, rows:8, cls:'on-synth',
+          labels:['C'+(baseOctave+1),'B','A','G','F','E','D','C'+baseOctave], name:'LEAD'};
+}
+
 function buildSeqGrid(){
   var table=document.getElementById('seqTable');table.innerHTML='';
-  var pat=patLayer==='synth'?synthPattern:drumPattern;
-  var vel=patLayer==='synth'?synthVel:drumVel;
-  var labels=patLayer==='synth'?['C'+(baseOctave+1),'B','A','G','F','E','D','C'+baseOctave]:DRUMS;
+  var L=getLayer();
 
-  for(var r=0;r<8;r++){
+  for(var r=0;r<L.rows;r++){
     var tr=document.createElement('tr');
-    var lbl=document.createElement('td');lbl.className='row-label';lbl.textContent=labels[r];tr.appendChild(lbl);
+    var lbl=document.createElement('td');lbl.className='row-label';lbl.textContent=L.labels[r]||'';tr.appendChild(lbl);
     for(var c=0;c<stepCount;c++){
       var td=document.createElement('td');
       td.dataset.row=r;td.dataset.col=c;
-      if(pat[r][c]){
-        td.classList.add(patLayer==='synth'?'on-synth':'on-drum');
-        var v=vel[r][c]; if(v===undefined) v=1;
-        /* velocity → opacity band: min 0.35 to stay visible */
+      if(L.pat[r][c]){
+        td.classList.add(L.cls);
+        var v=L.vel[r][c]; if(v===undefined) v=1;
         td.style.opacity=String(0.35+0.65*Math.max(0,Math.min(1,v)));
-        if(patLayer==='synth' && synthLen[r][c]>1){
+        if(L.len && L.len[r][c]>1){
           td.style.boxShadow='inset -3px 0 0 var(--accent)';
-          td.title='len='+synthLen[r][c]+' · vel='+v.toFixed(2);
+          td.title='len='+L.len[r][c]+' · vel='+v.toFixed(2);
         }else{
           td.title='vel='+v.toFixed(2);
         }
@@ -2224,38 +2346,35 @@ function buildSeqGrid(){
     table.appendChild(tr);
   }
 
-  /* click/drag to paint — bound once via flag */
   if(!table._bound){
     var painting=false;var paintVal=0;
+    function paintCell(el){
+      var L=getLayer();
+      var r=parseInt(el.dataset.row,10),c=parseInt(el.dataset.col,10);
+      if(isNaN(r)||isNaN(c)||r>=L.rows) return;
+      L.pat[r][c]=paintVal;
+      L.vel[r][c]=1;
+      if(L.len) L.len[r][c]=1;
+      el.className=''; /* clear on-synth/on-drum/on-bass/on-pad */
+      if(paintVal) el.classList.add(L.cls);
+      el.style.opacity=paintVal?'1':'';
+      el.style.boxShadow='';
+      el.title=paintVal?'vel=1.00':'';
+    }
     table.addEventListener('pointerdown',function(e){
-      var td=e.target;if(!td.dataset.row)return;
+      var td=e.target;if(td.dataset.row===undefined)return;
       e.preventDefault();painting=true;
-      var r=parseInt(td.dataset.row),c=parseInt(td.dataset.col);
-      var p=patLayer==='synth'?synthPattern:drumPattern;
-      var v=patLayer==='synth'?synthVel:drumVel;
-      paintVal=p[r][c]?0:1;
-      p[r][c]=paintVal;
-      v[r][c]=1;
-      if(patLayer==='synth') synthLen[r][c]=1;
-      td.classList.toggle(patLayer==='synth'?'on-synth':'on-drum',!!paintVal);
-      td.style.opacity=paintVal?'1':'';
-      td.style.boxShadow='';
-      td.title=paintVal?'vel=1.00':'';
+      var L=getLayer();
+      var r=parseInt(td.dataset.row,10),c=parseInt(td.dataset.col,10);
+      if(r>=L.rows) return;
+      paintVal=L.pat[r][c]?0:1;
+      paintCell(td);
     });
     table.addEventListener('pointermove',function(e){
       if(!painting)return;
       var el=document.elementFromPoint(e.clientX,e.clientY);
-      if(!el||!el.dataset||el.dataset.row===undefined)return;
-      var r=parseInt(el.dataset.row),c=parseInt(el.dataset.col);
-      var p=patLayer==='synth'?synthPattern:drumPattern;
-      var v=patLayer==='synth'?synthVel:drumVel;
-      p[r][c]=paintVal;
-      v[r][c]=1;
-      if(patLayer==='synth') synthLen[r][c]=1;
-      el.classList.toggle(patLayer==='synth'?'on-synth':'on-drum',!!paintVal);
-      el.style.opacity=paintVal?'1':'';
-      el.style.boxShadow='';
-      el.title=paintVal?'vel=1.00':'';
+      if(!el||el.dataset.row===undefined)return;
+      paintCell(el);
     });
     document.addEventListener('pointerup',function(){painting=false});
     table._bound=true;
@@ -2277,18 +2396,19 @@ function updatePatStatus(){
   if(isPlaying){
     el.textContent='PLAYING \u00b7 '+(currentStep+1)+'/'+stepCount;
   }else{
-    el.textContent=(patLayer==='synth'?'SYNTH':'DRUM')+' \u00b7 '+stepCount+' STEPS';
+    el.textContent=getLayer().name+' \u00b7 '+stepCount+' STEPS';
   }
 }
 
-/* pattern bar listeners */
-document.getElementById('patLayerSynth').addEventListener('click',function(){
-  patLayer='synth';this.classList.add('active');document.getElementById('patLayerDrum').classList.remove('active');
-  buildSeqGrid();updatePatStatus();
-});
-document.getElementById('patLayerDrum').addEventListener('click',function(){
-  patLayer='drum';this.classList.add('active');document.getElementById('patLayerSynth').classList.remove('active');
-  buildSeqGrid();updatePatStatus();
+/* pattern bar listeners: one handler for all layer buttons */
+document.querySelectorAll('#patternPanel [data-layer]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    patLayer=btn.dataset.layer;
+    document.querySelectorAll('#patternPanel [data-layer]').forEach(function(b){
+      b.classList.toggle('active',b===btn);
+    });
+    buildSeqGrid();updatePatStatus();
+  });
 });
 document.querySelectorAll('[data-steps]').forEach(function(btn){
   btn.addEventListener('click',function(){
@@ -2298,11 +2418,10 @@ document.querySelectorAll('[data-steps]').forEach(function(btn){
   });
 });
 document.getElementById('patClear').addEventListener('click',function(){
-  var p=patLayer==='synth'?synthPattern:drumPattern;
-  var v=patLayer==='synth'?synthVel:drumVel;
-  for(var r=0;r<8;r++)for(var c=0;c<stepCount;c++){
-    p[r][c]=0; v[r][c]=1;
-    if(patLayer==='synth') synthLen[r][c]=1;
+  var L=getLayer();
+  for(var r=0;r<L.rows;r++)for(var c=0;c<stepCount;c++){
+    L.pat[r][c]=0; L.vel[r][c]=1;
+    if(L.len) L.len[r][c]=1;
   }
   buildSeqGrid();
 });
@@ -2473,6 +2592,18 @@ function placeDrum(r,c,vel){
   drumPattern[r][c]=1;
   drumVel[r][c]=Math.max(0.15,Math.min(1,vel));
 }
+function placeBass(r,c,vel,len){
+  if(c<0||c>=64||r<0||r>3) return;
+  bassPattern[r][c]=1;
+  bassVel[r][c]=Math.max(0.15,Math.min(1,vel));
+  bassLen[r][c]=Math.max(1,Math.round(len));
+}
+function placePad(r,c,vel,len){
+  if(c<0||c>=64||r<0||r>2) return;
+  padPattern[r][c]=1;
+  padVel[r][c]=Math.max(0.15,Math.min(1,vel));
+  padLen[r][c]=Math.max(1,Math.round(len));
+}
 function transformMotif(motif,kind,rng){
   var L=motif.length, out=[];
   if(kind==='random') kind=TRANSFORM_OPTS[Math.floor(rng()*5)];
@@ -2520,6 +2651,12 @@ function composeMusic(opts){
       synthPattern[r][c]=0; drumPattern[r][c]=0;
       synthVel[r][c]=1; synthLen[r][c]=1; drumVel[r][c]=1;
     }
+  }
+  for(r=0;r<4;r++){
+    for(c=0;c<64;c++){ bassPattern[r][c]=0; bassVel[r][c]=1; bassLen[r][c]=1; }
+  }
+  for(r=0;r<3;r++){
+    for(c=0;c<64;c++){ padPattern[r][c]=0; padVel[r][c]=1; padLen[r][c]=1; }
   }
 
   /* derive motif from math source with variation knobs */
@@ -2627,6 +2764,47 @@ function composeMusic(opts){
       if(rng()<0.55){ drumPattern[2][c]=0; }
     }
   }
+
+  /* --- BASS: foundation on kick-aligned positions, root/fifth ---
+     Lane 0 = octave root (bright), 1 = fifth, 2 = low root, 3 = sub root. */
+  var bassPlan=[];
+  profile.kick.forEach(function(s,i){
+    if(s<0||s>=64) return;
+    /* alternate root/fifth for motion; every 4th kick drops to sub root */
+    var lane;
+    if(i%4===3) lane=3;            /* sub root */
+    else if(i%3===2) lane=1;       /* fifth */
+    else lane=2;                   /* low root */
+    bassPlan.push({s:s,lane:lane});
+  });
+  bassPlan.forEach(function(b){
+    var v=0.78+0.15*rng();
+    var len=(b.lane===3)?4:2;
+    placeBass(b.lane, b.s, v, len);
+  });
+  /* Section downbeats always get a strong sub root */
+  placeBass(3, 0,  0.9, 6);
+  placeBass(3, 16, 0.95,6);
+  placeBass(3, 32, 0.9, 6);
+  placeBass(3, 48, 0.95,6);
+  /* Section C bass follow-through: accent fifth on the & */
+  placeBass(1, 34, 0.7, 2);
+  placeBass(1, 42, 0.7, 2);
+
+  /* --- PAD: sustained triad on each section downbeat, voiced as root/3rd/5th.
+     Dreamy / meditative / cinematic get extra swell hits mid-section. */
+  var padVelBase = (intent==='dreamy'||intent==='meditative')?0.38
+                  :(intent==='cinematic'||intent==='devotional')?0.52
+                  :(intent==='driving'||intent==='anxious')?0.3
+                  :0.42;
+  [0,16,32,48].forEach(function(s){
+    for(var p=0;p<3;p++){
+      placePad(p, s, padVelBase+0.05*p, 16);
+    }
+  });
+  /* Section C: change voicing — drop the 3rd, add a higher 5th on the offbeat */
+  padPattern[1][32]=0; /* remove 3rd */
+  placePad(0, 40, padVelBase*0.8, 8); /* 5th mid-section-C */
 
   buildSeqGrid();
   updatePatStatus();
@@ -2780,14 +2958,24 @@ document.getElementById('dirCompose').addEventListener('click',function(){
     var ev=evaluateMusic();
     if(!best||ev.overall>best){
       best=ev.overall; bestSeed=trySeed; bestEv=ev;
-      /* snapshot grids */
-      var snap={s:[],d:[],sv:[],sl:[],dv:[]};
+      /* snapshot grids — all 4 tracks */
+      var snap={s:[],d:[],sv:[],sl:[],dv:[],b:[],bv:[],bl:[],p:[],pv:[],pl:[]};
       for(var r=0;r<8;r++){
         snap.s[r]=synthPattern[r].slice();
         snap.d[r]=drumPattern[r].slice();
         snap.sv[r]=synthVel[r].slice();
         snap.sl[r]=synthLen[r].slice();
         snap.dv[r]=drumVel[r].slice();
+      }
+      for(r=0;r<4;r++){
+        snap.b[r]=bassPattern[r].slice();
+        snap.bv[r]=bassVel[r].slice();
+        snap.bl[r]=bassLen[r].slice();
+      }
+      for(r=0;r<3;r++){
+        snap.p[r]=padPattern[r].slice();
+        snap.pv[r]=padVel[r].slice();
+        snap.pl[r]=padLen[r].slice();
       }
       bestSnap=snap;
     }
@@ -2801,6 +2989,16 @@ document.getElementById('dirCompose').addEventListener('click',function(){
       synthVel[r]=bestSnap.sv[r];
       synthLen[r]=bestSnap.sl[r];
       drumVel[r]=bestSnap.dv[r];
+    }
+    for(r=0;r<4;r++){
+      bassPattern[r]=bestSnap.b[r];
+      bassVel[r]=bestSnap.bv[r];
+      bassLen[r]=bestSnap.bl[r];
+    }
+    for(r=0;r<3;r++){
+      padPattern[r]=bestSnap.p[r];
+      padVel[r]=bestSnap.pv[r];
+      padLen[r]=bestSnap.pl[r];
     }
     buildSeqGrid();
   }
