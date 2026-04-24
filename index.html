@@ -4312,8 +4312,88 @@ document.getElementById('btnShare').addEventListener('click',function(){
 })();
 
 /* ── SAVE / LOAD STATE ── */
+/* serialise every user-mutable slice of state into a single JSON-safe object. */
+function snapshotState(){
+  return {
+    v:2,
+    activePreset:activePreset,
+    synth:synth,
+    bpm:bpm, stepCount:stepCount, baseOctave:baseOctave,
+    currentMode:currentMode,
+    synthPattern:synthPattern, drumPattern:drumPattern,
+    bassPattern:bassPattern, padPattern:padPattern,
+    synthVel:synthVel, synthLen:synthLen, drumVel:drumVel,
+    bassVel:bassVel, bassLen:bassLen,
+    padVel:padVel, padLen:padLen,
+    synthScale:synthScale, synthScaleOcts:synthScaleOcts,
+    busState:busState
+  };
+}
+function applySnapshot(s){
+  if(!s) return;
+  try{
+    if(s.synth){ Object.assign(synth,s.synth); if(s.synth.fx) synth.fx=Object.assign({},FX_DEFAULTS,s.synth.fx); }
+    if(s.stepCount && s.stepCount!==stepCount) resizePatterns(s.stepCount);
+    ['synthPattern','drumPattern','bassPattern','padPattern',
+     'synthVel','synthLen','drumVel','bassVel','bassLen','padVel','padLen',
+     'synthScale','synthScaleOcts'].forEach(function(k){
+      if(s[k]) window[k]=s[k];
+    });
+    if(s.bpm) setBPM(s.bpm);
+    if(s.baseOctave){ baseOctave=s.baseOctave; var oct=document.getElementById('octNum'); if(oct) oct.textContent=baseOctave; }
+    if(s.activePreset){
+      activePreset=s.activePreset;
+      var pnames=Object.keys(PRESETS), pi=pnames.indexOf(s.activePreset);
+      if(pi>=0 && window._selectPreset) window._selectPreset(pi);
+    }
+    if(s.busState){
+      Object.keys(s.busState).forEach(function(k){
+        if(busState[k]){
+          busState[k].gain=s.busState[k].gain;
+          busState[k].pan =s.busState[k].pan;
+          busState[k].mute=s.busState[k].mute;
+        }
+      });
+      document.querySelectorAll('.mixer-strip').forEach(function(st){
+        var k=st.dataset.track, bs=busState[k]; if(!bs) return;
+        var f=st.querySelector('.mixer-fader'); if(f) f.value=Math.round(bs.gain*100);
+        var p=st.querySelector('.mixer-pan'); if(p) p.value=Math.round(bs.pan*100);
+        if(bs.mute){ var m=st.querySelector('.mixer-mute'); if(m) m.classList.add('active'); st.classList.add('muted'); }
+      });
+    }
+    if(s.currentMode) switchMode(s.currentMode);
+    updateDrawerUI(); buildKeyboard(); buildSeqGrid();
+    if(chainBuilt) initChain();
+  }catch(err){ console.warn('Snapshot restore failed',err); }
+}
+
+/* ── AUTO-SAVE to localStorage ── refresh never loses work */
+var LS_KEY='sonicc:autosave:v2';
+var autoSaveTimer=null;
+function scheduleAutoSave(){
+  if(autoSaveTimer) clearTimeout(autoSaveTimer);
+  autoSaveTimer=setTimeout(function(){
+    try{ localStorage.setItem(LS_KEY,JSON.stringify(snapshotState())); }catch(e){}
+  },600);
+}
+/* global 3-second tick as a safety net in case a mutation point missed a hook */
+setInterval(function(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(snapshotState())); }catch(e){} },3000);
+window.addEventListener('pagehide',function(){
+  try{ localStorage.setItem(LS_KEY,JSON.stringify(snapshotState())); }catch(e){}
+});
+/* restore on boot — run once, after all builders have initialised */
+setTimeout(function(){
+  try{
+    var raw=localStorage.getItem(LS_KEY);
+    if(raw){
+      var s=JSON.parse(raw);
+      if(s && s.v===2) applySnapshot(s);
+    }
+  }catch(e){ console.warn('Restore from localStorage failed',e); }
+},50);
+
 document.getElementById('btnSave').addEventListener('click',function(){
-  var state={synth:synth,synthPattern:synthPattern,drumPattern:drumPattern,stepCount:stepCount,bpm:bpm,baseOctave:baseOctave,activePreset:activePreset};
+  var state=snapshotState();
   var json=JSON.stringify(state);
   var blob=new Blob([json],{type:'application/json'});
   var url=URL.createObjectURL(blob);
@@ -4327,24 +4407,8 @@ document.getElementById('btnLoad').addEventListener('click',function(){
     var f=e.target.files[0];if(!f)return;
     var reader=new FileReader();
     reader.onload=function(ev){
-      try{
-        var state=JSON.parse(ev.target.result);
-        if(state.synth){
-          Object.assign(synth,state.synth);
-          if(state.synth.fx)synth.fx=Object.assign({},FX_DEFAULTS,state.synth.fx);
-        }
-        if(state.synthPattern)synthPattern=state.synthPattern;
-        if(state.drumPattern)drumPattern=state.drumPattern;
-        if(state.stepCount){stepCount=state.stepCount;resizePatterns(stepCount)}
-        if(state.bpm)setBPM(state.bpm);
-        if(state.baseOctave){baseOctave=state.baseOctave;document.getElementById('octNum').textContent=baseOctave}
-        if(state.activePreset){
-          activePreset=state.activePreset;
-          var pnames=Object.keys(PRESETS);var pi=pnames.indexOf(state.activePreset);if(pi>=0)window._selectPreset(pi);
-        }
-        updateDrawerUI();buildKeyboard();buildSeqGrid();
-        if(chainBuilt)initChain();
-      }catch(err){console.warn('Load failed',err)}
+      try{ applySnapshot(JSON.parse(ev.target.result)); }
+      catch(err){ console.warn('Load failed',err); }
     };
     reader.readAsText(f);
   });
