@@ -560,6 +560,43 @@ input{font-family:inherit}
           <button class="pill sm" data-steps="64">64</button>
           <button class="pill sm" id="patClear">CLEAR</button>
         </div>
+        <div class="pat-bar" id="dirBar">
+          <span class="pat-status" style="margin-right:4px">DIRECTOR</span>
+          <select class="pill sm" id="dirIntent" title="Intent">
+            <option value="meditative">meditative</option>
+            <option value="devotional">devotional</option>
+            <option value="driving">driving</option>
+            <option value="anxious">anxious</option>
+            <option value="playful">playful</option>
+          </select>
+          <select class="pill sm" id="dirMath" title="Math source">
+            <option value="pi">&pi;</option>
+            <option value="fib">fib</option>
+            <option value="primes">primes</option>
+            <option value="sine">sine</option>
+            <option value="ca">CA</option>
+          </select>
+          <select class="pill sm" id="dirRoot" title="Root">
+            <option value="0">C</option><option value="1">C#</option><option value="2">D</option>
+            <option value="3">D#</option><option value="4">E</option><option value="5">F</option>
+            <option value="6">F#</option><option value="7">G</option><option value="8">G#</option>
+            <option value="9">A</option><option value="10">A#</option><option value="11">B</option>
+          </select>
+          <select class="pill sm" id="dirScale" title="Scale">
+            <option value="major">major</option>
+            <option value="minor">minor</option>
+            <option value="dorian">dorian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="mixo">mixolydian</option>
+            <option value="pent_maj">pent maj</option>
+            <option value="pent_min">pent min</option>
+            <option value="blues">blues</option>
+            <option value="raga_yaman">yaman</option>
+            <option value="raga_bhairavi">bhairavi</option>
+          </select>
+          <input class="pill sm" id="dirSeed" type="number" value="1" min="0" style="width:64px" title="Seed (deterministic)">
+          <button class="pill sm" id="dirCompose">COMPOSE</button>
+        </div>
         <div id="seqGrid"><table id="seqTable"></table></div>
       </div>
 
@@ -1600,6 +1637,9 @@ var isPlaying=false;var isRecording=false;
 var currentStep=0;var seqInterval=null;
 var bpm=120;var patLayer='synth';
 var baseOctave=4;
+/* scale lanes: index 0 = lowest row (row 7), index 7 = highest row (row 0) */
+var synthScale=['C','D','E','F','G','A','B','C'];
+var synthScaleOcts=[0,0,0,0,0,0,0,1];
 
 function initPatterns(){
   synthPattern=[];drumPattern=[];
@@ -1634,9 +1674,13 @@ function startPlayback(){
   playBtn.classList.add('active');
   var msPerStep=60000/(bpm*4);
   seqInterval=setInterval(function(){
-    /* play synth notes */
-    var synthNotes=['C','D','E','F','G','A','B','C'];
-    var synthOcts=[baseOctave,baseOctave,baseOctave,baseOctave,baseOctave,baseOctave,baseOctave,baseOctave+1];
+    /* play synth notes — lanes come from synthScale (low-to-high index 0..7) */
+    var synthNotes=synthScale;
+    var synthOcts=[];
+    for(var k=0;k<8;k++){
+      var off=synthScaleOcts?synthScaleOcts[k]:(k===7?1:0);
+      synthOcts.push(baseOctave+off);
+    }
     for(var r=0;r<8;r++){
       if(synthPattern[r][currentStep]){
         var ni=7-r;
@@ -2054,6 +2098,197 @@ document.getElementById('patClear').addEventListener('click',function(){
   var p=patLayer==='synth'?synthPattern:drumPattern;
   for(var r=0;r<8;r++)for(var c=0;c<stepCount;c++)p[r][c]=0;
   buildSeqGrid();
+});
+
+/* ── MUSIC DIRECTOR ──
+   Layer above the pattern engine: math is the source of motifs, not the composer.
+   Generates a 64-step phrase with sections (intro/statement/variation/resolve),
+   scale-locked pitches, intent-driven drums, and deterministic seeding. */
+var SCALES={
+  major:        [0,2,4,5,7,9,11],
+  minor:        [0,2,3,5,7,8,10],
+  dorian:       [0,2,3,5,7,9,10],
+  phrygian:     [0,1,3,5,7,8,10],
+  mixo:         [0,2,4,5,7,9,10],
+  pent_maj:     [0,2,4,7,9,0,2],
+  pent_min:     [0,3,5,7,10,0,3],
+  blues:        [0,3,5,6,7,10,0],
+  raga_yaman:   [0,2,4,6,7,9,11],
+  raga_bhairavi:[0,1,3,5,7,8,10]
+};
+var ROOT_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+function setScaleLanes(rootIdx,scaleName){
+  var s=SCALES[scaleName]||SCALES.major;
+  var notes=[],octs=[];
+  /* 7 scale steps low→high, then root+octave on top (lane index 7) */
+  for(var i=0;i<7;i++){
+    var semi=s[i%s.length];
+    var abs=rootIdx+semi;
+    notes.push(ROOT_NAMES[((abs%12)+12)%12]);
+    octs.push(Math.floor(abs/12));
+  }
+  notes.push(ROOT_NAMES[rootIdx]);
+  octs.push(1);
+  synthScale=notes;
+  synthScaleOcts=octs;
+}
+
+/* mulberry32 — deterministic seeded PRNG */
+function makeRng(seed){
+  var t=(seed|0)>>>0;
+  return function(){
+    t=(t+0x6D2B79F5)>>>0;
+    var r=Math.imul(t^(t>>>15),1|t);
+    r=(r+Math.imul(r^(r>>>7),61|r))^r;
+    return ((r^(r>>>14))>>>0)/4294967296;
+  };
+}
+
+function mathDigits(name,len){
+  var a=[],i;
+  if(name==='pi'){
+    var pi='31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679';
+    for(i=0;i<len;i++) a.push(parseInt(pi.charAt(i%pi.length),10));
+    return a;
+  }
+  if(name==='fib'){
+    var x=1,y=1;
+    for(i=0;i<len;i++){ a.push(x%10); var z=(x+y)%997; x=y; y=z; }
+    return a;
+  }
+  if(name==='primes'){
+    var n=2;
+    while(a.length<len){
+      var p=true;
+      for(var j=2;j*j<=n;j++){ if(n%j===0){p=false;break;} }
+      if(p) a.push(n);
+      n++;
+    }
+    return a;
+  }
+  if(name==='sine'){
+    for(i=0;i<len;i++) a.push(Math.round((Math.sin(i*0.37)*0.5+0.5)*9));
+    return a;
+  }
+  if(name==='ca'){
+    /* Rule 30, center seed; return a flat snapshot (row at mid-evolution) */
+    var w=len, row=new Array(w).fill(0); row[w>>1]=1;
+    for(var s=0;s<8;s++){
+      var nx=new Array(w).fill(0);
+      for(i=0;i<w;i++){
+        var L=row[(i-1+w)%w],C=row[i],R=row[(i+1)%w];
+        nx[i]=(30>>((L<<2)|(C<<1)|R))&1;
+      }
+      row=nx;
+    }
+    return row;
+  }
+  for(i=0;i<len;i++) a.push(i%10);
+  return a;
+}
+
+var INTENT_PROFILES={
+  meditative:{density:.22, kick:[0,32],                              snare:[16,48],                      hat:.28, accentPrimes:true,  sparseIntro:true},
+  devotional:{density:.32, kick:[0,8,16,24,32,40,48,56],             snare:[12,28,44,60],                hat:.5,  accentPrimes:true,  sparseIntro:true},
+  driving:   {density:.55, kick:[0,8,16,24,32,40,48,56],             snare:[4,12,20,28,36,44,52,60],     hat:.82, accentPrimes:false, sparseIntro:false},
+  anxious:   {density:.48, kick:[0,14,30,46],                        snare:[7,23,39,55],                 hat:.6,  accentPrimes:true,  sparseIntro:false},
+  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],                 hat:.7,  accentPrimes:false, sparseIntro:true}
+};
+
+function composeMusic(opts){
+  opts=opts||{};
+  var rootIdx=opts.root|0;
+  var scaleName=opts.scale||'major';
+  var intent=opts.intent||'meditative';
+  var math=opts.math||'pi';
+  var seed=opts.seed|0; if(!seed) seed=1;
+  var rng=makeRng(seed);
+  var profile=INTENT_PROFILES[intent]||INTENT_PROFILES.meditative;
+
+  setScaleLanes(rootIdx,scaleName);
+
+  if(stepCount!==64){
+    document.querySelectorAll('[data-steps]').forEach(function(b){
+      b.classList.toggle('active',b.dataset.steps==='64');
+    });
+    resizePatterns(64);
+  }
+  for(var r=0;r<8;r++){
+    for(var c=0;c<64;c++){ synthPattern[r][c]=0; drumPattern[r][c]=0; }
+  }
+
+  var src=mathDigits(math,128);
+
+  /* --- SYNTH: motif derived from math, varied across 4 sections --- */
+  var motifLen=8, motif=[];
+  for(var i=0;i<motifLen;i++){
+    var v=src[i]|0;
+    motif.push({row:7-(v%8), step:(i*2)%16});
+  }
+
+  /* A: intro 0-15 — sparse, first half of motif, high lanes favored if meditative */
+  motif.slice(0,4).forEach(function(m){
+    if(rng()<0.85) synthPattern[m.row][m.step]=1;
+  });
+
+  /* B: statement 16-31 — full motif */
+  motif.forEach(function(m){ synthPattern[m.row][16+m.step]=1; });
+
+  /* C: variation 32-47 — mirror time + shift lane + density fills */
+  motif.forEach(function(m,i){
+    var mStep=((motifLen-1-i)*2)%16;
+    var shiftedRow=(m.row+2)%8;
+    if(rng()<0.9) synthPattern[shiftedRow][32+mStep]=1;
+    if(rng()<profile.density){
+      var fillRow=7-((src[(i+8)%src.length]|0)%8);
+      var fillStep=32+(((i*2+1))%16);
+      synthPattern[fillRow][fillStep]=1;
+    }
+  });
+
+  /* D: resolve 48-63 — return to motif then land on root */
+  motif.slice(0,3).forEach(function(m,i){
+    synthPattern[m.row][48+i*2]=1;
+  });
+  synthPattern[7][56]=1; /* low root */
+  synthPattern[0][62]=1; /* high tonic */
+  synthPattern[7][63]=1; /* low root tail */
+
+  /* --- DRUMS: kick/snare/hat from intent profile, math-driven accents --- */
+  profile.kick.forEach(function(s){ if(s<64) drumPattern[0][s]=1; });
+  profile.snare.forEach(function(s){ if(s<64) drumPattern[1][s]=1; });
+  for(var c=0;c<64;c++){
+    if(rng()<profile.hat) drumPattern[2][c]=1;
+  }
+  if(profile.accentPrimes){
+    mathDigits('primes',22).forEach(function(p){
+      if(p<64) drumPattern[6][p]=1; /* PERC lane */
+    });
+  }
+  drumPattern[5][16]=1; /* CRASH on section B */
+  drumPattern[3][32]=1; /* CLAP on section C */
+  if(intent==='driving'||intent==='playful') drumPattern[7][48]=1; /* COWBELL into D */
+
+  /* sparse intro: thin hi-hat in first 16 steps */
+  if(profile.sparseIntro){
+    for(c=0;c<16;c++){
+      if(rng()<0.55) drumPattern[2][c]=0;
+    }
+  }
+
+  buildSeqGrid();
+  updatePatStatus();
+}
+
+document.getElementById('dirCompose').addEventListener('click',function(){
+  composeMusic({
+    intent: document.getElementById('dirIntent').value,
+    math:   document.getElementById('dirMath').value,
+    root:   parseInt(document.getElementById('dirRoot').value,10),
+    scale:  document.getElementById('dirScale').value,
+    seed:   parseInt(document.getElementById('dirSeed').value,10)||1
+  });
 });
 
 /* ── SAMPLER ── */
