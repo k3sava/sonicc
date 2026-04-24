@@ -3547,10 +3547,14 @@ function encodeWAV(buffer){
   return out.buffer;
 }
 
-/* ── MIC RECORDING ── */
-var micStream=null;var micRecorder=null;var micChunks=[];
+/* ── MIC RECORDING — raw PCM capture → lossless 16-bit WAV ──
+   MediaRecorder produces opus/webm (lossy). We use ScriptProcessor to
+   read the mic stream's Float32 samples directly so the saved .wav file
+   is true PCM, not a re-encoded opus roundtrip. */
+var micStream=null;var micChunks=[];
 var micBuffer=null;var micRecording=false;
 var micAnalyser=null;var micStartTime=0;var micTimer=null;
+var micSourceNode=null; var micProcessor=null; var micSampleRate=0; var micNumChannels=0;
 
 document.getElementById('micBtn').addEventListener('click',toggleMic);
 
@@ -3559,52 +3563,82 @@ function toggleMic(){
 }
 
 function startMicRec(){
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+  navigator.mediaDevices.getUserMedia({audio:{
+    channelCount:2, echoCancellation:false, noiseSuppression:false, autoGainControl:false
+  }}).then(function(stream){
     ensureAudio();
     micStream=stream;
-    micRecorder=new MediaRecorder(stream);
-    micChunks=[];
-    micRecorder.ondataavailable=function(e){micChunks.push(e.data)};
-    micRecorder.onstop=function(){
-      var blob=new Blob(micChunks,{type:'audio/webm'});
-      var reader=new FileReader();
-      reader.onload=function(e){
-        actx.decodeAudioData(e.target.result,function(buf){
-          micBuffer=buf;
-        });
-      };
-      reader.readAsArrayBuffer(blob);
-      micStream.getTracks().forEach(function(t){t.stop()});
+    micChunks=[];  /* array of Float32Array chunks, one per ScriptProcessor frame, per channel */
+
+    micSourceNode=actx.createMediaStreamSource(stream);
+    /* Query actual negotiated channel count (often 1 on phones even when we requested 2) */
+    var track=stream.getAudioTracks()[0];
+    var settings=(track && track.getSettings)?track.getSettings():{};
+    micNumChannels=settings.channelCount||micSourceNode.channelCount||1;
+    micSampleRate=actx.sampleRate;
+
+    /* ScriptProcessor: 4096-sample buffer — reads PCM in real time, no re-encoding */
+    micProcessor=actx.createScriptProcessor(4096, micNumChannels, micNumChannels);
+    micProcessor.onaudioprocess=function(e){
+      var frame=[];
+      for(var ch=0;ch<e.inputBuffer.numberOfChannels;ch++){
+        frame.push(new Float32Array(e.inputBuffer.getChannelData(ch)));
+      }
+      micChunks.push(frame);
     };
-    micRecorder.start();
+    micSourceNode.connect(micProcessor);
+    /* Processor must be connected to destination to fire, but route to silent gain */
+    var silent=actx.createGain(); silent.gain.value=0;
+    micProcessor.connect(silent); silent.connect(actx.destination);
+    micProcessor._silent=silent;
+
+    /* analyser for level meter */
+    micAnalyser=actx.createAnalyser();micAnalyser.fftSize=256;
+    micSourceNode.connect(micAnalyser);
+
     micRecording=true;
     document.getElementById('micBtn').classList.add('recording');
     document.getElementById('micBtn').textContent='STOP';
-
-    /* analyser for level meter */
-    var src=actx.createMediaStreamSource(stream);
-    micAnalyser=actx.createAnalyser();micAnalyser.fftSize=256;
-    src.connect(micAnalyser);
 
     micStartTime=Date.now();
     micTimer=setInterval(function(){
       var elapsed=Math.floor((Date.now()-micStartTime)/1000);
       var m=Math.floor(elapsed/60);var s=elapsed%60;
       document.getElementById('micDuration').textContent=m+':'+(s<10?'0':'')+s;
-
-      /* level */
       var data=new Uint8Array(micAnalyser.frequencyBinCount);
       micAnalyser.getByteFrequencyData(data);
       var sum=0;for(var i=0;i<data.length;i++)sum+=data[i];
-      var avg=sum/data.length;
-      document.getElementById('micFill').style.width=(avg/255*100)+'%';
+      document.getElementById('micFill').style.width=(sum/data.length/255*100)+'%';
     },50);
   }).catch(function(e){console.warn('Mic access denied',e)});
 }
 
 function stopMicRec(){
-  if(micRecorder&&micRecorder.state==='recording')micRecorder.stop();
+  if(!micRecording) return;
   micRecording=false;
+  /* assemble captured Float32 chunks into an AudioBuffer */
+  var totalLen=0;
+  micChunks.forEach(function(f){ totalLen += f[0].length; });
+  if(totalLen>0 && actx){
+    var buf=actx.createBuffer(micNumChannels||1, totalLen, micSampleRate);
+    for(var ch=0;ch<buf.numberOfChannels;ch++){
+      var data=buf.getChannelData(ch);
+      var offset=0;
+      micChunks.forEach(function(frame){
+        var src=frame[ch]||frame[0]; /* fall back to channel 0 for mono */
+        data.set(src,offset);
+        offset+=src.length;
+      });
+    }
+    micBuffer=buf;
+  }
+  /* teardown nodes */
+  if(micProcessor){
+    try{ micProcessor.disconnect(); if(micProcessor._silent) micProcessor._silent.disconnect(); }catch(e){}
+    micProcessor.onaudioprocess=null; micProcessor=null;
+  }
+  if(micSourceNode){ try{micSourceNode.disconnect()}catch(e){} micSourceNode=null; }
+  if(micStream){ micStream.getTracks().forEach(function(t){t.stop()}); micStream=null; }
   document.getElementById('micBtn').classList.remove('recording');
   document.getElementById('micBtn').innerHTML='\u{1F3A4}';
   if(micTimer){clearInterval(micTimer);micTimer=null;}
@@ -3627,11 +3661,14 @@ document.getElementById('micClear').addEventListener('click',function(){
   document.getElementById('micDuration').textContent='0:00';
 });
 document.getElementById('micSave').addEventListener('click',function(){
-  if(!micChunks.length)return;
-  var blob=new Blob(micChunks,{type:'audio/webm'});
+  if(!micBuffer){ console.warn('No recording to save'); return; }
+  var wavBuffer=encodeWAV(micBuffer); /* 16-bit PCM RIFF — reused from sampler export */
+  var blob=new Blob([wavBuffer],{type:'audio/wav'});
   var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');a.href=url;a.download='recording.webm';a.click();
-  URL.revokeObjectURL(url);
+  var a=document.createElement('a');
+  var ts=new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  a.href=url; a.download='sonicc-'+ts+'.wav'; a.click();
+  setTimeout(function(){URL.revokeObjectURL(url)},1000);
 });
 
 /* ── DRAWER: WAVEFORM SELECT ── */
