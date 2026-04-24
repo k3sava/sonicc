@@ -240,6 +240,12 @@ input{font-family:inherit}
 .dir-icon:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .dir-check{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-label);font-size:0.68rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;user-select:none}
 .dir-check input{margin:0;cursor:pointer;accent-color:var(--accent)}
+.dir-stems{gap:5px}
+.dir-stem{height:30px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface-solid);color:var(--text-dim);font-family:var(--font-label);font-size:0.7rem;text-transform:lowercase;letter-spacing:0.04em;cursor:pointer;transition:all var(--motion-fast)}
+.dir-stem:hover{border-color:var(--accent);color:var(--text)}
+.dir-stem.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:600}
+.dir-stem-auto{text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+.dir-stems.locked .dir-stem:not(.dir-stem-auto){opacity:0.55;pointer-events:none}
 .dir-action{display:flex;justify-content:center}
 .dir-compose{height:40px;padding:0 36px;border:none;border-radius:var(--input-radius);background:var(--accent);color:var(--accent-contrast);font-family:var(--font-label);font-size:0.8rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all var(--motion-fast);box-shadow:0 2px 8px rgba(37,99,235,0.25)}
 .dir-compose:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.35);filter:brightness(1.05)}
@@ -544,9 +550,10 @@ input{font-family:inherit}
     <div class="ctrl-section modes" id="modeTabs">
       <button class="pill sm active" data-mode="keys" aria-label="Keys mode">KEYS<span class="shortcut">F1</span></button>
       <button class="pill sm" data-mode="drums" aria-label="Drums mode">DRUMS<span class="shortcut">F2</span></button>
-      <button class="pill sm" data-mode="pattern" aria-label="Pattern sequencer">PAT<span class="shortcut">F3</span></button>
-      <button class="pill sm" data-mode="sampler" aria-label="Audio sampler">SAMP<span class="shortcut">F4</span></button>
-      <button class="pill sm" data-mode="mic" aria-label="Microphone recorder">MIC<span class="shortcut">F5</span></button>
+      <button class="pill sm" data-mode="pattern" aria-label="Pattern sequencer">STEPS<span class="shortcut">F3</span></button>
+      <button class="pill sm" data-mode="compose" aria-label="Music Director composer">COMPOSE<span class="shortcut">F4</span></button>
+      <button class="pill sm" data-mode="sampler" aria-label="Audio sampler">SAMP<span class="shortcut">F5</span></button>
+      <button class="pill sm" data-mode="mic" aria-label="Microphone recorder">MIC<span class="shortcut">F6</span></button>
     </div>
     <div style="flex:1;display:flex;justify-content:center;align-items:center;gap:4px">
       <button class="bpm-btn" id="bpmDown" aria-label="Decrease BPM">&minus;</button>
@@ -609,6 +616,11 @@ input{font-family:inherit}
           <button class="pill sm" data-steps="64">64</button>
           <button class="pill sm" id="patClear">CLEAR</button>
         </div>
+        <div id="seqGrid"><table id="seqTable"></table></div>
+      </div>
+
+      <!-- COMPOSE MODE — Music Director (its own top-level mode) -->
+      <div class="mode-panel" id="composePanel" data-mode="compose">
         <div class="dir-panel" id="dirPanel">
           <div class="dir-groups">
 
@@ -733,9 +745,29 @@ input{font-family:inherit}
                 <input class="dir-seed-input" id="dirSeed" type="number" value="1" min="0" title="Deterministic seed — same inputs give same music">
                 <button type="button" class="dir-icon" id="dirSeedRand" title="Random seed">rand</button>
                 <button type="button" class="dir-icon" id="dirSeedInc" title="Seed +1">+1</button>
+                <label class="dir-check" title="Every compose uses a fresh random seed; same inputs produce different music">
+                  <input type="checkbox" id="dirChance"> chance
+                </label>
                 <label class="dir-check" title="Try up to 12 seeds, keep the best-scoring">
                   <input type="checkbox" id="dirAuto"> auto
                 </label>
+              </div>
+            </div>
+
+            <div class="dir-group dir-group-wide">
+              <span class="dir-label">Stems</span>
+              <div class="dir-group-row dir-stems">
+                <button type="button" class="dir-stem dir-stem-auto active" data-stem="auto" title="Director picks 4-10 stems per compose based on intent">AUTO 4-10</button>
+                <button type="button" class="dir-stem active" data-stem="lead" title="Lead melody — main motif">lead</button>
+                <button type="button" class="dir-stem active" data-stem="bass" title="Bass line — root/5th on kicks">bass</button>
+                <button type="button" class="dir-stem active" data-stem="pad" title="Sustained triads">pad</button>
+                <button type="button" class="dir-stem active" data-stem="drums" title="Kit — kick, snare, hat">drums</button>
+                <button type="button" class="dir-stem" data-stem="arp" title="Arpeggiated melody on the scale">arp</button>
+                <button type="button" class="dir-stem" data-stem="pluck" title="Sparse plucked accents">pluck</button>
+                <button type="button" class="dir-stem" data-stem="counter" title="Counter-melody answering the lead">counter</button>
+                <button type="button" class="dir-stem" data-stem="drone" title="Sustained root/5th drone">drone</button>
+                <button type="button" class="dir-stem" data-stem="perc" title="Extra percussion layer">perc</button>
+                <button type="button" class="dir-stem" data-stem="auxperc" title="Fills & ghost hits">aux</button>
               </div>
             </div>
 
@@ -754,7 +786,6 @@ input{font-family:inherit}
             <div class="dir-score-chips" id="dirScoreChips"></div>
           </div>
         </div>
-        <div id="seqGrid"><table id="seqTable"></table></div>
       </div>
 
       <!-- SAMPLER MODE -->
@@ -1807,6 +1838,9 @@ var synthVel=[], synthLen=[], drumVel=[];
    each played through its own preset via triggerAuxVoice(). */
 var bassPattern=[], bassVel=[], bassLen=[];
 var padPattern=[],  padVel=[],  padLen=[];
+/* Aux stem events — ephemeral per-compose, not a user-editable grid.
+   Each: {step, preset, note, oct, vel, len}. Fired via triggerAuxVoice. */
+var auxEvents=[];
 var bassPreset='sub';   /* hardcoded for now — low sine, mild dist */
 var padPreset='pad';    /* long attack, reverb */
 /* bass lane → scale-degree voicing (low register).
@@ -1939,6 +1973,13 @@ function startPlayback(){
       if(drumPattern[r][currentStep]){
         var dvel=drumVel[r][currentStep]; if(dvel===undefined) dvel=1;
         playDrum(r,dvel);
+      }
+    }
+    /* fire ephemeral aux-stem events (arp, pluck, counter, drone…) */
+    for(var ei=0;ei<auxEvents.length;ei++){
+      var ev=auxEvents[ei];
+      if(ev.step===currentStep){
+        triggerAuxVoice(ev.preset,ev.note,ev.oct,ev.vel,ev.len);
       }
     }
     highlightStep(currentStep);
@@ -2806,6 +2847,70 @@ function composeMusic(opts){
   padPattern[1][32]=0; /* remove 3rd */
   placePad(0, 40, padVelBase*0.8, 8); /* 5th mid-section-C */
 
+  /* --- STEM SELECTION ---
+     stems array controls which tracks survive + which aux stems fire.
+     Undefined stems => keep legacy behaviour (all 4 core tracks on). */
+  auxEvents=[];
+  var stems=opts.stems;
+  if(stems && stems.length){
+    var has=function(n){return stems.indexOf(n)>=0};
+    if(!has('lead'))  for(var r=0;r<8;r++)for(var c=0;c<64;c++){synthPattern[r][c]=0;synthVel[r][c]=1;synthLen[r][c]=1}
+    if(!has('bass'))  for(var r=0;r<4;r++)for(var c=0;c<64;c++){bassPattern[r][c]=0;bassVel[r][c]=1;bassLen[r][c]=1}
+    if(!has('pad'))   for(var r=0;r<3;r++)for(var c=0;c<64;c++){padPattern[r][c]=0;padVel[r][c]=1;padLen[r][c]=1}
+    if(!has('drums')) for(var r=0;r<8;r++)for(var c=0;c<64;c++){drumPattern[r][c]=0;drumVel[r][c]=1}
+
+    /* ARP — ascending scale run across sections B + D, pluck timbre */
+    if(has('arp')){
+      [16,48].forEach(function(sec){
+        for(var s=0;s<16;s+=2){
+          var idx=((s>>1)+Math.floor(rng()*2))%7;
+          var note=synthScale[idx], oct=baseOctave+(synthScaleOcts[idx]||0);
+          auxEvents.push({step:sec+s, preset:'pluck', note:note, oct:oct, vel:0.42+0.15*rng(), len:1});
+        }
+      });
+    }
+    /* PLUCK — sparse accents on prime steps, pluck timbre, mid register */
+    if(has('pluck')){
+      [3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61].forEach(function(p){
+        if(p>=64) return;
+        var idx=(p*3)%7;
+        var note=synthScale[idx], oct=baseOctave+(synthScaleOcts[idx]||0);
+        auxEvents.push({step:p, preset:'pluck', note:note, oct:oct, vel:0.55+0.15*rng(), len:1});
+      });
+    }
+    /* COUNTER — inverted motif half a bar offset, e.piano timbre */
+    if(has('counter')){
+      motif.forEach(function(m){
+        var invRow=7-m.row;
+        var invIdx=Math.max(0,Math.min(7,7-invRow));
+        var note=synthScale[invIdx], oct=baseOctave+(synthScaleOcts[invIdx]||0);
+        var offStep=(m.step+8)%16;
+        auxEvents.push({step:16+offStep, preset:'e.piano', note:note, oct:oct, vel:0.5, len:2});
+        auxEvents.push({step:32+offStep, preset:'e.piano', note:note, oct:oct, vel:0.45, len:2});
+      });
+    }
+    /* DRONE — sustained root, full phrase, organ timbre */
+    if(has('drone')){
+      var drNote=synthScale[0];
+      var drOct=baseOctave+(synthScaleOcts[0]||0)-1;
+      auxEvents.push({step:0, preset:'organ', note:drNote, oct:drOct, vel:0.3, len:64});
+    }
+    /* PERC — extra percussion layer (toms + triangle perc) */
+    if(has('perc')){
+      for(var c=0;c<64;c++){
+        if(rng()<0.12 && c%8!==0) placeDrum(4, c, 0.45+0.15*rng()); /* TOM */
+        if(rng()<0.10 && c%4===2) placeDrum(6, c, 0.5+0.15*rng()); /* PERC */
+      }
+    }
+    /* AUX — ghost hi-hat doubles + cowbell accents in section C */
+    if(has('auxperc')){
+      for(var c=0;c<64;c++){
+        if(rng()<0.28 && c%2===1) placeDrum(2, c, 0.22+0.1*rng()); /* ghost hat */
+      }
+      placeDrum(7, 36, 0.5); placeDrum(7, 52, 0.55); /* cowbell accents */
+    }
+  }
+
   buildSeqGrid();
   updatePatStatus();
 }
@@ -2899,7 +3004,7 @@ function evaluateMusic(){
   };
 }
 
-function renderScore(ev,seedUsed,attempts){
+function renderScore(ev,seedUsed,attempts,stems){
   var bar=document.getElementById('dirScoreBar');
   bar.hidden=false;
   var badge=document.getElementById('dirScoreBadge');
@@ -2908,7 +3013,8 @@ function renderScore(ev,seedUsed,attempts){
   var chips=document.getElementById('dirScoreChips');
   badge.textContent=ev.overall+'/100';
   verdict.textContent=ev.verdict;
-  seedEl.textContent='seed '+seedUsed+(attempts>1?' · best of '+attempts:'');
+  var stemTxt=stems?(stems.length+' stems: '+stems.join(', ')):'';
+  seedEl.textContent='seed '+seedUsed+(attempts>1?' · best of '+attempts:'')+(stemTxt?' · '+stemTxt:'');
   var labels={
     density:'syn '+(ev.synthDensity*100|0)+'%',
     drumDensity:'drum '+(ev.drumDensity*100|0)+'%',
@@ -2929,25 +3035,83 @@ function renderScore(ev,seedUsed,attempts){
   });
 }
 
+/* intent-biased stem-palette weights for the Auto 4-10 picker */
+var STEM_WEIGHTS={
+  meditative:{lead:1.0,bass:0.7,pad:1.0,drums:0.5,arp:0.3,pluck:0.6,counter:0.5,drone:0.9,perc:0.2,auxperc:0.2},
+  devotional:{lead:1.0,bass:0.8,pad:1.0,drums:0.7,arp:0.4,pluck:0.7,counter:0.6,drone:0.7,perc:0.5,auxperc:0.4},
+  driving:   {lead:1.0,bass:1.0,pad:0.5,drums:1.0,arp:0.8,pluck:0.4,counter:0.5,drone:0.2,perc:0.8,auxperc:0.8},
+  anxious:   {lead:1.0,bass:0.9,pad:0.4,drums:0.9,arp:0.6,pluck:0.8,counter:0.7,drone:0.3,perc:0.8,auxperc:0.7},
+  playful:   {lead:1.0,bass:0.9,pad:0.6,drums:0.9,arp:0.9,pluck:0.8,counter:0.6,drone:0.2,perc:0.7,auxperc:0.6},
+  cinematic: {lead:1.0,bass:0.9,pad:1.0,drums:0.7,arp:0.3,pluck:0.6,counter:0.8,drone:1.0,perc:0.5,auxperc:0.4},
+  dreamy:    {lead:1.0,bass:0.6,pad:1.0,drums:0.4,arp:0.6,pluck:0.7,counter:0.7,drone:0.9,perc:0.2,auxperc:0.3}
+};
+
+function pickAutoStems(intent,rng){
+  /* pick 4..10 stems biased by intent; guarantee at least lead+bass+drums+one more */
+  var weights=STEM_WEIGHTS[intent]||STEM_WEIGHTS.meditative;
+  var target=4+Math.floor(rng()*7); /* 4..10 */
+  var chosen={lead:true, bass:true, drums:true}; /* foundation */
+  var pool=['pad','arp','pluck','counter','drone','perc','auxperc'];
+  /* score + noise, then take top (target-3) */
+  var scored=pool.map(function(n){return {n:n, s:(weights[n]||0.3)+rng()*0.4};});
+  scored.sort(function(a,b){return b.s-a.s;});
+  for(var i=0;i<scored.length && Object.keys(chosen).length<target;i++){
+    chosen[scored[i].n]=true;
+  }
+  return Object.keys(chosen);
+}
+
+function getSelectedStems(){
+  /* if AUTO chip is active, return null (compose handler will auto-pick).
+     else return list of explicitly-active stem chips. */
+  var autoChip=document.querySelector('.dir-stem[data-stem="auto"]');
+  if(autoChip && autoChip.classList.contains('active')) return null;
+  var arr=[];
+  document.querySelectorAll('.dir-stem:not(.dir-stem-auto).active').forEach(function(c){
+    arr.push(c.dataset.stem);
+  });
+  /* guarantee at least lead+drums for a coherent output */
+  if(arr.indexOf('lead')<0) arr.push('lead');
+  if(arr.indexOf('drums')<0) arr.push('drums');
+  return arr;
+}
+
 document.getElementById('dirCompose').addEventListener('click',function(){
+  var chance=document.getElementById('dirChance').checked;
+  var seedField=document.getElementById('dirSeed');
+  var seedVal;
+  if(chance){
+    seedVal=Math.floor(Math.random()*99999)+1;
+    seedField.value=seedVal;
+  }else{
+    seedVal=parseInt(seedField.value,10)||1;
+  }
+  /* resolve stems */
+  var stems=getSelectedStems();
+  /* when AUTO stems is on, pick based on intent using a stem-rng seeded by seedVal */
+  if(stems===null){
+    var stemRng=makeRng(seedVal^0xA5A5);
+    stems=pickAutoStems(document.getElementById('dirIntent').value, stemRng);
+  }
   var o={
     intent: document.getElementById('dirIntent').value,
     math:   document.getElementById('dirMath').value,
     root:   parseInt(document.getElementById('dirRoot').value,10),
     scale:  document.getElementById('dirScale').value,
-    seed:   parseInt(document.getElementById('dirSeed').value,10)||1,
+    seed:   seedVal,
     motifLen: parseInt(document.getElementById('dirMotifLen').value,10),
     offset:   parseInt(document.getElementById('dirOffset').value,10)||0,
     stride:   parseInt(document.getElementById('dirStride').value,10)||1,
     dir:      document.getElementById('dirDir').value,
     density:  document.getElementById('dirDensity').value,
     transform:document.getElementById('dirTransform').value,
-    swing:    document.getElementById('dirSwing').value
+    swing:    document.getElementById('dirSwing').value,
+    stems:    stems
   };
   var auto=document.getElementById('dirAuto').checked;
   if(!auto){
     composeMusic(o);
-    renderScore(evaluateMusic(),o.seed,1);
+    renderScore(evaluateMusic(),o.seed,1,o.stems);
     return;
   }
   /* auto-improve: try up to 12 seeds, keep the best score */
@@ -3002,7 +3166,7 @@ document.getElementById('dirCompose').addEventListener('click',function(){
     }
     buildSeqGrid();
   }
-  renderScore(bestEv,bestSeed,12);
+  renderScore(bestEv,bestSeed,12,o.stems);
 });
 var bestSnap=null;
 
@@ -3027,6 +3191,27 @@ document.getElementById('dirSeedInc').addEventListener('click',function(){
   var s=document.getElementById('dirSeed');
   s.value=(parseInt(s.value,10)||0)+1;
 });
+
+/* stem chips — AUTO toggles lock on the others; individual chips toggle on/off */
+(function wireStemChips(){
+  var chips=document.querySelectorAll('.dir-stem');
+  var stemRow=document.querySelector('.dir-stems');
+  function syncLock(){
+    var autoOn=document.querySelector('.dir-stem[data-stem="auto"]').classList.contains('active');
+    stemRow.classList.toggle('locked',autoOn);
+  }
+  chips.forEach(function(chip){
+    chip.addEventListener('click',function(){
+      if(chip.dataset.stem==='auto'){
+        chip.classList.toggle('active');
+      }else{
+        chip.classList.toggle('active');
+      }
+      syncLock();
+    });
+  });
+  syncLock();
+})();
 
 /* ── SAMPLER ── */
 var samplerPads=[null,null,null,null];
@@ -3654,8 +3839,9 @@ document.addEventListener('keydown',function(e){
   if(e.key==='F1'){e.preventDefault();switchMode('keys');return}
   if(e.key==='F2'){e.preventDefault();switchMode('drums');return}
   if(e.key==='F3'){e.preventDefault();switchMode('pattern');return}
-  if(e.key==='F4'){e.preventDefault();switchMode('sampler');return}
-  if(e.key==='F5'){e.preventDefault();switchMode('mic');return}
+  if(e.key==='F4'){e.preventDefault();switchMode('compose');return}
+  if(e.key==='F5'){e.preventDefault();switchMode('sampler');return}
+  if(e.key==='F6'){e.preventDefault();switchMode('mic');return}
   if(e.metaKey&&!e.shiftKey&&!e.ctrlKey&&key>='1'&&key<='5'){
     e.preventDefault();
     var modes=['keys','drums','pattern','sampler','mic'];
