@@ -650,7 +650,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
     </div>
     <div style="flex:1;display:flex;justify-content:center;align-items:center;gap:4px">
       <button class="bpm-btn" id="bpmDown" aria-label="Decrease BPM">&minus;</button>
-      <div class="bpm-display" title="Drag left/right to adjust BPM"><span class="bpm-val" id="bpmVal">120</span><span style="font-size:0.5rem">BPM</span></div>
+      <div class="bpm-display" title="Drag left/right to adjust BPM"><span class="bpm-val" id="bpmVal">80</span><span style="font-size:0.5rem">BPM</span></div>
       <button class="bpm-btn" id="bpmUp" aria-label="Increase BPM">+</button>
       <button class="pill sm" id="btnTap" aria-label="Tap tempo">TAP<span class="shortcut">T</span></button>
     </div>
@@ -878,7 +878,8 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
             <div class="dir-group dir-group-wide">
               <span class="dir-label">Stems</span>
               <div class="dir-group-row dir-stems">
-                <button type="button" class="dir-stem dir-stem-auto active" data-stem="auto" title="Director picks 4-10 stems per compose based on intent">AUTO 4-10</button>
+                <button type="button" class="dir-stem dir-stem-auto active" data-stem="auto" id="dirAutoChip" title="Each compose adds one stem to the arrangement, layering progressively">BUILD <span id="dirBuildCount">0</span>/10</button>
+                <button type="button" class="dir-icon" id="dirResetLayers" title="Clear all layers and start over" style="height:30px;padding:0 10px">↺</button>
                 <button type="button" class="dir-stem active" data-stem="lead" title="Lead melody — main motif">lead</button>
                 <button type="button" class="dir-stem active" data-stem="bass" title="Bass line — root/5th on kicks">bass</button>
                 <button type="button" class="dir-stem active" data-stem="pad" title="Sustained triads">pad</button>
@@ -1295,14 +1296,14 @@ var synth={waveform:'sine',attack:.01,decay:.15,sustain:.65,release:.4,filterFre
 /* ── PRESETS ── */
 var FX_DEFAULTS={reverb:false,delay:false,dist:false,lofi:false,chorus:false,phaser:false,compressor:false,bitcrusher:false,tremolo:false,eq:false,flanger:false,autowah:false};
 var PRESETS={
-  pad:{waveform:'sine',attack:.4,decay:.3,sustain:.8,release:1.2,filterFreq:3000,filterRes:2,fx:{reverb:true}},
+  pad:{waveform:'sine',attack:1.0,decay:.5,sustain:.85,release:3.0,filterFreq:2400,filterRes:1.4,fx:{reverb:true,chorus:true}},
   lead:{waveform:'sawtooth',attack:.005,decay:.1,sustain:.6,release:.2,filterFreq:6000,filterRes:4,fx:{delay:true}},
   bass:{waveform:'sawtooth',attack:.01,decay:.2,sustain:.7,release:.15,filterFreq:800,filterRes:3,fx:{}},
   pluck:{waveform:'triangle',attack:.001,decay:.25,sustain:.1,release:.3,filterFreq:4000,filterRes:6,fx:{reverb:true}},
   bell:{waveform:'fm',attack:.001,decay:.8,sustain:.1,release:2,filterFreq:12000,filterRes:1,fx:{reverb:true,delay:true}},
   organ:{waveform:'square',attack:.01,decay:.01,sustain:.9,release:.05,filterFreq:5000,filterRes:1,fx:{reverb:true}},
   'e.piano':{waveform:'triangle',attack:.005,decay:.3,sustain:.4,release:.5,filterFreq:7000,filterRes:2,fx:{}},
-  sub:{waveform:'sine',attack:.02,decay:.1,sustain:.9,release:.3,filterFreq:300,filterRes:1,fx:{dist:true}},
+  sub:{waveform:'sine',attack:.05,decay:.2,sustain:.85,release:.8,filterFreq:420,filterRes:0.8,fx:{}},
   sitar:{waveform:'_sitar',attack:.005,decay:.6,sustain:.15,release:.8,filterFreq:6000,filterRes:4,fx:{reverb:true}},
   tabla:{waveform:'_tabla',attack:.001,decay:.2,sustain:.02,release:.15,filterFreq:4000,filterRes:1,fx:{reverb:true}},
   koto:{waveform:'_koto',attack:.001,decay:.4,sustain:.08,release:.6,filterFreq:7000,filterRes:2,fx:{reverb:true}},
@@ -2178,7 +2179,7 @@ var stepCount=16;
 var synthPattern=[];var drumPattern=[];
 var isPlaying=false;var isRecording=false;
 var currentStep=0;var seqInterval=null;
-var bpm=120;var patLayer='synth';
+var bpm=80;var patLayer='synth'; /* slower default for organic / ambient feel */
 var baseOctave=4;
 /* scale lanes: index 0 = lowest row (row 7), index 7 = highest row (row 0) */
 var synthScale=['C','D','E','F','G','A','B','C'];
@@ -3091,13 +3092,15 @@ function mathDigits(name,len){
 }
 
 var INTENT_PROFILES={
-  meditative:{density:.22, kick:[0,32],                              snare:[16,48],                  hat:.28, kickVel:.85, snareVel:.6,  hatVel:.35, accentPrimes:true,  sparseIntro:true,  laneBias:'high', avgLen:2.2},
-  devotional:{density:.32, kick:[0,8,16,24,32,40,48,56],             snare:[12,28,44,60],            hat:.5,  kickVel:.75, snareVel:.65, hatVel:.45, accentPrimes:true,  sparseIntro:true,  laneBias:'mid',  avgLen:1.6},
-  driving:   {density:.55, kick:[0,8,16,24,32,40,48,56],             snare:[4,12,20,28,36,44,52,60], hat:.82, kickVel:.95, snareVel:.85, hatVel:.55, accentPrimes:false, sparseIntro:false, laneBias:'mid',  avgLen:1.0},
-  anxious:   {density:.48, kick:[0,14,30,46],                        snare:[7,23,39,55],             hat:.6,  kickVel:.7,  snareVel:.85, hatVel:.5,  accentPrimes:true,  sparseIntro:false, laneBias:'high', avgLen:0.9},
-  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],             hat:.7,  kickVel:.8,  snareVel:.7,  hatVel:.5,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:1.2},
-  cinematic: {density:.35, kick:[0,16,32,48],                        snare:[16,48],                  hat:.25, kickVel:.95, snareVel:.8,  hatVel:.3,  accentPrimes:true,  sparseIntro:true,  laneBias:'low',  avgLen:3.0},
-  dreamy:    {density:.25, kick:[0,24,40],                           snare:[20,52],                  hat:.35, kickVel:.6,  snareVel:.45, hatVel:.4,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:2.6}
+  /* ambient intents (meditative/dreamy/cinematic/devotional) skew quiet, sparse,
+     long-tailed — Yoshimura/Eno territory. driving/anxious/playful keep punch. */
+  meditative:{density:.16, kick:[0,32],                              snare:[],                       hat:.10, kickVel:.45, snareVel:.0,  hatVel:.18, accentPrimes:true,  sparseIntro:true,  laneBias:'high', avgLen:4.0, autoCosmos:true},
+  devotional:{density:.22, kick:[0,16,32,48],                        snare:[24,56],                  hat:.22, kickVel:.55, snareVel:.4,  hatVel:.28, accentPrimes:true,  sparseIntro:true,  laneBias:'mid',  avgLen:2.4, autoCosmos:true},
+  driving:   {density:.55, kick:[0,8,16,24,32,40,48,56],             snare:[4,12,20,28,36,44,52,60], hat:.82, kickVel:.95, snareVel:.85, hatVel:.55, accentPrimes:false, sparseIntro:false, laneBias:'mid',  avgLen:1.0, autoCosmos:false},
+  anxious:   {density:.48, kick:[0,14,30,46],                        snare:[7,23,39,55],             hat:.6,  kickVel:.7,  snareVel:.85, hatVel:.5,  accentPrimes:true,  sparseIntro:false, laneBias:'high', avgLen:0.9, autoCosmos:false},
+  playful:   {density:.4,  kick:[0,16,32,48,6,22,38,54],              snare:[8,24,40,56],             hat:.7,  kickVel:.8,  snareVel:.7,  hatVel:.5,  accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:1.2, autoCosmos:false},
+  cinematic: {density:.20, kick:[0,32],                              snare:[],                       hat:.12, kickVel:.55, snareVel:.0,  hatVel:.18, accentPrimes:true,  sparseIntro:true,  laneBias:'low',  avgLen:6.0, autoCosmos:true},
+  dreamy:    {density:.14, kick:[0],                                 snare:[],                       hat:.08, kickVel:.35, snareVel:.0,  hatVel:.15, accentPrimes:false, sparseIntro:true,  laneBias:'high', avgLen:5.0, autoCosmos:true}
 };
 var DENSITY_MULT={sparse:.55, medium:1.0, dense:1.6};
 var SWING_PROFILE={
@@ -3582,19 +3585,55 @@ function pickAutoStems(intent,rng){
 }
 
 function getSelectedStems(){
-  /* if AUTO chip is active, return null (compose handler will auto-pick).
-     else return list of explicitly-active stem chips. */
   var autoChip=document.querySelector('.dir-stem[data-stem="auto"]');
   if(autoChip && autoChip.classList.contains('active')) return null;
   var arr=[];
   document.querySelectorAll('.dir-stem:not(.dir-stem-auto).active').forEach(function(c){
     arr.push(c.dataset.stem);
   });
-  /* guarantee at least lead+drums for a coherent output */
   if(arr.indexOf('lead')<0) arr.push('lead');
   if(arr.indexOf('drums')<0) arr.push('drums');
   return arr;
 }
+
+/* ── LAYER-BY-LAYER BUILD ──
+   When AUTO chip is on, each compose adds the next stem from an
+   intent-aware build order. Reset clears the layer set. */
+var buildLayers=[];
+var BUILD_ORDERS={
+  meditative:['drone','pad','pluck','counter','bass','lead','arp','perc','drums','auxperc'],
+  dreamy:    ['drone','pad','pluck','counter','arp','lead','bass','drums','perc','auxperc'],
+  cinematic: ['drone','pad','bass','counter','lead','pluck','arp','drums','perc','auxperc'],
+  devotional:['drone','pad','bass','counter','lead','pluck','perc','arp','drums','auxperc'],
+  driving:   ['drums','bass','pad','lead','arp','perc','auxperc','pluck','counter','drone'],
+  anxious:   ['drums','bass','arp','perc','lead','auxperc','pluck','pad','counter','drone'],
+  playful:   ['drums','bass','arp','lead','pad','perc','pluck','counter','auxperc','drone']
+};
+function nextLayerFor(intent){
+  var order=BUILD_ORDERS[intent]||BUILD_ORDERS.driving;
+  for(var i=0;i<order.length;i++){ if(buildLayers.indexOf(order[i])<0) return order[i]; }
+  return null;
+}
+function updateBuildCounter(){
+  var el=document.getElementById('dirBuildCount');
+  if(el) el.textContent=buildLayers.length;
+}
+function resetBuild(){ buildLayers=[]; updateBuildCounter(); }
+document.addEventListener('DOMContentLoaded',function(){
+  var btn=document.getElementById('dirResetLayers');
+  if(btn) btn.addEventListener('click',function(){
+    resetBuild();
+    /* also clear all the live grids so the user starts from silence */
+    for(var r=0;r<8;r++)for(var c=0;c<stepCount;c++){
+      synthPattern[r][c]=0; drumPattern[r][c]=0;
+      synthVel[r][c]=1; synthLen[r][c]=1; drumVel[r][c]=1;
+    }
+    for(r=0;r<4;r++)for(c=0;c<stepCount;c++){ bassPattern[r][c]=0; bassVel[r][c]=1; bassLen[r][c]=1; }
+    for(r=0;r<3;r++)for(c=0;c<stepCount;c++){ padPattern[r][c]=0; padVel[r][c]=1; padLen[r][c]=1; }
+    auxEvents=[];
+    buildSeqGrid();
+  });
+});
 
 document.getElementById('dirCompose').addEventListener('click',function(){
   var chance=document.getElementById('dirChance').checked;
@@ -3606,15 +3645,26 @@ document.getElementById('dirCompose').addEventListener('click',function(){
   }else{
     seedVal=parseInt(seedField.value,10)||1;
   }
-  /* resolve stems */
+  /* resolve stems — BUILD mode (AUTO on) accumulates one stem per compose;
+     manual mode uses chip selection. */
+  var intent=document.getElementById('dirIntent').value;
   var stems=getSelectedStems();
-  /* when AUTO stems is on, pick based on intent using a stem-rng seeded by seedVal */
   if(stems===null){
-    var stemRng=makeRng(seedVal^0xA5A5);
-    stems=pickAutoStems(document.getElementById('dirIntent').value, stemRng);
+    var nxt=nextLayerFor(intent);
+    if(nxt) buildLayers.push(nxt);
+    stems=buildLayers.slice();
+    updateBuildCounter();
+  }
+  /* auto-enable cosmos reverb for ambient intents (overridable manually) */
+  var profileFlag=(INTENT_PROFILES[intent]||{}).autoCosmos;
+  var flrs=getActiveFlourishes();
+  if(profileFlag && flrs.indexOf('cosmos')<0){
+    var c=document.querySelector('.dir-flrs[data-flrs="cosmos"]');
+    if(c && !c.classList.contains('active')) c.click();
+    flrs=getActiveFlourishes();
   }
   var o={
-    intent: document.getElementById('dirIntent').value,
+    intent: intent,
     math:   document.getElementById('dirMath').value,
     root:   parseInt(document.getElementById('dirRoot').value,10),
     scale:  document.getElementById('dirScale').value,
@@ -3627,7 +3677,7 @@ document.getElementById('dirCompose').addEventListener('click',function(){
     transform:document.getElementById('dirTransform').value,
     swing:    document.getElementById('dirSwing').value,
     stems:    stems,
-    flourishes: getActiveFlourishes()
+    flourishes: flrs
   };
   var auto=document.getElementById('dirAuto').checked;
   if(!auto){
@@ -3836,15 +3886,22 @@ var DIR_PRESETS={
 document.querySelectorAll('.dir-start').forEach(function(card){
   card.addEventListener('click',function(){
     var p=DIR_PRESETS[card.dataset.start]; if(!p) return;
+    /* fresh start: clear any layer build state */
+    resetBuild();
+    for(var r=0;r<8;r++)for(var c=0;c<stepCount;c++){
+      synthPattern[r][c]=0; drumPattern[r][c]=0;
+      synthVel[r][c]=1; synthLen[r][c]=1; drumVel[r][c]=1;
+    }
+    for(r=0;r<4;r++)for(c=0;c<stepCount;c++){ bassPattern[r][c]=0; bassVel[r][c]=1; bassLen[r][c]=1; }
+    for(r=0;r<3;r++)for(c=0;c<stepCount;c++){ padPattern[r][c]=0; padVel[r][c]=1; padLen[r][c]=1; }
+    auxEvents=[];
     var set=function(id,v){ var el=document.getElementById(id); if(el){ el.value=String(v); el.dispatchEvent(new Event('change')); } };
     set('dirIntent',p.intent); set('dirRoot',p.root); set('dirScale',p.scale); set('dirMath',p.math);
     set('dirDensity',p.density); set('dirSwing',p.swing); set('dirTransform',p.transform);
-    /* reset flourish chips to only the preset's set */
     document.querySelectorAll('.dir-flrs').forEach(function(c){
       var want=p.flrs.indexOf(c.dataset.flrs)>=0;
       if(c.classList.contains('active')!==want){ c.click(); }
     });
-    /* ensure AUTO stems is on so the director picks the stem count */
     var auto=document.querySelector('.dir-stem[data-stem="auto"]');
     if(auto && !auto.classList.contains('active')) auto.click();
     document.getElementById('dirCompose').click();
