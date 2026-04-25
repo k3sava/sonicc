@@ -273,6 +273,18 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 .dir-start:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.12)}
 .dir-start-name{font-family:var(--font-ui);font-size:0.85rem;font-weight:600;color:var(--text);letter-spacing:0.01em}
 .dir-start-sub{font-family:var(--font-label);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.04em;text-transform:lowercase}
+/* Playability level — progressive disclosure of advanced controls */
+.dir-level-row{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.dir-level-pills{display:flex;gap:2px;border:1px solid var(--border);border-radius:999px;padding:2px;background:var(--surface-solid)}
+.dir-level{padding:4px 12px;border:none;background:transparent;color:var(--text-dim);font-family:var(--font-label);font-size:0.6rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;border-radius:999px;transition:all var(--motion-fast)}
+.dir-level:hover{color:var(--text)}
+.dir-level.active{background:var(--accent);color:var(--accent-contrast);font-weight:600}
+body.lvl-beginner [data-min-lvl="2"],
+body.lvl-beginner [data-min-lvl="3"],
+body.lvl-beginner [data-min-lvl="4"]{display:none!important}
+body.lvl-composer [data-min-lvl="3"],
+body.lvl-composer [data-min-lvl="4"]{display:none!important}
+body.lvl-producer [data-min-lvl="4"]{display:none!important}
 /* Inspiration panel — text + now */
 .dir-insp{border:1px solid var(--border);border-radius:12px;background:var(--surface-solid);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .dir-insp-tabs{display:flex;gap:4px}
@@ -762,8 +774,18 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
       <!-- COMPOSE MODE — Music Director (its own top-level mode) -->
       <div class="mode-panel" id="composePanel" data-mode="compose">
         <div class="dir-panel" id="dirPanel">
+          <!-- Playability level: progressively reveals sections as the user grows -->
+          <div class="dir-level-row">
+            <span class="dir-label">Level</span>
+            <div class="dir-level-pills">
+              <button type="button" class="dir-level active" data-level="beginner">Beginner</button>
+              <button type="button" class="dir-level" data-level="composer">Composer</button>
+              <button type="button" class="dir-level" data-level="producer">Producer</button>
+              <button type="button" class="dir-level" data-level="studio">Studio</button>
+            </div>
+          </div>
           <!-- Inspiration — paste prose or use live time as the seed source -->
-          <div class="dir-insp">
+          <div class="dir-insp" data-min-lvl="2">
             <div class="dir-insp-tabs">
               <button type="button" class="dir-insp-tab active" data-insp="text">Text</button>
               <button type="button" class="dir-insp-tab" data-insp="now">Now</button>
@@ -806,7 +828,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
             </button>
           </div>
 
-          <div class="dir-groups">
+          <div class="dir-groups" data-min-lvl="2">
 
             <div class="dir-group">
               <span class="dir-label">Mood</span>
@@ -852,7 +874,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
               </div>
             </div>
 
-            <div class="dir-group dir-group-wide">
+            <div class="dir-group dir-group-wide" data-min-lvl="3">
               <span class="dir-label">Source &amp; Motif</span>
               <div class="dir-group-row">
                 <select class="pill sm" id="dirMath" title="Math source — seeds the motif">
@@ -899,7 +921,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
               </div>
             </div>
 
-            <div class="dir-group">
+            <div class="dir-group" data-min-lvl="3">
               <span class="dir-label">Feel</span>
               <div class="dir-group-row">
                 <select class="pill sm" id="dirDensity" title="Overall note density">
@@ -956,7 +978,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
               </div>
             </div>
 
-            <div class="dir-group dir-group-wide">
+            <div class="dir-group dir-group-wide" data-min-lvl="3">
               <span class="dir-label">Flourish</span>
               <div class="dir-group-row dir-stems">
                 <button type="button" class="dir-flrs" data-flrs="jazz" title="Pad voicings gain diatonic 7ths">jazz</button>
@@ -976,12 +998,12 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 
           <div class="dir-action">
             <button type="button" class="dir-compose" id="dirCompose">&#9654; Compose Layer</button>
-            <button type="button" class="dir-compose dir-compose-song" id="dirComposeSong" title="Generate a multi-section song (intro → verse → chorus → bridge → outro) and play through it">Make a song</button>
+            <button type="button" class="dir-compose dir-compose-song" id="dirComposeSong" data-min-lvl="3" title="Generate a multi-section song (intro → verse → chorus → bridge → outro) and play through it">Make a song</button>
           </div>
           <div class="dir-song-strip" id="dirSongStrip" hidden></div>
 
           <!-- Multi-track timeline — every active stem gets its own lane -->
-          <div class="dir-timeline" id="dirTimeline" hidden>
+          <div class="dir-timeline" id="dirTimeline" hidden data-min-lvl="2">
             <div class="dir-tl-head">
               <span class="dir-label">Tracks</span>
               <span class="dir-tl-sub">tap a name to edit · M to mute · S to solo</span>
@@ -989,7 +1011,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
             <div id="dirTracks"></div>
           </div>
 
-          <div class="dir-score" id="dirScoreBar" hidden>
+          <div class="dir-score" id="dirScoreBar" hidden data-min-lvl="3">
             <div class="dir-score-head">
               <span class="dir-score-badge" id="dirScoreBadge">&mdash;</span>
               <span class="dir-score-verdict" id="dirScoreVerdict">&mdash;</span>
@@ -1000,7 +1022,7 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 
           <!-- MIXER — per-track level/pan/mute. Lives with COMPOSE because
                the generated arrangement is the primary thing that needs mixing. -->
-          <div class="mixer">
+          <div class="mixer" data-min-lvl="3">
             <div class="mixer-head">
               <span class="dir-label">Mixer</span>
               <span class="mixer-sub">5 buses · pre-master</span>
@@ -4232,6 +4254,26 @@ function makeSong(){
   renderSongStrip();
 }
 document.getElementById('dirComposeSong').addEventListener('click',makeSong);
+
+/* ── PLAYABILITY LEVEL ── progressive disclosure of advanced controls.
+   Stored in localStorage so the user's choice persists across sessions. */
+var LVL_KEY='sonicc:level:v1';
+function setLevel(lvl){
+  document.body.classList.remove('lvl-beginner','lvl-composer','lvl-producer','lvl-studio');
+  document.body.classList.add('lvl-'+lvl);
+  document.querySelectorAll('.dir-level').forEach(function(b){
+    b.classList.toggle('active',b.dataset.level===lvl);
+  });
+  try{ localStorage.setItem(LVL_KEY,lvl); }catch(e){}
+}
+document.querySelectorAll('.dir-level').forEach(function(b){
+  b.addEventListener('click',function(){ setLevel(b.dataset.level); });
+});
+(function bootLevel(){
+  var lvl='beginner';
+  try{ var saved=localStorage.getItem(LVL_KEY); if(saved) lvl=saved; }catch(e){}
+  setLevel(lvl);
+})();
 
 /* ── INSPIRATION SOURCES — text + now ──
    Each derives a complete director-opts payload (intent, key, scale,
