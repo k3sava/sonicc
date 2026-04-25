@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0d0f12">
+<title>sonicc</title>
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --bg: #0d0f12;
+  --surface: #14171c;
+  --surface-2: #1c2026;
+  --line: #232830;
+  --line-soft: #1a1e25;
+  --text: #e7eaef;
+  --text-2: #aab1bb;
+  --text-3: #6c7380;
+  --accent: #8ab4ff;
+  --accent-soft: rgba(138,180,255,0.10);
+  --accent-warm: #f0b774;
+  --good: #6fcf97;
+  --warn: #f0b774;
+  --bad: #ef6f6f;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+  --tap: 44px;
+  --t-fast: 120ms;
+  --t-base: 200ms;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --safe-bot: env(safe-area-inset-bottom, 0);
+  --safe-top: env(safe-area-inset-top, 0);
+}
+:root.light {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --surface-2: #f0f1f3;
+  --line: #e5e7eb;
+  --line-soft: #eef0f3;
+  --text: #1d1d1f;
+  --text-2: #4b5563;
+  --text-3: #8b909a;
+  --accent: #2563eb;
+  --accent-soft: rgba(37,99,235,0.08);
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  background: var(--bg); color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px; line-height: 1.4;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+body {
+  display: flex; flex-direction: column;
+  padding-top: var(--safe-top);
+}
+button { font-family: inherit; color: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; color: inherit; }
+::selection { background: var(--accent-soft); color: var(--text); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ── HEADER ────────────────────────────────────────────────────────── */
+header {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  height: 52px;
+  transition: opacity var(--t-base) var(--ease);
+}
+body.performing header { opacity: 0.5; }
+body.performing header:hover, body.performing header:focus-within { opacity: 1; }
+
+.brand {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.brand .dot { color: var(--accent); }
+
+.h-spacer { flex: 1; }
+
+.h-modes {
+  display: flex; gap: 2px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill); padding: 3px;
+}
+.h-mode-group {
+  display: flex; align-items: center; gap: 2px;
+}
+.h-mode-divider {
+  width: 1px; height: 22px; background: var(--line); margin: 0 4px;
+}
+.h-mode-label {
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-3);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0 8px;
+}
+.h-mode {
+  height: 32px; padding: 0 14px;
+  border: none; background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: var(--r-pill);
+  transition: all var(--t-fast) var(--ease);
+}
+.h-mode:hover { color: var(--text); }
+.h-mode.active { background: var(--accent); color: #fff; }
+.h-mode.active.gen { background: var(--accent-warm); color: #1d1d1f; }
+
+.h-transport { display: flex; align-items: center; gap: 8px; }
+.h-btn {
+  height: 36px; min-width: 44px; padding: 0 14px;
+  border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: var(--r-md);
+  transition: all var(--t-fast) var(--ease);
+}
+.h-btn:hover { border-color: var(--accent); color: var(--accent); }
+.h-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.h-btn.primary:hover { filter: brightness(1.08); color: #fff; }
+.h-btn.rec.active { background: var(--bad); border-color: var(--bad); color: #fff; }
+
+.h-bpm {
+  display: flex; align-items: center; gap: 4px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
+  padding: 0 6px;
+  user-select: none;
+}
+.h-bpm-val {
+  min-width: 32px; text-align: center;
+  color: var(--text); font-weight: 600;
+  cursor: ew-resize;
+}
+
+/* ── MAIN ──────────────────────────────────────────────────────────── */
+main {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-panel {
+  display: none;
+  flex: 1; min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mode-panel.active { display: flex; }
+
+.panel-empty {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+  color: var(--text-3);
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
+.panel-empty .ico { font-size: 32px; opacity: 0.4; }
+
+/* ── BOTTOM TABS (mobile) ──────────────────────────────────────────── */
+nav#bottomTabs {
+  display: none;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding-bottom: var(--safe-bot);
+  transition: opacity var(--t-base) var(--ease);
+}
+body.performing nav#bottomTabs { opacity: 0.55; }
+body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-within { opacity: 1; }
+
+.bt-row {
+  display: flex; align-items: stretch;
+}
+.bt-tab {
+  flex: 1; min-height: 56px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  border: none; background: transparent;
+  color: var(--text-3);
+  padding: 6px 4px;
+  transition: color var(--t-fast) var(--ease);
+}
+.bt-tab .ico { font-size: 18px; line-height: 1; }
+.bt-tab .lbl {
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.bt-tab.active { color: var(--accent); }
+.bt-tab.gen.active { color: var(--accent-warm); }
+.bt-divider { width: 1px; background: var(--line); margin: 8px 4px; }
+
+@media (max-width: 900px) {
+  header { padding: 6px 10px; }
+  .h-modes { display: none; }
+  nav#bottomTabs { display: block; }
+  .h-bpm { font-size: 10px; }
+}
+@media (max-width: 480px) {
+  .brand { font-size: 12px; }
+  .h-btn { padding: 0 8px; font-size: 10px; }
+}
+
+/* ── TOAST ─────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; left: 50%; bottom: 90px;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text); color: var(--bg);
+  padding: 10px 18px; border-radius: var(--r-pill);
+  font-family: var(--font-mono); font-size: 12px;
+  letter-spacing: 0.04em;
+  opacity: 0; pointer-events: none;
+  transition: all var(--t-base) var(--ease);
+  z-index: 100;
+  max-width: 80vw;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── LEVEL SWITCHER ────────────────────────────────────────────────── */
+.level-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.level-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.level-pills {
+  display: flex; gap: 2px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill); padding: 3px;
+}
+.level-pill {
+  height: 28px; padding: 0 12px;
+  border: none; background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border-radius: var(--r-pill);
+  transition: all var(--t-fast) var(--ease);
+}
+.level-pill:hover { color: var(--text); }
+.level-pill.active { background: var(--accent); color: #fff; }
+
+/* ── PROGRESSIVE DISCLOSURE ────────────────────────────────────────── */
+body.lvl-beginner [data-min-lvl="2"],
+body.lvl-beginner [data-min-lvl="3"],
+body.lvl-beginner [data-min-lvl="4"] { display: none !important; }
+body.lvl-composer [data-min-lvl="3"],
+body.lvl-composer [data-min-lvl="4"] { display: none !important; }
+body.lvl-producer [data-min-lvl="4"] { display: none !important; }
+</style>
+</head>
+<body class="lvl-beginner">
+
+<header>
+  <div class="brand">soni<span class="dot">cc</span></div>
+
+  <div class="h-modes" role="tablist" aria-label="Modes">
+    <div class="h-mode-group">
+      <span class="h-mode-label">Create</span>
+      <button class="h-mode active" data-mode="keys" data-group="create">Keys</button>
+      <button class="h-mode" data-mode="drums" data-group="create">Drums</button>
+      <button class="h-mode" data-mode="steps" data-group="create">Steps</button>
+      <button class="h-mode" data-mode="samp" data-group="create">Sampler</button>
+      <button class="h-mode" data-mode="mic" data-group="create">Mic</button>
+    </div>
+    <div class="h-mode-divider"></div>
+    <div class="h-mode-group">
+      <span class="h-mode-label">Generate</span>
+      <button class="h-mode gen" data-mode="compose" data-group="generate">Compose</button>
+    </div>
+  </div>
+
+  <div class="h-spacer"></div>
+
+  <div class="h-bpm" title="Drag the number to adjust">
+    <button class="h-btn" id="bpmDown" aria-label="BPM down">−</button>
+    <span class="h-bpm-val" id="bpmVal">80</span>
+    <span style="font-size:9px;color:var(--text-3)">BPM</span>
+    <button class="h-btn" id="bpmUp" aria-label="BPM up">+</button>
+  </div>
+
+  <div class="h-transport">
+    <button class="h-btn rec" id="btnRec" aria-label="Record">REC</button>
+    <button class="h-btn primary" id="btnPlay" aria-label="Play / Stop">PLAY</button>
+  </div>
+</header>
+
+<main>
+  <section class="mode-panel active" id="panel-keys" data-mode="keys">
+    <div class="panel-empty">
+      <div class="ico">♪</div>
+      <div>Keys — coming in phase 6</div>
+    </div>
+  </section>
+
+  <section class="mode-panel" id="panel-drums" data-mode="drums">
+    <div class="panel-empty">
+      <div class="ico">●</div>
+      <div>Drums — coming in phase 6</div>
+    </div>
+  </section>
+
+  <section class="mode-panel" id="panel-steps" data-mode="steps">
+    <div class="panel-empty">
+      <div class="ico">▦</div>
+      <div>Steps — coming in phase 6</div>
+    </div>
+  </section>
+
+  <section class="mode-panel" id="panel-compose" data-mode="compose">
+    <div class="level-row">
+      <span class="level-label">Level</span>
+      <div class="level-pills" role="tablist" aria-label="Playability level">
+        <button class="level-pill active" data-level="beginner">Beginner</button>
+        <button class="level-pill" data-level="composer">Composer</button>
+        <button class="level-pill" data-level="producer">Producer</button>
+        <button class="level-pill" data-level="studio">Studio</button>
+      </div>
+    </div>
+    <div class="panel-empty">
+      <div class="ico">⚙</div>
+      <div>Compose — coming in phase 3</div>
+    </div>
+  </section>
+
+  <section class="mode-panel" id="panel-samp" data-mode="samp">
+    <div class="panel-empty">
+      <div class="ico">⏏</div>
+      <div>Sampler — coming in phase 6</div>
+    </div>
+  </section>
+
+  <section class="mode-panel" id="panel-mic" data-mode="mic">
+    <div class="panel-empty">
+      <div class="ico">⏺</div>
+      <div>Mic — coming in phase 6</div>
+    </div>
+  </section>
+</main>
+
+<nav id="bottomTabs" aria-label="Modes">
+  <div class="bt-row">
+    <button class="bt-tab active" data-mode="keys" data-group="create"><span class="ico">♪</span><span class="lbl">Keys</span></button>
+    <button class="bt-tab" data-mode="drums" data-group="create"><span class="ico">●</span><span class="lbl">Drums</span></button>
+    <button class="bt-tab" data-mode="steps" data-group="create"><span class="ico">▦</span><span class="lbl">Steps</span></button>
+    <button class="bt-tab" data-mode="samp" data-group="create"><span class="ico">⏏</span><span class="lbl">Sampler</span></button>
+    <button class="bt-tab" data-mode="mic" data-group="create"><span class="ico">⏺</span><span class="lbl">Mic</span></button>
+    <span class="bt-divider"></span>
+    <button class="bt-tab gen" data-mode="compose" data-group="generate"><span class="ico">⚙</span><span class="lbl">Compose</span></button>
+  </div>
+</nav>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ───────────────────────────────────────────────────────────────────────
+   sonicc v2 — phase 1: shell only
+   Audio engine, composer, modes are all stubs filled in next phases.
+─────────────────────────────────────────────────────────────────────── */
+'use strict';
+
+var Sonicc = (function () {
+  /* ── State ── single source of truth */
+  var state = {
+    mode: 'keys',
+    level: 'beginner',
+    bpm: 80,
+    isPlaying: false,
+    isRecording: false,
+    theme: 'dark'
+  };
+
+  var listeners = {};
+  function on(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); }
+  function emit(evt, payload) { (listeners[evt] || []).forEach(function (fn) { fn(payload); }); }
+
+  /* ── Persistence ── localStorage key per slice */
+  var LS = {
+    level: 'sonicc:v2:level',
+    bpm: 'sonicc:v2:bpm',
+    theme: 'sonicc:v2:theme'
+  };
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  /* ── Mode switching ── */
+  function setMode(m) {
+    state.mode = m;
+    document.querySelectorAll('.mode-panel').forEach(function (p) {
+      p.classList.toggle('active', p.dataset.mode === m);
+    });
+    document.querySelectorAll('[data-mode]').forEach(function (b) {
+      if (b.dataset.mode) b.classList.toggle('active', b.dataset.mode === m);
+    });
+    emit('modeChange', m);
+  }
+
+  /* ── Level switching ── */
+  function setLevel(l) {
+    state.level = l;
+    document.body.classList.remove('lvl-beginner', 'lvl-composer', 'lvl-producer', 'lvl-studio');
+    document.body.classList.add('lvl-' + l);
+    document.querySelectorAll('.level-pill').forEach(function (p) {
+      p.classList.toggle('active', p.dataset.level === l);
+    });
+    lsSet(LS.level, l);
+    emit('levelChange', l);
+  }
+
+  /* ── BPM ── */
+  function setBPM(v) {
+    v = Math.max(40, Math.min(200, Math.round(v)));
+    state.bpm = v;
+    var el = document.getElementById('bpmVal');
+    if (el) el.textContent = String(v);
+    lsSet(LS.bpm, String(v));
+    emit('bpmChange', v);
+  }
+
+  /* ── Toast (status messages) ── */
+  var toastTimer = null;
+  function toast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2200);
+  }
+
+  /* ── Transport (stubs for phase 1) ── */
+  function togglePlay() {
+    state.isPlaying = !state.isPlaying;
+    var btn = document.getElementById('btnPlay');
+    if (btn) {
+      btn.textContent = state.isPlaying ? 'STOP' : 'PLAY';
+      btn.classList.toggle('active', state.isPlaying);
+    }
+    document.body.classList.toggle('performing', state.isPlaying);
+    emit('playChange', state.isPlaying);
+    if (state.isPlaying) toast('audio engine arrives in phase 2');
+  }
+  function toggleRec() {
+    state.isRecording = !state.isRecording;
+    var btn = document.getElementById('btnRec');
+    if (btn) btn.classList.toggle('active', state.isRecording);
+    emit('recChange', state.isRecording);
+    if (state.isRecording) toast('record arrives in phase 7');
+  }
+
+  /* ── Wire-up ── */
+  function init() {
+    /* restore */
+    var savedLvl = lsGet(LS.level); if (savedLvl) setLevel(savedLvl);
+    var savedBpm = parseInt(lsGet(LS.bpm), 10); if (savedBpm) setBPM(savedBpm); else setBPM(state.bpm);
+
+    /* mode tabs (top + bottom both share data-mode) */
+    document.querySelectorAll('[data-mode]').forEach(function (b) {
+      b.addEventListener('click', function () { setMode(b.dataset.mode); });
+    });
+
+    /* level pills */
+    document.querySelectorAll('.level-pill').forEach(function (p) {
+      p.addEventListener('click', function () { setLevel(p.dataset.level); });
+    });
+
+    /* transport */
+    var play = document.getElementById('btnPlay');
+    var rec = document.getElementById('btnRec');
+    if (play) play.addEventListener('click', togglePlay);
+    if (rec) rec.addEventListener('click', toggleRec);
+
+    /* BPM */
+    var down = document.getElementById('bpmDown');
+    var up = document.getElementById('bpmUp');
+    var bpmVal = document.getElementById('bpmVal');
+    if (down) down.addEventListener('click', function () { setBPM(state.bpm - 1); });
+    if (up) up.addEventListener('click', function () { setBPM(state.bpm + 1); });
+    if (bpmVal) {
+      var dragging = false, sx = 0, sb = 0;
+      bpmVal.addEventListener('pointerdown', function (e) {
+        dragging = true; sx = e.clientX; sb = state.bpm;
+        bpmVal.setPointerCapture(e.pointerId);
+      });
+      bpmVal.addEventListener('pointermove', function (e) {
+        if (!dragging) return;
+        setBPM(sb + Math.round((e.clientX - sx) / 3));
+      });
+      bpmVal.addEventListener('pointerup', function () { dragging = false; });
+    }
+
+    /* keyboard shortcuts */
+    document.addEventListener('keydown', function (e) {
+      if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      if (e.key === ' ') { e.preventDefault(); togglePlay(); return; }
+      if (e.key === 'F1') { e.preventDefault(); setMode('keys'); return; }
+      if (e.key === 'F2') { e.preventDefault(); setMode('drums'); return; }
+      if (e.key === 'F3') { e.preventDefault(); setMode('steps'); return; }
+      if (e.key === 'F4') { e.preventDefault(); setMode('compose'); return; }
+      if (e.key === 'F5') { e.preventDefault(); setMode('samp'); return; }
+      if (e.key === 'F6') { e.preventDefault(); setMode('mic'); return; }
+    });
+
+    /* swipe-between-modes on touch */
+    var sx2 = 0, sy2 = 0, swipe = false, sid = null;
+    var MODES = ['keys', 'drums', 'steps', 'compose', 'samp', 'mic'];
+    document.querySelector('main').addEventListener('pointerdown', function (e) {
+      if (e.pointerType !== 'touch') return;
+      if (e.target.closest('input, textarea, select, button, .level-pill, .h-bpm-val')) return;
+      sx2 = e.clientX; sy2 = e.clientY; swipe = true; sid = e.pointerId;
+    });
+    document.querySelector('main').addEventListener('pointerup', function (e) {
+      if (!swipe || e.pointerId !== sid) return;
+      swipe = false;
+      var dx = e.clientX - sx2, dy = e.clientY - sy2;
+      if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return;
+      var i = MODES.indexOf(state.mode);
+      if (i < 0) return;
+      var ni = dx < 0 ? Math.min(MODES.length - 1, i + 1) : Math.max(0, i - 1);
+      if (ni !== i) setMode(MODES[ni]);
+    });
+  }
+
+  return {
+    init: init,
+    state: state,
+    on: on,
+    setMode: setMode,
+    setLevel: setLevel,
+    setBPM: setBPM,
+    toast: toast
+  };
+})();
+
+document.addEventListener('DOMContentLoaded', Sonicc.init);
+</script>
+</body>
+</html>
