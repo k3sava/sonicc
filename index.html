@@ -4245,6 +4245,7 @@ function renderSongStrip(){
     pill.addEventListener('click',function(){
       songIdx=i; loadSection(songSections[i].snap);
       renderSongStrip();
+      if(typeof renderTimeline==='function') renderTimeline();
     });
     strip.appendChild(pill);
   });
