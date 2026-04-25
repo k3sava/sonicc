@@ -1363,12 +1363,12 @@ var synth={waveform:'sine',attack:.01,decay:.15,sustain:.65,release:.4,filterFre
 var FX_DEFAULTS={reverb:false,delay:false,dist:false,lofi:false,chorus:false,phaser:false,compressor:false,bitcrusher:false,tremolo:false,eq:false,flanger:false,autowah:false};
 var PRESETS={
   pad:{waveform:'sine',attack:.4,decay:.3,sustain:.85,release:2.5,filterFreq:2400,filterRes:1.4,fx:{reverb:true,chorus:true}},
-  lead:{waveform:'sawtooth',attack:.005,decay:.1,sustain:.6,release:.2,filterFreq:6000,filterRes:4,fx:{delay:true}},
+  lead:{waveform:'supersaw',attack:.005,decay:.15,sustain:.65,release:.4,filterFreq:5000,filterRes:3,fx:{delay:true,reverb:true}},
   bass:{waveform:'sawtooth',attack:.01,decay:.2,sustain:.7,release:.15,filterFreq:800,filterRes:3,fx:{}},
-  pluck:{waveform:'triangle',attack:.001,decay:.25,sustain:.1,release:.3,filterFreq:4000,filterRes:6,fx:{reverb:true}},
+  pluck:{waveform:'_kalimba',attack:.001,decay:.4,sustain:.1,release:.6,filterFreq:7000,filterRes:1.5,fx:{reverb:true}},
   bell:{waveform:'fm',attack:.001,decay:.8,sustain:.1,release:2,filterFreq:12000,filterRes:1,fx:{reverb:true,delay:true}},
   organ:{waveform:'square',attack:.01,decay:.01,sustain:.9,release:.05,filterFreq:5000,filterRes:1,fx:{reverb:true}},
-  'e.piano':{waveform:'triangle',attack:.005,decay:.3,sustain:.4,release:.5,filterFreq:7000,filterRes:2,fx:{}},
+  'e.piano':{waveform:'_felt',attack:.003,decay:.4,sustain:.35,release:.8,filterFreq:3000,filterRes:1,fx:{reverb:true}},
   sub:{waveform:'sine',attack:.05,decay:.2,sustain:.85,release:.8,filterFreq:420,filterRes:0.8,fx:{}},
   sitar:{waveform:'_sitar',attack:.005,decay:.6,sustain:.15,release:.8,filterFreq:6000,filterRes:4,fx:{reverb:true}},
   tabla:{waveform:'_tabla',attack:.001,decay:.2,sustain:.02,release:.15,filterFreq:4000,filterRes:1,fx:{reverb:true}},
@@ -2172,19 +2172,27 @@ function playDrum(index,vel){
   }
 
   switch(index){
-    case 0:/* KICK */{
+    case 0:/* KICK — softer body, longer decay for warmth (less techno bonk) */
+    {
       var o=actx.createOscillator();o.type='sine';
-      var g=actx.createGain();g.gain.setValueAtTime(1*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.5);
-      o.frequency.setValueAtTime(190,now);o.frequency.exponentialRampToValueAtTime(38,now+0.08);
-      o.connect(g);g.connect(master);o.start(now);o.stop(now+0.5);
+      var body=actx.createOscillator();body.type='sine';body.frequency.value=60; /* sub body */
+      var g=actx.createGain();g.gain.setValueAtTime(0.85*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.7);
+      var bg=actx.createGain();bg.gain.setValueAtTime(0.35*vel,now);bg.gain.exponentialRampToValueAtTime(0.001,now+0.55);
+      o.frequency.setValueAtTime(160,now);o.frequency.exponentialRampToValueAtTime(42,now+0.12);
+      o.connect(g);g.connect(master);body.connect(bg);bg.connect(master);
+      o.start(now);body.start(now);o.stop(now+0.7);body.stop(now+0.55);
     }break;
-    case 1:/* SNARE */{
-      var bufLen=actx.sampleRate*0.15;var buf=actx.createBuffer(1,bufLen,actx.sampleRate);
-      var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=Math.random()*2-1;
+    case 1:/* SNARE — warmer bandpass + tonal body for less razor */
+    {
+      var bufLen=actx.sampleRate*0.22;var buf=actx.createBuffer(1,bufLen,actx.sampleRate);
+      var d=buf.getChannelData(0);for(var i=0;i<bufLen;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/bufLen*5);
       var n=actx.createBufferSource();n.buffer=buf;
-      var bp=actx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2000;bp.Q.value=1;
-      var g=actx.createGain();g.gain.setValueAtTime(0.8*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.15);
-      n.connect(bp);bp.connect(g);g.connect(master);n.start(now);
+      var bp=actx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1600;bp.Q.value=0.8;
+      var tone=actx.createOscillator();tone.type='triangle';tone.frequency.value=200;
+      var tg=actx.createGain();tg.gain.setValueAtTime(0.18*vel,now);tg.gain.exponentialRampToValueAtTime(0.001,now+0.07);
+      tone.connect(tg);tg.connect(master);
+      var g=actx.createGain();g.gain.setValueAtTime(0.7*vel,now);g.gain.exponentialRampToValueAtTime(0.001,now+0.22);
+      n.connect(bp);bp.connect(g);g.connect(master);n.start(now);tone.start(now);tone.stop(now+0.1);
     }break;
     case 2:/* HI-HAT */{
       var bufLen=actx.sampleRate*0.05;var buf=actx.createBuffer(1,bufLen,actx.sampleRate);
