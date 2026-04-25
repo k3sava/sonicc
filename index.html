@@ -357,6 +357,21 @@ body.lvl-producer [data-min-lvl="4"]{display:none!important}
 .dir-tl-cells span{flex:1;background:var(--border);border-radius:1px;min-width:0;transition:background 80ms}
 .dir-tl-cells span.on{background:var(--accent)}
 .dir-tl-cells span.beat{box-shadow:inset 0 -2px 0 rgba(0,0,0,0.04)}
+/* Library / Albums */
+.dir-library{border:1px solid var(--border);border-radius:12px;background:var(--surface-solid);padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.dir-lib-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dir-lib-sub{font-family:var(--font-label);font-size:0.6rem;color:var(--text-dim);letter-spacing:0.06em;text-transform:uppercase}
+.dir-lib-list{display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto}
+.dir-lib-item{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:8px;align-items:center;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
+.dir-lib-item.playing{border-color:var(--accent);background:var(--accent-soft)}
+.dir-lib-num{font-family:var(--font-label);font-size:0.6rem;color:var(--text-dim);min-width:18px;text-align:right}
+.dir-lib-name{font-family:var(--font-ui);font-size:0.78rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;outline:none;padding:2px 4px;cursor:text}
+.dir-lib-name:focus{background:var(--accent-soft);border-radius:4px}
+.dir-lib-meta{font-family:var(--font-label);font-size:0.55rem;color:var(--text-dim);letter-spacing:0.04em}
+.dir-lib-btn{height:26px;padding:0 8px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text-dim);font-family:var(--font-label);font-size:0.6rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer}
+.dir-lib-btn:hover{border-color:var(--accent);color:var(--accent)}
+.dir-lib-btn.del:hover{border-color:#ef4444;color:#ef4444}
+.dir-lib-empty{font-family:var(--font-label);font-size:0.65rem;color:var(--text-dim);padding:14px 4px;text-align:center;letter-spacing:0.04em}
 .dir-compose{height:40px;padding:0 36px;border:none;border-radius:var(--input-radius);background:var(--accent);color:var(--accent-contrast);font-family:var(--font-label);font-size:0.8rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all var(--motion-fast);box-shadow:0 2px 8px rgba(37,99,235,0.25)}
 .dir-compose:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(37,99,235,0.35);filter:brightness(1.05)}
 .dir-compose:active{transform:translateY(0)}
@@ -1022,6 +1037,18 @@ body.lvl-producer [data-min-lvl="4"]{display:none!important}
 
           <!-- MIXER — per-track level/pan/mute. Lives with COMPOSE because
                the generated arrangement is the primary thing that needs mixing. -->
+          <!-- Library: saved songs + album playback -->
+          <div class="dir-library" id="dirLibrary" data-min-lvl="3">
+            <div class="dir-lib-head">
+              <span class="dir-label">Library</span>
+              <span class="dir-lib-sub" id="dirLibCount">no songs saved</span>
+              <span style="flex:1"></span>
+              <button type="button" class="dir-icon" id="dirSaveSong" title="Save the current song to your library">save song</button>
+              <button type="button" class="dir-icon" id="dirPlayAlbum" title="Play every saved song in order">play album</button>
+            </div>
+            <div class="dir-lib-list" id="dirLibList"></div>
+          </div>
+
           <div class="mixer" data-min-lvl="3">
             <div class="mixer-head">
               <span class="dir-label">Mixer</span>
@@ -2470,12 +2497,21 @@ function startPlayback(){
     highlightStep(currentStep);
     updatePatStatus();
     currentStep=(currentStep+1)%stepCount;
-    /* SONG MODE: at the wrap, advance to the next section */
+    /* SONG MODE: at the wrap, advance to the next section.
+       ALBUM MODE: at song end, advance to the next saved song. */
     if(songMode && currentStep===0 && songSections.length){
       songIdx++;
       if(songIdx>=songSections.length){
+        if(albumMode && library.length){
+          albumIdx++;
+          if(albumIdx<library.length){
+            playLibrarySong(library[albumIdx].id);
+            return;
+          }
+          albumMode=false;
+        }
         if(songLoop){ songIdx=0; }
-        else { stopPlayback(); songMode=false; renderSongStrip(); return; }
+        else { stopPlayback(); songMode=false; currentLibId=null; renderSongStrip(); if(typeof renderLibrary==='function') renderLibrary(); return; }
       }
       loadSection(songSections[songIdx].snap);
       renderSongStrip();
@@ -4254,6 +4290,95 @@ function makeSong(){
   renderSongStrip();
 }
 document.getElementById('dirComposeSong').addEventListener('click',makeSong);
+
+/* ── LIBRARY + ALBUM ──
+   Saved songs persist in localStorage. An album = the full library
+   played in order. Each item has its own snapshot list; renaming /
+   deletion are inline. */
+var LIB_KEY='sonicc:library:v1';
+var library=[];
+var albumMode=false;
+var albumIdx=0;
+var currentLibId=null;
+function loadLibrary(){
+  try{ var raw=localStorage.getItem(LIB_KEY); if(raw) library=JSON.parse(raw)||[]; }catch(e){}
+}
+function saveLibrary(){
+  try{ localStorage.setItem(LIB_KEY,JSON.stringify(library)); }catch(e){}
+}
+function fmtAgo(ts){
+  var s=Math.floor((Date.now()-ts)/1000);
+  if(s<60) return s+'s';
+  if(s<3600) return Math.floor(s/60)+'m';
+  if(s<86400) return Math.floor(s/3600)+'h';
+  return Math.floor(s/86400)+'d';
+}
+function renderLibrary(){
+  var list=document.getElementById('dirLibList');
+  var count=document.getElementById('dirLibCount');
+  if(!list) return;
+  count.textContent=library.length===0?'no songs saved':(library.length+' song'+(library.length===1?'':'s')+' · '+(library.length>1?'tap play album':'play one'));
+  list.innerHTML='';
+  if(!library.length){
+    var e=document.createElement('div'); e.className='dir-lib-empty';
+    e.textContent='Make a song, then save it here. Build an album.';
+    list.appendChild(e); return;
+  }
+  library.forEach(function(sng,i){
+    var item=document.createElement('div');
+    item.className='dir-lib-item'+(currentLibId===sng.id?' playing':'');
+    item.innerHTML=
+      '<span class="dir-lib-num">'+(i+1)+'</span>'+
+      '<input class="dir-lib-name" type="text" value="'+sng.name.replace(/"/g,'&quot;')+'">'+
+      '<span class="dir-lib-meta">'+sng.intent+' · '+ROOT_NAMES[sng.root]+' '+sng.scale+' · '+fmtAgo(sng.createdAt)+'</span>'+
+      '<button type="button" class="dir-lib-btn play">play</button>'+
+      '<button type="button" class="dir-lib-btn del">×</button>';
+    var nameEl=item.querySelector('.dir-lib-name');
+    nameEl.addEventListener('change',function(){ sng.name=nameEl.value.trim()||sng.name; saveLibrary(); });
+    item.querySelector('.play').addEventListener('click',function(){ playLibrarySong(sng.id); });
+    item.querySelector('.del').addEventListener('click',function(){
+      library=library.filter(function(s){return s.id!==sng.id});
+      saveLibrary(); renderLibrary();
+    });
+    list.appendChild(item);
+  });
+}
+function playLibrarySong(id){
+  var sng=library.find(function(s){return s.id===id});
+  if(!sng||!sng.sections||!sng.sections.length) return;
+  songSections=sng.sections.slice();
+  songIdx=0; songMode=true;
+  currentLibId=id;
+  loadSection(songSections[0].snap);
+  renderSongStrip(); renderTimeline(); renderLibrary();
+  if(!isPlaying) startPlayback();
+}
+document.getElementById('dirSaveSong').addEventListener('click',function(){
+  if(!songSections.length){
+    alert('Make a song first (Make a Song button), then save.');
+    return;
+  }
+  var name=prompt('Name this song:','Song '+(library.length+1));
+  if(!name) return;
+  var sng={
+    id:'sng_'+Date.now()+'_'+Math.floor(Math.random()*1000),
+    name:name,
+    intent:document.getElementById('dirIntent').value,
+    scale:document.getElementById('dirScale').value,
+    root:parseInt(document.getElementById('dirRoot').value,10),
+    sections:songSections.slice(),
+    createdAt:Date.now()
+  };
+  library.push(sng);
+  saveLibrary(); renderLibrary();
+});
+document.getElementById('dirPlayAlbum').addEventListener('click',function(){
+  if(!library.length) return;
+  albumMode=true; albumIdx=0;
+  playLibrarySong(library[0].id);
+});
+loadLibrary();
+setTimeout(renderLibrary,80);
 
 /* ── PLAYABILITY LEVEL ── progressive disclosure of advanced controls.
    Stored in localStorage so the user's choice persists across sessions. */
