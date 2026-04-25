@@ -381,6 +381,97 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
 .steps-cell.on { background: var(--accent); border-color: var(--accent); }
 .steps-cell.playhead { box-shadow: 0 0 0 1px var(--accent-warm); }
 
+/* ── SAMPLER PANEL ─────────────────────────────────────────────────── */
+.samp-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface);
+}
+.samp-pads {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  padding: 16px;
+  background: var(--surface-2);
+}
+.samp-pad {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  border: 2px dashed var(--line);
+  background: var(--surface);
+  color: var(--text-3);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: all 80ms ease;
+  min-height: 100px;
+  position: relative;
+}
+.samp-pad.loaded {
+  border-style: solid; border-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+.samp-pad:hover { border-color: var(--accent); }
+.samp-pad.active { transform: scale(0.97); background: var(--accent); color: #fff; }
+.samp-pad .key {
+  position: absolute; top: 6px; left: 8px;
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+.samp-pad .name {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  text-align: center; word-break: break-all;
+}
+
+/* ── MIC PANEL ─────────────────────────────────────────────────────── */
+.mic-stage {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  padding: 32px 16px;
+  background: var(--surface-2);
+}
+.mic-orb {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  color: var(--text);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  cursor: pointer;
+  transition: all var(--t-base) var(--ease);
+  font-family: var(--font-mono);
+}
+.mic-orb:hover { border-color: var(--accent); }
+.mic-orb.recording {
+  background: var(--bad); color: #fff; border-color: var(--bad);
+  box-shadow: 0 0 40px rgba(239, 111, 111, 0.5);
+  animation: micPulse 1.5s ease-in-out infinite;
+}
+@keyframes micPulse { 0%, 100% { box-shadow: 0 0 40px rgba(239,111,111,0.4); } 50% { box-shadow: 0 0 60px rgba(239,111,111,0.7); } }
+.mic-orb-ico { font-size: 28px; }
+.mic-orb-lbl { font-size: 11px; letter-spacing: 0.12em; }
+.mic-orb.recording .mic-orb-lbl::before { content: 'STOP'; }
+.mic-orb.recording .mic-orb-lbl { font-size: 0; }
+.mic-orb.recording .mic-orb-lbl::before { font-size: 11px; }
+.mic-meter {
+  width: 240px; height: 6px;
+  background: var(--line);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mic-meter-fill {
+  height: 100%; width: 0%;
+  background: var(--accent);
+  transition: width 60ms linear;
+}
+.mic-duration {
+  font-family: var(--font-mono); font-size: 18px; font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+.mic-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
 /* ── DRUMS PANEL ───────────────────────────────────────────────────── */
 .drums-grid {
   flex: 1; min-height: 0;
@@ -861,16 +952,32 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
   </section>
 
   <section class="mode-panel" id="panel-samp" data-mode="samp">
-    <div class="panel-empty">
-      <div class="ico">⏏</div>
-      <div>Sampler — coming in phase 6</div>
+    <div class="samp-bar">
+      <span class="keys-label">Sampler</span>
+      <span style="flex:1"></span>
+      <button class="cv-btn" id="sampLoad">Load file</button>
+      <button class="cv-btn" id="sampClear">Clear all</button>
+      <input type="file" id="sampFile" accept="audio/*" style="display:none">
     </div>
+    <div class="samp-pads" id="sampPads"></div>
+    <div class="keys-hint">Tap a pad with a sample to play. Press <kbd>Q W E R</kbd> for pads 1-4. Load a file or grab a mic recording (Mic → Send to Sampler).</div>
   </section>
 
   <section class="mode-panel" id="panel-mic" data-mode="mic">
-    <div class="panel-empty">
-      <div class="ico">⏺</div>
-      <div>Mic — coming in phase 6</div>
+    <div class="mic-stage">
+      <button class="mic-orb" id="micOrb" aria-label="Record">
+        <span class="mic-orb-ico">●</span>
+        <span class="mic-orb-lbl">REC</span>
+      </button>
+      <div class="mic-meter"><div class="mic-meter-fill" id="micFill"></div></div>
+      <div class="mic-duration" id="micDuration">0:00</div>
+      <div class="mic-actions">
+        <button class="cv-btn" id="micPreview">▶ Preview</button>
+        <button class="cv-btn" id="micToSamp">→ Sampler</button>
+        <button class="cv-btn" id="micSave">↓ Save WAV</button>
+        <button class="cv-btn" id="micClearBtn">× Clear</button>
+      </div>
+      <div class="keys-hint" style="border:none;background:transparent">Lossless 16-bit PCM. No re-encoding — raw mic capture → WAV.</div>
     </div>
   </section>
 </main>
@@ -1970,6 +2077,181 @@ var Sonicc = (function () {
     });
   }
 
+  /* ── MIC RECORDING ── raw PCM → 16-bit WAV (lossless) ───────────── */
+  var mic = {
+    stream: null, source: null, processor: null, analyser: null,
+    chunks: [], sampleRate: 0, channels: 0,
+    recording: false, buffer: null, startTime: 0, timer: null
+  };
+  function micStart() {
+    if (mic.recording) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast('Mic not available'); return;
+    }
+    navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 2 }
+    }).then(function (stream) {
+      ensureAudio();
+      mic.stream = stream; mic.chunks = [];
+      mic.source = actx.createMediaStreamSource(stream);
+      var track = stream.getAudioTracks()[0];
+      var settings = (track && track.getSettings) ? track.getSettings() : {};
+      mic.channels = Math.max(1, settings.channelCount || mic.source.channelCount || 1);
+      mic.sampleRate = actx.sampleRate;
+      mic.processor = actx.createScriptProcessor(4096, mic.channels, mic.channels);
+      mic.processor.onaudioprocess = function (e) {
+        var frame = [];
+        for (var ch = 0; ch < e.inputBuffer.numberOfChannels; ch++) {
+          frame.push(new Float32Array(e.inputBuffer.getChannelData(ch)));
+        }
+        mic.chunks.push(frame);
+      };
+      mic.source.connect(mic.processor);
+      var silent = actx.createGain(); silent.gain.value = 0;
+      mic.processor.connect(silent); silent.connect(actx.destination);
+      mic.processor._silent = silent;
+      mic.analyser = actx.createAnalyser(); mic.analyser.fftSize = 256;
+      mic.source.connect(mic.analyser);
+      mic.recording = true; mic.startTime = Date.now();
+      var orb = document.getElementById('micOrb'); if (orb) orb.classList.add('recording');
+      mic.timer = setInterval(function () {
+        var s = Math.floor((Date.now() - mic.startTime) / 1000);
+        var d = document.getElementById('micDuration');
+        if (d) d.textContent = Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+        var data = new Uint8Array(mic.analyser.frequencyBinCount);
+        mic.analyser.getByteFrequencyData(data);
+        var sum = 0; for (var i = 0; i < data.length; i++) sum += data[i];
+        var fill = document.getElementById('micFill');
+        if (fill) fill.style.width = (sum / data.length / 255 * 100) + '%';
+      }, 50);
+    }).catch(function () { toast('Mic permission denied'); });
+  }
+  function micStop() {
+    if (!mic.recording) return;
+    mic.recording = false;
+    var total = 0; mic.chunks.forEach(function (f) { total += f[0].length; });
+    if (total > 0 && actx) {
+      var buf = actx.createBuffer(mic.channels, total, mic.sampleRate);
+      for (var ch = 0; ch < buf.numberOfChannels; ch++) {
+        var data = buf.getChannelData(ch);
+        var off = 0;
+        mic.chunks.forEach(function (frame) {
+          var src = frame[ch] || frame[0];
+          data.set(src, off); off += src.length;
+        });
+      }
+      mic.buffer = buf;
+    }
+    if (mic.processor) {
+      try { mic.processor.disconnect(); if (mic.processor._silent) mic.processor._silent.disconnect(); } catch (e) {}
+      mic.processor.onaudioprocess = null; mic.processor = null;
+    }
+    if (mic.source) { try { mic.source.disconnect(); } catch (e) {} mic.source = null; }
+    if (mic.stream) { mic.stream.getTracks().forEach(function (t) { t.stop(); }); mic.stream = null; }
+    var orb = document.getElementById('micOrb'); if (orb) orb.classList.remove('recording');
+    if (mic.timer) { clearInterval(mic.timer); mic.timer = null; }
+    var fill = document.getElementById('micFill'); if (fill) fill.style.width = '0%';
+  }
+  function encodeWAV(buf) {
+    var nc = buf.numberOfChannels, sr = buf.sampleRate, len = buf.length;
+    var out = new DataView(new ArrayBuffer(44 + len * nc * 2));
+    function s(o, str) { for (var i = 0; i < str.length; i++) out.setUint8(o + i, str.charCodeAt(i)); }
+    s(0, 'RIFF'); out.setUint32(4, 36 + len * nc * 2, true); s(8, 'WAVE');
+    s(12, 'fmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true);
+    out.setUint16(22, nc, true); out.setUint32(24, sr, true);
+    out.setUint32(28, sr * nc * 2, true); out.setUint16(32, nc * 2, true); out.setUint16(34, 16, true);
+    s(36, 'data'); out.setUint32(40, len * nc * 2, true);
+    var off = 44;
+    var chans = []; for (var ch = 0; ch < nc; ch++) chans.push(buf.getChannelData(ch));
+    for (var i = 0; i < len; i++) {
+      for (var ch = 0; ch < nc; ch++) {
+        var v = Math.max(-1, Math.min(1, chans[ch][i]));
+        out.setInt16(off, v < 0 ? v * 0x8000 : v * 0x7FFF, true); off += 2;
+      }
+    }
+    return out.buffer;
+  }
+  function micSaveWAV() {
+    if (!mic.buffer) { toast('Nothing recorded yet'); return; }
+    var wav = encodeWAV(mic.buffer);
+    var blob = new Blob([wav], { type: 'audio/wav' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    var ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.href = url; a.download = 'sonicc-' + ts + '.wav'; a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast('Saved');
+  }
+  function micPreview() {
+    if (!mic.buffer) return;
+    ensureAudio();
+    var src = actx.createBufferSource(); src.buffer = mic.buffer;
+    src.connect(masterGain); src.start();
+  }
+  function micClear() {
+    mic.buffer = null; mic.chunks = [];
+    var d = document.getElementById('micDuration'); if (d) d.textContent = '0:00';
+  }
+
+  /* ── SAMPLER ── 4 pads */
+  var sampPads = [null, null, null, null]; /* {buffer, name} */
+  function buildSampler() {
+    var grid = document.getElementById('sampPads'); if (!grid) return;
+    grid.innerHTML = '';
+    var keys = ['Q', 'W', 'E', 'R'];
+    for (var i = 0; i < 4; i++) {
+      var pad = document.createElement('div');
+      pad.className = 'samp-pad' + (sampPads[i] ? ' loaded' : '');
+      pad.dataset.idx = String(i);
+      pad.innerHTML = '<span class="key">' + keys[i] + '</span><span class="name">' + (sampPads[i] ? sampPads[i].name : 'empty') + '</span>';
+      pad.addEventListener('pointerdown', (function (idx) {
+        return function () {
+          unlockAudio();
+          if (sampPads[idx]) {
+            playSample(idx);
+            pad.classList.add('active');
+            setTimeout(function () { pad.classList.remove('active'); }, 150);
+          } else {
+            document.getElementById('sampFile').click();
+            pad._loadIdx = idx;
+          }
+        };
+      })(i));
+      grid.appendChild(pad);
+    }
+  }
+  function playSample(idx) {
+    if (!sampPads[idx]) return;
+    ensureAudio();
+    var src = actx.createBufferSource(); src.buffer = sampPads[idx].buffer;
+    src.connect(masterGain); src.start();
+  }
+  function loadSampleFile(file, idx) {
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      ensureAudio();
+      actx.decodeAudioData(e.target.result, function (buf) {
+        var slot = (idx != null) ? idx : sampPads.findIndex(function (p) { return !p; });
+        if (slot < 0) slot = 0;
+        sampPads[slot] = { buffer: buf, name: file.name.replace(/\.[^.]+$/, '').slice(0, 16) };
+        buildSampler();
+        toast('Loaded into pad ' + ['Q', 'W', 'E', 'R'][slot]);
+      }, function () { toast('Could not decode file'); });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  function micToSampler() {
+    if (!mic.buffer) { toast('Nothing recorded yet'); return; }
+    var slot = sampPads.findIndex(function (p) { return !p; });
+    if (slot < 0) slot = 0;
+    var ts = new Date().toLocaleTimeString().slice(0, 5);
+    sampPads[slot] = { buffer: mic.buffer, name: 'mic ' + ts };
+    buildSampler();
+    setMode('samp');
+    toast('Sent to pad ' + ['Q', 'W', 'E', 'R'][slot]);
+  }
+
   /* ── STEPS — manual drum sequencer that plays alongside compose ───── */
   var stepsCount = 32;
   /* steps[drumIdx][step] = velocity 0..1, 0 = off */
@@ -2277,9 +2559,33 @@ var Sonicc = (function () {
     });
     var stepsClear = document.getElementById('stepsClear');
     if (stepsClear) stepsClear.addEventListener('click', clearSteps);
-
-    /* PLAY also runs the steps grid even with no compose tracks */
     on('modeChange', function (m) { if (m === 'steps') renderStepsTable(); });
+
+    /* mic */
+    var micOrb = document.getElementById('micOrb');
+    if (micOrb) micOrb.addEventListener('click', function () {
+      if (mic.recording) micStop(); else { unlockAudio(); micStart(); }
+    });
+    var micPrev = document.getElementById('micPreview'); if (micPrev) micPrev.addEventListener('click', micPreview);
+    var micSav = document.getElementById('micSave');     if (micSav)  micSav.addEventListener('click', micSaveWAV);
+    var micClr = document.getElementById('micClearBtn'); if (micClr)  micClr.addEventListener('click', micClear);
+    var micToS = document.getElementById('micToSamp');   if (micToS)  micToS.addEventListener('click', micToSampler);
+
+    /* sampler */
+    buildSampler();
+    var sLoad = document.getElementById('sampLoad');
+    var sFile = document.getElementById('sampFile');
+    var sClear = document.getElementById('sampClear');
+    if (sLoad && sFile) {
+      sLoad.addEventListener('click', function () { sFile.click(); });
+      sFile.addEventListener('change', function (e) {
+        var f = e.target.files[0]; if (f) loadSampleFile(f);
+        e.target.value = '';
+      });
+    }
+    if (sClear) sClear.addEventListener('click', function () {
+      sampPads = [null, null, null, null]; buildSampler(); toast('Cleared all pads');
+    });
 
     /* keep BPM live: if playing, restart at the new tempo */
     on('bpmChange', function () {
@@ -2335,6 +2641,15 @@ var Sonicc = (function () {
         if (di >= 0 && di < DRUMS.length) {
           var pad = document.querySelectorAll('#drumsGrid .drum-pad')[di];
           if (pad) pad.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1 }));
+          return;
+        }
+      }
+      /* sampler mode: q w e r */
+      if (state.mode === 'samp') {
+        var sIdx = ['q','w','e','r'].indexOf(key);
+        if (sIdx >= 0) {
+          var spad = document.querySelectorAll('#sampPads .samp-pad')[sIdx];
+          if (spad) spad.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1 }));
           return;
         }
       }
