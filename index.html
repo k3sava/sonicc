@@ -740,9 +740,50 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
 .cv-lib-btn.del:hover { border-color: var(--bad); color: var(--bad); }
 
 /* Mixer */
+.mix-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
 .mix-grid {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
 }
+.mix-strip-fx {
+  display: none; flex-direction: column; gap: 4px;
+  margin-top: 4px; padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.mix-strip.expanded .mix-strip-fx { display: flex; }
+.mix-fx-row {
+  display: grid; grid-template-columns: 22px 1fr 28px;
+  gap: 4px; align-items: center;
+}
+.mix-fx-lbl {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase;
+}
+.mix-fx-val {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-2); text-align: right;
+}
+.mix-fx-row input[type=range] { height: 18px; accent-color: var(--accent); }
+.mix-auto {
+  width: 100%; height: 26px; padding: 0 8px;
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono); font-size: 10px;
+  border-radius: var(--r-sm);
+  outline: none;
+}
+.mix-auto:focus { border-color: var(--accent); }
+.mix-strip-toggle {
+  width: 100%; height: 22px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.mix-strip-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.mix-strip-toggle.expanded { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.mix-strip.has-auto { box-shadow: 0 0 0 1px var(--accent-warm); }
 .mix-strip {
   display: flex; flex-direction: column; align-items: stretch; gap: 6px;
   padding: 10px 8px;
@@ -984,6 +1025,9 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
 
       <div class="cv-section" data-min-lvl="4">
         <div class="cv-label">Mixer</div>
+        <div class="mix-toolbar">
+          <button class="cv-btn" id="mixCopyAll" title="Copy this section's mix (level, pan, EQ, send, automation) to every other section">Apply mix to all sections</button>
+        </div>
         <div class="mix-grid" id="mixGrid"></div>
       </div>
 
@@ -1709,45 +1753,118 @@ var Sonicc = (function () {
     };
   }
 
-  /* Per-track audio routing — each track gets its own gain + pan node
-     between its source and its bus. mixer adjustments hit these directly
-     so per-stem (and per-section) mixing is real, not bus-level. */
+  /* Per-track audio routing — each track owns gain → pan → 3-band EQ →
+     bus (dry) AND a parallel send to the shared reverb. Mixer changes
+     hit these directly so per-stem (and per-section) mixing is real. */
   function ensureTrackNodes(track) {
     if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
-    if (track._mixGain) return track._mixGain;
+    if (!track.eq)  track.eq  = { low: 0, mid: 0, high: 0 };
+    if (!track.send) track.send = { reverb: 0.2 };
+    if (!track.auto) track.auto = 'none';
+    if (track._gain) return track._gain;
     ensureAudio();
-    track._mixGain = actx.createGain();
-    track._mixGain.gain.value = track.mix.muted ? 0 : track.mix.gain;
-    if (actx.createStereoPanner) {
-      track._mixPan = actx.createStereoPanner();
-      track._mixPan.pan.value = track.mix.pan;
-      track._mixGain.connect(track._mixPan);
-      track._mixPan.connect(getBus(track.busKey));
-    } else {
-      track._mixGain.connect(getBus(track.busKey));
-    }
-    return track._mixGain;
+    track._gain = actx.createGain();
+    track._gain.gain.value = track.mix.muted ? 0 : track.mix.gain;
+    track._pan = actx.createStereoPanner ? actx.createStereoPanner() : null;
+    track._eqLow  = actx.createBiquadFilter(); track._eqLow.type  = 'lowshelf';  track._eqLow.frequency.value  = 250;  track._eqLow.gain.value  = track.eq.low;
+    track._eqMid  = actx.createBiquadFilter(); track._eqMid.type  = 'peaking';   track._eqMid.frequency.value  = 1000; track._eqMid.Q.value = 0.7; track._eqMid.gain.value = track.eq.mid;
+    track._eqHigh = actx.createBiquadFilter(); track._eqHigh.type = 'highshelf'; track._eqHigh.frequency.value = 4000; track._eqHigh.gain.value = track.eq.high;
+    var node = track._gain;
+    if (track._pan) { node.connect(track._pan); node = track._pan; }
+    node.connect(track._eqLow);
+    track._eqLow.connect(track._eqMid);
+    track._eqMid.connect(track._eqHigh);
+    track._eqHigh.connect(getBus(track.busKey));
+    track._reverbSend = actx.createGain();
+    track._reverbSend.gain.value = track.send.reverb;
+    track._eqHigh.connect(track._reverbSend);
+    if (fxNodes.reverb) track._reverbSend.connect(fxNodes.reverb);
+    return track._gain;
   }
   function setTrackGain(track, v) {
     if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
     track.mix.gain = v;
-    if (track._mixGain && !track.mix.muted) track._mixGain.gain.setTargetAtTime(v, actx.currentTime, 0.01);
+    if (track._gain && !track.mix.muted) track._gain.gain.setTargetAtTime(v, actx.currentTime, 0.01);
   }
   function setTrackPan(track, v) {
     if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
     track.mix.pan = v;
-    if (track._mixPan) track._mixPan.pan.setTargetAtTime(v, actx.currentTime, 0.01);
+    if (track._pan) track._pan.pan.setTargetAtTime(v, actx.currentTime, 0.01);
   }
   function setTrackMute(track, m) {
     if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
     track.mix.muted = m;
-    if (track._mixGain) track._mixGain.gain.setTargetAtTime(m ? 0 : track.mix.gain, actx.currentTime, 0.01);
-    track.muted = m; /* keep legacy flag in sync for the playback gate */
+    if (track._gain) track._gain.gain.setTargetAtTime(m ? 0 : track.mix.gain, actx.currentTime, 0.01);
+    track.muted = m;
+  }
+  function setTrackEQ(track, band, dB) {
+    if (!track.eq) track.eq = { low: 0, mid: 0, high: 0 };
+    track.eq[band] = dB;
+    var node = track['_eq' + (band.charAt(0).toUpperCase() + band.slice(1))];
+    if (node) node.gain.setTargetAtTime(dB, actx.currentTime, 0.01);
+  }
+  function setTrackSend(track, name, v) {
+    if (!track.send) track.send = { reverb: 0.2 };
+    track.send[name] = v;
+    if (name === 'reverb' && track._reverbSend) track._reverbSend.gain.setTargetAtTime(v, actx.currentTime, 0.01);
+  }
+  function setTrackAuto(track, kind) {
+    track.auto = kind;
+  }
+  /* Schedule an automation envelope on track._gain at startTime for durSec.
+     Each preset draws keyframes onto the gain AudioParam. */
+  function applyAutomation(track, startTime, durSec) {
+    if (!track._gain) return;
+    var g = track._gain.gain;
+    var base = track.mix.muted ? 0 : track.mix.gain;
+    g.cancelScheduledValues(startTime);
+    var k = track.auto || 'none';
+    if (k === 'none' || !k) {
+      g.setValueAtTime(base, startTime);
+      return;
+    }
+    if (k === 'fade-in') {
+      g.setValueAtTime(0, startTime);
+      g.linearRampToValueAtTime(base, startTime + durSec);
+    } else if (k === 'fade-out') {
+      g.setValueAtTime(base, startTime);
+      g.linearRampToValueAtTime(0, startTime + durSec);
+    } else if (k === 'swell') {
+      g.setValueAtTime(0, startTime);
+      g.linearRampToValueAtTime(base, startTime + durSec * 0.45);
+      g.setValueAtTime(base, startTime + durSec * 0.55);
+      g.linearRampToValueAtTime(0, startTime + durSec);
+    } else if (k === 'pulse') {
+      var beats = 8;
+      for (var i = 0; i < beats; i++) {
+        var t = startTime + (i / beats) * durSec;
+        g.setValueAtTime(base * (i % 2 === 0 ? 1 : 0.3), t);
+      }
+    } else if (k === 'duck') {
+      /* gentle pumping: dip to 0.45 every quarter, ramp back */
+      var beats2 = 4;
+      for (var i = 0; i < beats2; i++) {
+        var t0 = startTime + (i / beats2) * durSec;
+        var t1 = t0 + (durSec / beats2) * 0.5;
+        g.setValueAtTime(base * 0.45, t0);
+        g.linearRampToValueAtTime(base, t1);
+      }
+    }
+  }
+  function applyAutomationToAll() {
+    if (!actx) return;
+    var sectionDur = 64 * (60 / (state.bpm * 4));
+    var now = actx.currentTime + 0.02;
+    compose.tracks.forEach(function (t) {
+      ensureTrackNodes(t);
+      applyAutomation(t, now, sectionDur);
+    });
   }
   function disposeTrackNodes(track) {
-    try { if (track._mixGain) track._mixGain.disconnect(); } catch (e) {}
-    try { if (track._mixPan) track._mixPan.disconnect(); } catch (e) {}
-    track._mixGain = null; track._mixPan = null;
+    ['_gain','_pan','_eqLow','_eqMid','_eqHigh','_reverbSend'].forEach(function (k) {
+      try { if (track[k]) track[k].disconnect(); } catch (e) {}
+      track[k] = null;
+    });
   }
 
   /* Generate one track from a stem name, math source, and ctx */
@@ -1760,7 +1877,10 @@ var Sonicc = (function () {
         stem: stem, preset: '(drum)', busKey: prof.busKey, color: prof.color,
         drumHits: prof.drumFn(ctx.intent, rng),
         muted: false, soloed: false,
-        mix: { gain: 1, pan: 0, muted: false }
+        mix: { gain: 1, pan: 0, muted: false },
+        eq: { low: 0, mid: 0, high: 0 },
+        send: { reverb: 0.2 },
+        auto: 'none'
       };
     }
     var srcFn = MATH[ctx.source] || MATH.pi;
@@ -1786,7 +1906,10 @@ var Sonicc = (function () {
     return {
       stem: stem, preset: prof.preset, busKey: prof.busKey, color: prof.color,
       notes: notes, muted: false, soloed: false,
-      mix: { gain: 1, pan: 0, muted: false }
+      mix: { gain: 1, pan: 0, muted: false },
+      eq: { low: 0, mid: 0, high: 0 },
+      send: { reverb: 0.2 },
+      auto: 'none'
     };
   }
 
@@ -2021,6 +2144,8 @@ var Sonicc = (function () {
     var btn = document.getElementById('btnPlay');
     if (btn) { btn.textContent = 'STOP'; btn.classList.add('active'); }
     var msPerStep = 60000 / (state.bpm * 4);
+    /* schedule any per-track automation on section start */
+    applyAutomationToAll();
     seqInterval = setInterval(function () {
       /* STEPS panel drum cells fire alongside compose */
       var stepInGrid = currentStep % stepsCount;
@@ -2152,6 +2277,7 @@ var Sonicc = (function () {
     renderTimeline();
     renderSongStrip();
     renderMixer();
+    if (state.isPlaying) applyAutomationToAll();
   }
 
   function renderSongStrip() {
@@ -2176,8 +2302,10 @@ var Sonicc = (function () {
   }
 
   /* ── MIXER ── per-track strips for the active section.
-     Each section keeps its own track.mix so chorus pad can be louder
-     than intro pad without any extra UI. */
+     Each section keeps its own track.mix / .eq / .send / .auto so the
+     chorus pad can be louder, brighter, more reverbed, and swell-shaped
+     vs the intro pad without any extra UI. */
+  var mixerExpanded = {}; /* {stem: bool} so strips remember toggle state */
   function renderMixer() {
     var grid = document.getElementById('mixGrid');
     if (!grid) return;
@@ -2190,48 +2318,135 @@ var Sonicc = (function () {
       grid.style.gridTemplateColumns = '1fr';
       return;
     }
-    grid.style.gridTemplateColumns = 'repeat(' + Math.min(compose.tracks.length, 6) + ', 1fr)';
-    if (compose.tracks.length > 6) grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+    var n = Math.min(compose.tracks.length, 6);
+    grid.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
     function fmtPan(n) { return n === 0 ? 'C' : n < 0 ? 'L' + (-n) : 'R' + n; }
-    compose.tracks.forEach(function (track, idx) {
+    function fmtDb(n) { return (n > 0 ? '+' : '') + n; }
+    compose.tracks.forEach(function (track) {
       if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
+      if (!track.eq)  track.eq  = { low: 0, mid: 0, high: 0 };
+      if (!track.send) track.send = { reverb: 0.2 };
+      if (!track.auto) track.auto = 'none';
       var strip = document.createElement('div');
-      strip.className = 'mix-strip' + (track.mix.muted ? ' muted' : '');
+      var expanded = !!mixerExpanded[track.stem];
+      strip.className = 'mix-strip' + (track.mix.muted ? ' muted' : '') + (expanded ? ' expanded' : '') + (track.auto && track.auto !== 'none' ? ' has-auto' : '');
       var lvlPct = Math.round(track.mix.gain * 100);
       var panInt = Math.round(track.mix.pan * 100);
       strip.innerHTML =
         '<div class="mix-name" style="border-left:3px solid ' + track.color + ';padding-left:6px;text-align:left">' + track.stem + '</div>' +
-        '<input class="mix-fader" type="range" min="0" max="150" value="' + lvlPct + '" aria-label="' + track.stem + ' level">' +
-        '<input class="mix-pan"   type="range" min="-100" max="100" value="' + panInt + '" aria-label="' + track.stem + ' pan">' +
+        '<input class="mix-fader" type="range" min="0" max="150" value="' + lvlPct + '">' +
+        '<input class="mix-pan"   type="range" min="-100" max="100" value="' + panInt + '">' +
         '<div class="mix-row-vals"><span class="vlvl">' + lvlPct + '</span><span class="vpan">' + fmtPan(panInt) + '</span></div>' +
+        '<div class="mix-strip-fx">' +
+          '<div class="mix-fx-row"><span class="mix-fx-lbl">Lo</span><input type="range" class="fx-lo" min="-15" max="15" step="1" value="' + track.eq.low + '"><span class="mix-fx-val v-lo">' + fmtDb(track.eq.low) + '</span></div>' +
+          '<div class="mix-fx-row"><span class="mix-fx-lbl">Mi</span><input type="range" class="fx-mi" min="-15" max="15" step="1" value="' + track.eq.mid + '"><span class="mix-fx-val v-mi">' + fmtDb(track.eq.mid) + '</span></div>' +
+          '<div class="mix-fx-row"><span class="mix-fx-lbl">Hi</span><input type="range" class="fx-hi" min="-15" max="15" step="1" value="' + track.eq.high + '"><span class="mix-fx-val v-hi">' + fmtDb(track.eq.high) + '</span></div>' +
+          '<div class="mix-fx-row"><span class="mix-fx-lbl">Vrb</span><input type="range" class="fx-vrb" min="0" max="100" value="' + Math.round(track.send.reverb * 100) + '"><span class="mix-fx-val v-vrb">' + Math.round(track.send.reverb * 100) + '%</span></div>' +
+          '<select class="mix-auto fx-auto">' +
+            ['none','fade-in','fade-out','swell','pulse','duck'].map(function (k) {
+              return '<option value="' + k + '"' + (track.auto === k ? ' selected' : '') + '>auto: ' + k + '</option>';
+            }).join('') +
+          '</select>' +
+        '</div>' +
+        '<button class="mix-strip-toggle' + (expanded ? ' expanded' : '') + '" type="button">' + (expanded ? '▴ FX' : '▾ FX') + '</button>' +
         '<button class="mix-mute' + (track.mix.muted ? ' on' : '') + '" type="button">M</button>';
-      var fader = strip.querySelector('.mix-fader');
-      var pan   = strip.querySelector('.mix-pan');
-      var mute  = strip.querySelector('.mix-mute');
-      var vlvl  = strip.querySelector('.vlvl');
-      var vpan  = strip.querySelector('.vpan');
-      fader.addEventListener('input', function () {
-        var v = parseInt(fader.value, 10) / 100;
+      var $ = function (sel) { return strip.querySelector(sel); };
+      $('.mix-fader').addEventListener('input', function (e) {
+        var v = parseInt(e.target.value, 10) / 100;
         ensureAudio(); ensureTrackNodes(track); setTrackGain(track, v);
-        vlvl.textContent = String(parseInt(fader.value, 10));
+        $('.vlvl').textContent = String(parseInt(e.target.value, 10));
       });
-      pan.addEventListener('input', function () {
-        var p = parseInt(pan.value, 10);
+      $('.mix-pan').addEventListener('input', function (e) {
+        var p = parseInt(e.target.value, 10);
         ensureAudio(); ensureTrackNodes(track); setTrackPan(track, p / 100);
-        vpan.textContent = fmtPan(p);
+        $('.vpan').textContent = fmtPan(p);
       });
-      mute.addEventListener('click', function () {
+      $('.mix-mute').addEventListener('click', function () {
         ensureAudio(); ensureTrackNodes(track);
         var on = !track.mix.muted;
         setTrackMute(track, on);
-        mute.classList.toggle('on', on);
-        strip.classList.toggle('muted', on);
+        renderMixer();
+      });
+      $('.fx-lo').addEventListener('input', function (e) {
+        var d = parseInt(e.target.value, 10);
+        ensureAudio(); ensureTrackNodes(track); setTrackEQ(track, 'low', d);
+        $('.v-lo').textContent = fmtDb(d);
+      });
+      $('.fx-mi').addEventListener('input', function (e) {
+        var d = parseInt(e.target.value, 10);
+        ensureAudio(); ensureTrackNodes(track); setTrackEQ(track, 'mid', d);
+        $('.v-mi').textContent = fmtDb(d);
+      });
+      $('.fx-hi').addEventListener('input', function (e) {
+        var d = parseInt(e.target.value, 10);
+        ensureAudio(); ensureTrackNodes(track); setTrackEQ(track, 'high', d);
+        $('.v-hi').textContent = fmtDb(d);
+      });
+      $('.fx-vrb').addEventListener('input', function (e) {
+        var v = parseInt(e.target.value, 10) / 100;
+        ensureAudio(); ensureTrackNodes(track); setTrackSend(track, 'reverb', v);
+        $('.v-vrb').textContent = Math.round(v * 100) + '%';
+      });
+      $('.fx-auto').addEventListener('change', function (e) {
+        setTrackAuto(track, e.target.value);
+        if (state.isPlaying) {
+          var sectionDur = 64 * (60 / (state.bpm * 4));
+          var remaining = sectionDur - (currentStep / 64) * sectionDur;
+          ensureTrackNodes(track);
+          applyAutomation(track, actx.currentTime + 0.02, Math.max(0.5, remaining));
+        }
+        strip.classList.toggle('has-auto', e.target.value !== 'none');
+      });
+      $('.mix-strip-toggle').addEventListener('click', function () {
+        mixerExpanded[track.stem] = !mixerExpanded[track.stem];
+        renderMixer();
       });
       grid.appendChild(strip);
     });
   }
   /* keep the old name available — a few call-sites still reference it */
   function buildMixer() { renderMixer(); }
+
+  /* copy current section's mix (level, pan, mute, EQ, send, auto) to every
+     other section. Stems are matched by name across sections. */
+  function copyMixToAllSections() {
+    if (!compose.song || !compose.song.sections.length) {
+      toast('Make a song first to apply across sections');
+      return;
+    }
+    var src = {};
+    compose.tracks.forEach(function (t) {
+      src[t.stem] = {
+        mix:  JSON.parse(JSON.stringify(t.mix)),
+        eq:   JSON.parse(JSON.stringify(t.eq)),
+        send: JSON.parse(JSON.stringify(t.send)),
+        auto: t.auto
+      };
+    });
+    var n = 0;
+    compose.song.sections.forEach(function (sec) {
+      sec.tracks.forEach(function (target) {
+        if (!src[target.stem]) return;
+        target.mix  = JSON.parse(JSON.stringify(src[target.stem].mix));
+        target.eq   = JSON.parse(JSON.stringify(src[target.stem].eq));
+        target.send = JSON.parse(JSON.stringify(src[target.stem].send));
+        target.auto = src[target.stem].auto;
+        target.muted = target.mix.muted;
+        /* if this is the active section, our nodes are already wired —
+           push values into them */
+        if (target._gain) {
+          target._gain.gain.setTargetAtTime(target.mix.muted ? 0 : target.mix.gain, actx.currentTime, 0.01);
+          if (target._pan) target._pan.pan.setTargetAtTime(target.mix.pan, actx.currentTime, 0.01);
+          if (target._eqLow)  target._eqLow.gain.setTargetAtTime(target.eq.low,  actx.currentTime, 0.01);
+          if (target._eqMid)  target._eqMid.gain.setTargetAtTime(target.eq.mid,  actx.currentTime, 0.01);
+          if (target._eqHigh) target._eqHigh.gain.setTargetAtTime(target.eq.high, actx.currentTime, 0.01);
+          if (target._reverbSend) target._reverbSend.gain.setTargetAtTime(target.send.reverb, actx.currentTime, 0.01);
+        }
+        n++;
+      });
+    });
+    toast('Mix applied to ' + compose.song.sections.length + ' sections (' + n + ' tracks)');
+  }
 
   /* ── MIC RECORDING ── raw PCM → 16-bit WAV (lossless) ───────────── */
   var mic = {
@@ -2738,6 +2953,8 @@ var Sonicc = (function () {
 
     /* mixer */
     buildMixer();
+    var mixCopyAll = document.getElementById('mixCopyAll');
+    if (mixCopyAll) mixCopyAll.addEventListener('click', copyMixToAllSections);
 
     /* auto-save compose state to localStorage */
     var SAVE_KEY = 'sonicc:v2:compose';
