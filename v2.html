@@ -260,6 +260,128 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
 .level-pill:hover { color: var(--text); }
 .level-pill.active { background: var(--accent); color: #fff; }
 
+/* ── KEYS PANEL ────────────────────────────────────────────────────── */
+.keys-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface);
+}
+.keys-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.keys-select {
+  height: 36px; padding: 0 10px;
+  border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono); font-size: 12px;
+  border-radius: var(--r-md);
+  outline: none;
+}
+.keys-select:focus { border-color: var(--accent); }
+.keys-oct {
+  font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+  min-width: 28px; text-align: center;
+  color: var(--text);
+}
+
+.keys-board {
+  flex: 1; min-height: 200px;
+  display: flex; align-items: stretch;
+  padding: 24px 16px;
+  background: var(--surface-2);
+  overflow-x: auto;
+  position: relative;
+}
+.keys-row { display: flex; align-items: stretch; flex: 1; min-width: 100%; gap: 4px; position: relative; }
+.kk {
+  flex: 1; min-width: 36px;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  background: var(--surface);
+  color: var(--text-3);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  user-select: none;
+  transition: all 60ms ease;
+  position: relative;
+}
+.kk:hover { background: var(--surface-2); border-color: var(--accent); color: var(--text); }
+.kk.active { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(2px); }
+.kk.black {
+  position: absolute; top: 0;
+  width: 7%; min-width: 26px; height: 60%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text-2);
+  z-index: 2;
+}
+.kk.black.active { background: var(--accent); }
+
+.keys-hint {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 10px 16px calc(10px + var(--safe-bot));
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); letter-spacing: 0.04em;
+  background: var(--surface);
+  border-top: 1px solid var(--line-soft);
+}
+.keys-hint kbd {
+  display: inline-block;
+  padding: 1px 6px; margin: 0 1px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-2);
+}
+
+/* ── DRUMS PANEL ───────────────────────────────────────────────────── */
+.drums-grid {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface-2);
+}
+.drum-pad {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-2);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  user-select: none;
+  transition: all 80ms ease;
+  min-height: 80px;
+}
+.drum-pad:hover { border-color: var(--accent); color: var(--text); }
+.drum-pad.active {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+  transform: scale(0.97);
+  box-shadow: 0 0 30px var(--accent-soft);
+}
+.drum-pad .name {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+.drum-pad .key {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-3); letter-spacing: 0.05em;
+}
+.drum-pad.active .key { color: rgba(255,255,255,0.8); }
+@media (max-width: 600px) {
+  .drums-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* ── PROGRESSIVE DISCLOSURE ────────────────────────────────────────── */
 body.lvl-beginner [data-min-lvl="2"],
 body.lvl-beginner [data-min-lvl="3"],
@@ -307,17 +429,32 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
 
 <main>
   <section class="mode-panel active" id="panel-keys" data-mode="keys">
-    <div class="panel-empty">
-      <div class="ico">♪</div>
-      <div>Keys — coming in phase 6</div>
+    <div class="keys-bar">
+      <span class="keys-label">Preset</span>
+      <select class="keys-select" id="keysPreset">
+        <option value="felt_piano">felt piano</option>
+        <option value="pad">pad</option>
+        <option value="pluck">pluck (kalimba)</option>
+        <option value="cello">cello</option>
+        <option value="celesta">celesta</option>
+        <option value="whistle">whistle</option>
+        <option value="harmonium">harmonium</option>
+        <option value="supersaw">supersaw lead</option>
+        <option value="sub">sub bass</option>
+        <option value="drone_organ">drone</option>
+      </select>
+      <span style="flex:1"></span>
+      <button class="h-btn" id="keysOctDown" aria-label="Octave down">−</button>
+      <span class="keys-oct" id="keysOctVal">4</span>
+      <button class="h-btn" id="keysOctUp" aria-label="Octave up">+</button>
     </div>
+    <div class="keys-board" id="keysBoard"></div>
+    <div class="keys-hint">Tap or press <kbd>A S D F G H J K</kbd> for white keys, <kbd>W E T Y U</kbd> for black</div>
   </section>
 
   <section class="mode-panel" id="panel-drums" data-mode="drums">
-    <div class="panel-empty">
-      <div class="ico">●</div>
-      <div>Drums — coming in phase 6</div>
-    </div>
+    <div class="drums-grid" id="drumsGrid"></div>
+    <div class="keys-hint">Tap or press <kbd>1 2 3 4 5 6 7 8</kbd></div>
   </section>
 
   <section class="mode-panel" id="panel-steps" data-mode="steps">
@@ -450,6 +587,7 @@ var Sonicc = (function () {
 
   /* ── Transport (stubs for phase 1) ── */
   function togglePlay() {
+    unlockAudio();
     state.isPlaying = !state.isPlaying;
     var btn = document.getElementById('btnPlay');
     if (btn) {
@@ -458,7 +596,7 @@ var Sonicc = (function () {
     }
     document.body.classList.toggle('performing', state.isPlaying);
     emit('playChange', state.isPlaying);
-    if (state.isPlaying) toast('audio engine arrives in phase 2');
+    if (state.isPlaying) toast('sequencer arrives in phase 4 — try the keys/drums to verify audio');
   }
   function toggleRec() {
     state.isRecording = !state.isRecording;
@@ -466,6 +604,393 @@ var Sonicc = (function () {
     if (btn) btn.classList.toggle('active', state.isRecording);
     emit('recChange', state.isRecording);
     if (state.isRecording) toast('record arrives in phase 7');
+  }
+
+  /* ── AUDIO ENGINE ────────────────────────────────────────────────── */
+  var actx = null;
+  var unlocked = false;
+  var buses = null;
+  var masterGain = null;
+  var masterPan = null;
+  var fxNodes = {};
+
+  function ensureAudio() {
+    if (actx) return actx;
+    actx = new (window.AudioContext || window.webkitAudioContext)();
+    buildAudio();
+    return actx;
+  }
+  function unlockAudio() {
+    if (unlocked) return;
+    ensureAudio();
+    if (actx.state === 'suspended') actx.resume();
+    var b = actx.createBuffer(1, 1, 22050);
+    var s = actx.createBufferSource(); s.buffer = b; s.connect(actx.destination); s.start(0);
+    unlocked = true;
+  }
+  function buildAudio() {
+    masterGain = actx.createGain(); masterGain.gain.value = 0.85;
+    masterPan = actx.createStereoPanner ? actx.createStereoPanner() : null;
+    if (masterPan) { masterGain.connect(masterPan); masterPan.connect(actx.destination); }
+    else masterGain.connect(actx.destination);
+    /* shared reverb (one impulse, sent from each bus optionally) */
+    fxNodes.reverb = actx.createConvolver();
+    fxNodes.reverb.buffer = makeImpulse(2.4, 1.6);
+    fxNodes.reverbGain = actx.createGain(); fxNodes.reverbGain.gain.value = 0.28;
+    fxNodes.reverb.connect(fxNodes.reverbGain); fxNodes.reverbGain.connect(masterGain);
+    /* per-track buses */
+    buses = {};
+    ['lead', 'bass', 'pad', 'drum', 'aux'].forEach(function (k) {
+      var g = actx.createGain(); g.gain.value = 1;
+      var p = actx.createStereoPanner ? actx.createStereoPanner() : null;
+      if (p) { g.connect(p); p.connect(masterGain); g.connect(fxNodes.reverb); }
+      else { g.connect(masterGain); g.connect(fxNodes.reverb); }
+      buses[k] = { gain: g, pan: p, level: 1, panVal: 0, muted: false };
+    });
+  }
+  function makeImpulse(dur, decay) {
+    var len = Math.floor(actx.sampleRate * dur);
+    var b = actx.createBuffer(2, len, actx.sampleRate);
+    for (var ch = 0; ch < 2; ch++) {
+      var d = b.getChannelData(ch);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return b;
+  }
+  function getBus(key) { ensureAudio(); return buses[key] ? buses[key].gain : masterGain; }
+  function setBusLevel(key, v) {
+    if (!buses || !buses[key]) return;
+    buses[key].level = v;
+    if (!buses[key].muted) buses[key].gain.gain.setTargetAtTime(v, actx.currentTime, 0.01);
+  }
+  function setBusPan(key, v) {
+    if (!buses || !buses[key] || !buses[key].pan) return;
+    buses[key].panVal = v;
+    buses[key].pan.pan.setTargetAtTime(v, actx.currentTime, 0.01);
+  }
+  function setBusMute(key, m) {
+    if (!buses || !buses[key]) return;
+    buses[key].muted = m;
+    buses[key].gain.gain.setTargetAtTime(m ? 0 : buses[key].level, actx.currentTime, 0.01);
+  }
+
+  /* ── NOTES ── */
+  var NOTE_IDX = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
+  var NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  function noteFreq(note, oct) {
+    var n = NOTE_IDX[note] || 0;
+    var midi = (oct + 1) * 12 + n;
+    return 440 * Math.pow(2, (midi - 69) / 12);
+  }
+
+  /* ── PRESETS ── 10 organic, distinct timbres */
+  var PRESETS = {
+    felt_piano:  { wf: 'felt',      atk: .003, dec: .4,  sus: .35, rel: .8,  filt: 3000,  q: 1.0, sendRev: 0.6 },
+    pad:         { wf: 'pad_sine',  atk: .8,   dec: .5,  sus: .85, rel: 2.5, filt: 2400,  q: 1.4, sendRev: 0.9 },
+    sub:         { wf: 'sub_sine',  atk: .04,  dec: .2,  sus: .85, rel: .8,  filt: 420,   q: 0.8, sendRev: 0.0 },
+    pluck:       { wf: 'kalimba',   atk: .001, dec: .35, sus: .12, rel: .55, filt: 7000,  q: 1.5, sendRev: 0.5 },
+    cello:       { wf: 'cello',     atk: .12,  dec: .2,  sus: .78, rel: .9,  filt: 4200,  q: 2.0, sendRev: 0.7 },
+    whistle:     { wf: 'whistle',   atk: .04,  dec: .1,  sus: .75, rel: .35, filt: 6000,  q: 2.0, sendRev: 0.6 },
+    celesta:     { wf: 'celesta',   atk: .001, dec: .5,  sus: .15, rel: 1.2, filt: 11000, q: 1.0, sendRev: 0.7 },
+    harmonium:   { wf: 'harmonium', atk: .04,  dec: .12, sus: .88, rel: .5,  filt: 4000,  q: 1.0, sendRev: 0.5 },
+    supersaw:    { wf: 'supersaw',  atk: .005, dec: .15, sus: .65, rel: .4,  filt: 5000,  q: 3.0, sendRev: 0.5 },
+    drone_organ: { wf: 'organ',     atk: .2,   dec: .3,  sus: .9,  rel: 1.5, filt: 3500,  q: 1.0, sendRev: 0.8 }
+  };
+
+  /* ── VOICE BUILDERS ── one switch per waveform name */
+  function buildVoice(presetName, note, oct, dest) {
+    var p = PRESETS[presetName] || PRESETS.felt_piano;
+    var freq = noteFreq(note, oct);
+    var env = actx.createGain(); env.gain.value = 0;
+    var lpf = actx.createBiquadFilter(); lpf.type = 'lowpass';
+    lpf.frequency.value = p.filt; lpf.Q.value = p.q;
+    env.connect(lpf); lpf.connect(dest);
+    var nodes = [];
+    function addNoiseBurst(durSec, gainV, hpfFreq) {
+      var bl = Math.max(2, Math.floor(actx.sampleRate * durSec));
+      var b = actx.createBuffer(1, bl, actx.sampleRate);
+      var d = b.getChannelData(0);
+      for (var i = 0; i < bl; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / bl);
+      var n = actx.createBufferSource(); n.buffer = b;
+      var g = actx.createGain(); g.gain.value = gainV;
+      if (hpfFreq) {
+        var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = hpfFreq;
+        n.connect(hp); hp.connect(g);
+      } else { n.connect(g); }
+      g.connect(env); n.start();
+      nodes.push(n);
+    }
+    function addOsc(type, f, detune, gainV) {
+      var o = actx.createOscillator(); o.type = type; o.frequency.value = f;
+      if (detune) o.detune.value = detune;
+      var g = actx.createGain(); g.gain.value = gainV == null ? 1 : gainV;
+      o.connect(g); g.connect(env); o.start();
+      nodes.push(o);
+      return o;
+    }
+    switch (p.wf) {
+      case 'felt':
+        addOsc('triangle', freq, 0, 0.85);
+        addNoiseBurst(0.012, 0.10, 1200);
+        break;
+      case 'pad_sine':
+        addOsc('sine', freq, -3, 0.45);
+        addOsc('sine', freq, 3, 0.45);
+        addOsc('sine', freq * 2, 0, 0.10);
+        break;
+      case 'sub_sine':
+        addOsc('sine', freq, 0, 1.0);
+        addOsc('triangle', freq * 2, 0, 0.08);
+        break;
+      case 'kalimba':
+        addOsc('sine', freq, 0, 0.55);
+        addOsc('sine', freq * 4.2, 0, 0.18);
+        addOsc('sine', freq * 9.0, 0, 0.06);
+        addNoiseBurst(0.008, 0.13);
+        break;
+      case 'cello':
+        var co = addOsc('sawtooth', freq, 0, 0.85);
+        var lfo = addOsc('sine', 4.5, 0, 0); /* gain 0, used as modulator */
+        var lfoG = actx.createGain(); lfoG.gain.value = 4;
+        lfo.disconnect(); lfo.connect(lfoG); lfoG.connect(co.detune);
+        break;
+      case 'whistle':
+        var wo = addOsc('sine', freq, 0, 0.95);
+        var wlfo = addOsc('sine', 5.2, 0, 0);
+        var wlfoG = actx.createGain(); wlfoG.gain.value = 6;
+        wlfo.disconnect(); wlfo.connect(wlfoG); wlfoG.connect(wo.detune);
+        addNoiseBurst(0.4, 0.04, 3000);
+        break;
+      case 'celesta':
+        var mod = actx.createOscillator(); mod.type = 'sine'; mod.frequency.value = freq * 3;
+        var modG = actx.createGain(); modG.gain.value = freq * 0.8;
+        mod.connect(modG);
+        var car = actx.createOscillator(); car.type = 'sine'; car.frequency.value = freq;
+        modG.connect(car.frequency); car.connect(env);
+        mod.start(); car.start();
+        addOsc('sine', freq * 5, 0, 0.16);
+        nodes.push(mod, car);
+        break;
+      case 'harmonium':
+        addOsc('sawtooth', freq, -3, 0.35);
+        addOsc('sawtooth', freq, 3, 0.35);
+        addOsc('square', freq * 2, 0, 0.12);
+        break;
+      case 'supersaw':
+        [-24, -12, 0, 12, 24].forEach(function (d) { addOsc('sawtooth', freq, d, 0.18); });
+        break;
+      case 'organ':
+        [[1, 0.5], [2, 0.3], [3, 0.15], [4, 0.05], [6, 0.04]].forEach(function (h) {
+          addOsc('sine', freq * h[0], 0, h[1]);
+        });
+        break;
+      default:
+        addOsc('sine', freq, 0, 1);
+    }
+    return { env: env, nodes: nodes, preset: p };
+  }
+
+  /* ── TRIGGER NOTE ── */
+  var voicesActive = [];
+  function trigger(presetName, note, oct, vel, lenSec, busKey) {
+    ensureAudio();
+    if (actx.state === 'suspended') actx.resume();
+    vel = Math.max(0, Math.min(1, vel == null ? 0.8 : vel));
+    if (lenSec == null || lenSec < 0.05) lenSec = 0.5;
+    var dest = getBus(busKey || 'lead');
+    var voice = buildVoice(presetName, note, oct, dest);
+    var p = voice.preset;
+    var now = actx.currentTime;
+    var atk = Math.min(p.atk, lenSec * 0.5);
+    var dec = Math.min(p.dec, Math.max(0.01, (lenSec - atk) * 0.4));
+    voice.env.gain.setValueAtTime(0, now);
+    voice.env.gain.linearRampToValueAtTime(vel, now + atk);
+    voice.env.gain.linearRampToValueAtTime(p.sus * vel, now + atk + dec);
+    voice.env.gain.setValueAtTime(p.sus * vel, now + lenSec);
+    voice.env.gain.linearRampToValueAtTime(0, now + lenSec + p.rel);
+    /* per-preset reverb send via the env (already feeds bus → reverb), so no extra wiring */
+    var stopAt = (lenSec + p.rel) * 1000 + 100;
+    setTimeout(function () {
+      voice.nodes.forEach(function (n) { try { n.stop(); } catch (e) {} });
+      try { voice.env.disconnect(); } catch (e) {}
+    }, stopAt);
+    return voice;
+  }
+
+  /* ── DRUMS ── 8 organic voices */
+  var DRUMS = ['kick', 'snare', 'hat', 'clap', 'tom', 'rim', 'shaker', 'perc'];
+  function playDrum(name, vel) {
+    ensureAudio();
+    if (actx.state === 'suspended') actx.resume();
+    vel = Math.max(0, Math.min(1, vel == null ? 0.8 : vel));
+    var bus = getBus('drum');
+    var now = actx.currentTime;
+    function noiseBuf(durSec, decay) {
+      var bl = Math.floor(actx.sampleRate * durSec);
+      var b = actx.createBuffer(1, bl, actx.sampleRate);
+      var d = b.getChannelData(0);
+      for (var i = 0; i < bl; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / bl * (decay || 5));
+      return b;
+    }
+    if (name === 'kick') {
+      var o = actx.createOscillator(); o.type = 'sine';
+      var sub = actx.createOscillator(); sub.type = 'sine'; sub.frequency.value = 60;
+      var g = actx.createGain(); g.gain.setValueAtTime(0.85 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+      var sg = actx.createGain(); sg.gain.setValueAtTime(0.35 * vel, now);
+      sg.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      o.frequency.setValueAtTime(160, now);
+      o.frequency.exponentialRampToValueAtTime(42, now + 0.12);
+      o.connect(g); g.connect(bus); sub.connect(sg); sg.connect(bus);
+      o.start(); sub.start(); o.stop(now + 0.7); sub.stop(now + 0.55);
+    } else if (name === 'snare') {
+      var n = actx.createBufferSource(); n.buffer = noiseBuf(0.22, 5);
+      var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1600; bp.Q.value = 0.8;
+      var tone = actx.createOscillator(); tone.type = 'triangle'; tone.frequency.value = 200;
+      var tg = actx.createGain(); tg.gain.setValueAtTime(0.18 * vel, now);
+      tg.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+      tone.connect(tg); tg.connect(bus);
+      var g = actx.createGain(); g.gain.setValueAtTime(0.7 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      n.connect(bp); bp.connect(g); g.connect(bus);
+      n.start(); tone.start(); tone.stop(now + 0.1);
+    } else if (name === 'hat') {
+      var n = actx.createBufferSource(); n.buffer = noiseBuf(0.05, 12);
+      var hp = actx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 8000;
+      var g = actx.createGain(); g.gain.setValueAtTime(0.45 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      n.connect(hp); hp.connect(g); g.connect(bus); n.start();
+    } else if (name === 'clap') {
+      for (var c = 0; c < 3; c++) {
+        var off = c * 0.012;
+        var n = actx.createBufferSource(); n.buffer = noiseBuf(0.04, 8);
+        var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 0.5;
+        var g = actx.createGain(); g.gain.setValueAtTime(0.55 * vel, now + off);
+        g.gain.exponentialRampToValueAtTime(0.001, now + off + 0.08);
+        n.connect(bp); bp.connect(g); g.connect(bus); n.start(now + off);
+      }
+    } else if (name === 'tom') {
+      var o = actx.createOscillator(); o.type = 'sine';
+      var g = actx.createGain(); g.gain.setValueAtTime(0.8 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      var hi = 160 + (vel > 0.75 ? 80 : 0);
+      o.frequency.setValueAtTime(hi, now);
+      o.frequency.exponentialRampToValueAtTime(hi * 1.15, now + 0.04);
+      o.frequency.exponentialRampToValueAtTime(50, now + 0.16);
+      o.connect(g); g.connect(bus); o.start(); o.stop(now + 0.3);
+    } else if (name === 'rim') {
+      var o = actx.createOscillator(); o.type = 'square'; o.frequency.value = 340;
+      var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 800; bp.Q.value = 4;
+      var g = actx.createGain(); g.gain.setValueAtTime(0.5 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      o.connect(bp); bp.connect(g); g.connect(bus);
+      o.start(); o.stop(now + 0.05);
+    } else if (name === 'shaker') {
+      var n = actx.createBufferSource(); n.buffer = noiseBuf(0.08, 8);
+      var bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 5000; bp.Q.value = 0.5;
+      var g = actx.createGain(); g.gain.setValueAtTime(0.4 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      n.connect(bp); bp.connect(g); g.connect(bus); n.start();
+    } else if (name === 'perc') {
+      var o = actx.createOscillator(); o.type = 'triangle';
+      var g = actx.createGain(); g.gain.setValueAtTime(0.55 * vel, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      o.frequency.setValueAtTime(520, now);
+      o.frequency.exponentialRampToValueAtTime(160, now + 0.05);
+      o.connect(g); g.connect(bus); o.start(); o.stop(now + 0.1);
+    }
+  }
+
+  /* ── KEYBOARD UI ── 1.5 octaves so chords are reachable */
+  var KEY_MAP_WHITE = ['a','s','d','f','g','h','j','k']; /* C D E F G A B C+1 */
+  var KEY_MAP_BLACK = { w: 1, e: 3, t: 6, y: 8, u: 10 }; /* C# D# F# G# A# */
+  var WHITE_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
+  var BLACK_NOTES = ['C#', 'D#', 'F#', 'G#', 'A#'];
+  var BLACK_OFFSETS = [1, 2, 4, 5, 6]; /* between which white keys (1-indexed) */
+  var keysHeld = {};
+
+  function buildKeyboard() {
+    var board = document.getElementById('keysBoard');
+    if (!board) return;
+    board.innerHTML = '';
+    var row = document.createElement('div'); row.className = 'keys-row';
+    /* white keys */
+    for (var i = 0; i < 8; i++) {
+      var k = document.createElement('div');
+      k.className = 'kk';
+      k.dataset.note = WHITE_NOTES[i];
+      k.dataset.octOff = i === 7 ? '1' : '0';
+      var lbl = document.createElement('span');
+      lbl.textContent = WHITE_NOTES[i] + (i === 7 ? '+' : '');
+      k.appendChild(lbl);
+      var keyHint = document.createElement('span');
+      keyHint.textContent = (KEY_MAP_WHITE[i] || '').toUpperCase();
+      keyHint.style.opacity = '0.6'; keyHint.style.fontSize = '8px'; keyHint.style.marginTop = '2px';
+      k.appendChild(keyHint);
+      row.appendChild(k);
+    }
+    /* black keys overlaid */
+    BLACK_NOTES.forEach(function (note, i) {
+      var bk = document.createElement('div');
+      bk.className = 'kk black';
+      bk.dataset.note = note;
+      bk.dataset.octOff = '0';
+      var pos = BLACK_OFFSETS[i];
+      bk.style.left = 'calc(' + (pos * 12.5) + '% - 13px)';
+      bk.appendChild(document.createTextNode(note));
+      row.appendChild(bk);
+    });
+    board.appendChild(row);
+    /* events */
+    function notePress(el) {
+      var preset = document.getElementById('keysPreset').value;
+      var oct = parseInt(document.getElementById('keysOctVal').textContent, 10);
+      var off = parseInt(el.dataset.octOff, 10) || 0;
+      el.classList.add('active');
+      var voice = trigger(preset, el.dataset.note, oct + off, 0.85, 1.5, 'lead');
+      el._voice = voice;
+    }
+    function noteRelease(el) {
+      el.classList.remove('active');
+      if (el._voice) {
+        var now = actx.currentTime;
+        try { el._voice.env.gain.cancelScheduledValues(now); } catch (e) {}
+        el._voice.env.gain.setTargetAtTime(0, now, 0.05);
+        el._voice = null;
+      }
+    }
+    board.querySelectorAll('.kk').forEach(function (k) {
+      k.addEventListener('pointerdown', function (e) { e.preventDefault(); notePress(k); k.setPointerCapture(e.pointerId); });
+      k.addEventListener('pointerup', function () { noteRelease(k); });
+      k.addEventListener('pointerleave', function () { if (k.classList.contains('active')) noteRelease(k); });
+      k.addEventListener('pointercancel', function () { noteRelease(k); });
+    });
+  }
+
+  function buildDrums() {
+    var grid = document.getElementById('drumsGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    DRUMS.forEach(function (name, i) {
+      var pad = document.createElement('div');
+      pad.className = 'drum-pad';
+      pad.dataset.drum = name;
+      pad.innerHTML = '<span class="name">' + name + '</span><span class="key">' + (i + 1) + '</span>';
+      pad.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        unlockAudio();
+        playDrum(name, 0.9);
+        pad.classList.add('active');
+        setTimeout(function () { pad.classList.remove('active'); }, 120);
+      });
+      grid.appendChild(pad);
+    });
+  }
+
+  function setOctave(v) {
+    v = Math.max(1, Math.min(7, v));
+    var el = document.getElementById('keysOctVal');
+    if (el) el.textContent = String(v);
   }
 
   /* ── Wire-up ── */
@@ -509,9 +1034,26 @@ var Sonicc = (function () {
       bpmVal.addEventListener('pointerup', function () { dragging = false; });
     }
 
-    /* keyboard shortcuts */
+    /* build instrument UIs */
+    buildKeyboard();
+    buildDrums();
+
+    /* octave controls */
+    var oDown = document.getElementById('keysOctDown');
+    var oUp = document.getElementById('keysOctUp');
+    if (oDown) oDown.addEventListener('click', function () {
+      var v = parseInt(document.getElementById('keysOctVal').textContent, 10);
+      setOctave(v - 1);
+    });
+    if (oUp) oUp.addEventListener('click', function () {
+      var v = parseInt(document.getElementById('keysOctVal').textContent, 10);
+      setOctave(v + 1);
+    });
+
+    /* qwerty piano + 1-8 drums; track held keys for proper note-off */
     document.addEventListener('keydown', function (e) {
       if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      var key = e.key.toLowerCase();
       if (e.key === ' ') { e.preventDefault(); togglePlay(); return; }
       if (e.key === 'F1') { e.preventDefault(); setMode('keys'); return; }
       if (e.key === 'F2') { e.preventDefault(); setMode('drums'); return; }
@@ -519,7 +1061,49 @@ var Sonicc = (function () {
       if (e.key === 'F4') { e.preventDefault(); setMode('compose'); return; }
       if (e.key === 'F5') { e.preventDefault(); setMode('samp'); return; }
       if (e.key === 'F6') { e.preventDefault(); setMode('mic'); return; }
+      if (e.repeat) return;
+      /* keys mode: piano */
+      if (state.mode === 'keys') {
+        var widx = KEY_MAP_WHITE.indexOf(key);
+        if (widx >= 0) {
+          var el = document.querySelectorAll('#keysBoard .kk:not(.black)')[widx];
+          if (el && !keysHeld[key]) { unlockAudio(); el.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1 })); keysHeld[key] = el; }
+          return;
+        }
+        if (key in KEY_MAP_BLACK) {
+          var bidx = Object.keys(KEY_MAP_BLACK).indexOf(key);
+          var bel = document.querySelectorAll('#keysBoard .kk.black')[bidx];
+          if (bel && !keysHeld[key]) { unlockAudio(); bel.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1 })); keysHeld[key] = bel; }
+          return;
+        }
+      }
+      /* drums mode: 1-8 */
+      if (state.mode === 'drums') {
+        var di = parseInt(key, 10) - 1;
+        if (di >= 0 && di < DRUMS.length) {
+          var pad = document.querySelectorAll('#drumsGrid .drum-pad')[di];
+          if (pad) pad.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1 }));
+          return;
+        }
+      }
     });
+    document.addEventListener('keyup', function (e) {
+      var key = e.key.toLowerCase();
+      var el = keysHeld[key];
+      if (el) {
+        el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1 }));
+        delete keysHeld[key];
+      }
+    });
+
+    /* auto-unlock audio on first interaction (iOS/Safari) */
+    var firstInteract = function () {
+      unlockAudio();
+      document.removeEventListener('pointerdown', firstInteract);
+      document.removeEventListener('keydown', firstInteract);
+    };
+    document.addEventListener('pointerdown', firstInteract);
+    document.addEventListener('keydown', firstInteract);
 
     /* swipe-between-modes on touch */
     var sx2 = 0, sy2 = 0, swipe = false, sid = null;
