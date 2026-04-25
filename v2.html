@@ -382,6 +382,180 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
   .drums-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ── COMPOSE VIEW ──────────────────────────────────────────────────── */
+.cv {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px calc(20px + var(--safe-bot));
+  display: flex; flex-direction: column; gap: 14px;
+  background: var(--bg);
+}
+.cv-section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cv-label {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-3); letter-spacing: 0.12em; text-transform: uppercase;
+  font-weight: 600;
+}
+.cv-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* Quick start cards */
+.cv-quicks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.cv-quick {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--t-fast) var(--ease);
+  min-height: 64px;
+}
+.cv-quick:hover { border-color: var(--accent); transform: translateY(-1px); }
+.cv-quick .name {
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  color: var(--text);
+}
+.cv-quick .sub {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); letter-spacing: 0.04em;
+}
+
+/* Inspiration */
+.cv-insp { display: flex; flex-direction: column; gap: 8px; }
+.cv-insp-tabs {
+  display: flex; gap: 2px;
+  background: var(--surface-2);
+  border-radius: var(--r-pill); padding: 3px;
+  align-self: flex-start;
+}
+.cv-insp-tab {
+  height: 26px; padding: 0 12px;
+  border: none; background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: var(--r-pill);
+  transition: all var(--t-fast) var(--ease);
+}
+.cv-insp-tab.active { background: var(--accent); color: #fff; }
+.cv-insp-pane { display: flex; gap: 8px; align-items: center; }
+.cv-insp-pane[hidden] { display: none; }
+#cvText {
+  width: 100%; min-height: 56px; padding: 10px 12px;
+  border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-ui); font-size: 13px; line-height: 1.4;
+  border-radius: var(--r-md);
+  outline: none; resize: vertical;
+}
+#cvText:focus { border-color: var(--accent); }
+.cv-now-readout {
+  font-family: var(--font-mono); font-size: 12px; color: var(--text-2);
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  width: 100%;
+}
+
+/* Build */
+.cv-build { display: flex; flex-direction: column; gap: 10px; }
+.cv-build-info {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  letter-spacing: 0.02em; line-height: 1.5;
+}
+.cv-build-info b { color: var(--accent); font-weight: 600; }
+.cv-build-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cv-btn {
+  height: 40px; padding: 0 18px;
+  border: 1px solid var(--line); background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border-radius: var(--r-md);
+  transition: all var(--t-fast) var(--ease);
+}
+.cv-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cv-btn.primary {
+  background: var(--accent-warm); color: #1d1d1f;
+  border-color: var(--accent-warm);
+  font-weight: 600;
+}
+.cv-btn.primary:hover { color: #1d1d1f; filter: brightness(1.06); }
+
+/* Timeline (real impl in phase 4 — placeholder structure here) */
+.cv-timeline { display: flex; flex-direction: column; gap: 4px; }
+.cv-tl-row {
+  display: grid; grid-template-columns: 110px 56px 1fr; gap: 6px;
+  align-items: center; height: 28px;
+}
+.cv-tl-row.muted { opacity: 0.45; }
+.cv-tl-row.solo-off { opacity: 0.32; }
+.cv-tl-name {
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: none;
+  color: var(--text);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0; cursor: pointer; text-align: left;
+}
+.cv-tl-name:hover { color: var(--accent); }
+.cv-tl-tag { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.cv-tl-ms { display: flex; gap: 2px; }
+.cv-tl-ms button {
+  width: 26px; height: 22px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.cv-tl-ms button:hover { border-color: var(--accent); color: var(--accent); }
+.cv-tl-ms button.m.on { background: var(--bad); color: #fff; border-color: var(--bad); }
+.cv-tl-ms button.s.on { background: var(--accent-warm); color: #1d1d1f; border-color: var(--accent-warm); }
+.cv-tl-cells {
+  display: grid; grid-template-columns: repeat(64, 1fr); gap: 1px;
+  height: 18px;
+}
+.cv-tl-cell {
+  background: var(--line-soft);
+  border-radius: 1px;
+  min-width: 0;
+}
+.cv-tl-cell.beat { background: var(--line); }
+.cv-tl-cell.on { background: var(--accent); }
+
+/* Song strip */
+.cv-song-strip {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.cv-song-pill {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease);
+}
+.cv-song-pill:hover { border-color: var(--accent); color: var(--accent); }
+.cv-song-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
 /* ── PROGRESSIVE DISCLOSURE ────────────────────────────────────────── */
 body.lvl-beginner [data-min-lvl="2"],
 body.lvl-beginner [data-min-lvl="3"],
@@ -474,9 +648,106 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
         <button class="level-pill" data-level="studio">Studio</button>
       </div>
     </div>
-    <div class="panel-empty">
-      <div class="ico">⚙</div>
-      <div>Compose — coming in phase 3</div>
+
+    <div class="cv">
+      <div class="cv-section">
+        <div class="cv-label">Quick start</div>
+        <div class="cv-quicks" id="cvQuicks"></div>
+      </div>
+
+      <div class="cv-section" data-min-lvl="2">
+        <div class="cv-label">Inspiration</div>
+        <div class="cv-insp">
+          <div class="cv-insp-tabs" id="cvInspTabs">
+            <button class="cv-insp-tab active" data-tab="math">Math</button>
+            <button class="cv-insp-tab" data-tab="text">Text</button>
+            <button class="cv-insp-tab" data-tab="now">Now</button>
+          </div>
+          <div class="cv-insp-pane" data-pane="math">
+            <select class="keys-select" id="cvMath" style="min-width:180px">
+              <option value="pi">π — smooth, classical</option>
+              <option value="e">e — varied, restless</option>
+              <option value="phi">φ — sparse, aesthetic</option>
+              <option value="sqrt2">√2 — even, geometric</option>
+              <option value="fib">Fibonacci — accelerating</option>
+              <option value="lucas">Lucas — fib variant</option>
+              <option value="primes">Primes — irregular gaps</option>
+              <option value="thue">Thue-Morse — choppy binary</option>
+              <option value="collatz">Collatz — chaotic descent</option>
+              <option value="sine">Sine wave — smooth curve</option>
+              <option value="logistic">Logistic map — chaotic</option>
+              <option value="tribonacci">Tribonacci — 3-step</option>
+              <option value="ca30">CA Rule 30 — emergent</option>
+              <option value="ca90">CA Rule 90 — fractal</option>
+              <option value="catalan">Catalan — combinatoric</option>
+              <option value="primes_pairs">Prime pairs — twin gaps</option>
+            </select>
+          </div>
+          <div class="cv-insp-pane" data-pane="text" hidden>
+            <textarea id="cvText" rows="2" placeholder="Paste a poem, paragraph, or any prose. Word patterns become music."></textarea>
+          </div>
+          <div class="cv-insp-pane" data-pane="now" hidden>
+            <div class="cv-now-readout" id="cvNowReadout">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cv-section" data-min-lvl="2">
+        <div class="cv-label">Mood &amp; Key</div>
+        <div class="cv-row">
+          <select class="keys-select" id="cvIntent">
+            <option value="meditative">meditative</option>
+            <option value="dreamy">dreamy</option>
+            <option value="cinematic">cinematic</option>
+            <option value="devotional">devotional</option>
+            <option value="playful">playful</option>
+            <option value="driving">driving</option>
+            <option value="anxious">anxious</option>
+          </select>
+          <select class="keys-select" id="cvRoot">
+            <option value="0">C</option><option value="1">C#</option><option value="2">D</option>
+            <option value="3">D#</option><option value="4">E</option><option value="5">F</option>
+            <option value="6">F#</option><option value="7">G</option><option value="8">G#</option>
+            <option value="9" selected>A</option><option value="10">A#</option><option value="11">B</option>
+          </select>
+          <select class="keys-select" id="cvScale">
+            <option value="major">major</option>
+            <option value="minor" selected>minor</option>
+            <option value="dorian">dorian</option>
+            <option value="phrygian">phrygian</option>
+            <option value="mixo">mixolydian</option>
+            <option value="lydian">lydian</option>
+            <option value="pent_min">pentatonic min</option>
+            <option value="pent_maj">pentatonic maj</option>
+            <option value="blues">blues</option>
+            <option value="yaman">yaman (raga)</option>
+            <option value="bhairavi">bhairavi (raga)</option>
+            <option value="hirajoshi">hirajoshi</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cv-section">
+        <div class="cv-label">Build</div>
+        <div class="cv-build">
+          <div class="cv-build-info" id="cvBuildInfo">No layers yet — tap Compose Layer to start with the foundation.</div>
+          <div class="cv-build-actions">
+            <button class="cv-btn primary" id="cvCompose">Compose Layer</button>
+            <button class="cv-btn" id="cvReset" title="Clear all layers">↺ Reset</button>
+            <button class="cv-btn" id="cvSong" data-min-lvl="3" title="Generate a multi-section song with through-composed sections">Make a Song</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="cv-section" data-min-lvl="2" id="cvTimelineWrap" hidden>
+        <div class="cv-label">Tracks</div>
+        <div class="cv-timeline" id="cvTimeline"></div>
+      </div>
+
+      <div class="cv-section" data-min-lvl="3" id="cvSongWrap" hidden>
+        <div class="cv-label">Song</div>
+        <div class="cv-song-strip" id="cvSongStrip"></div>
+      </div>
     </div>
   </section>
 
@@ -993,6 +1264,433 @@ var Sonicc = (function () {
     if (el) el.textContent = String(v);
   }
 
+  /* ── COMPOSE ENGINE ──────────────────────────────────────────────── */
+  /* Scales as semitone offsets from root */
+  var SCALES = {
+    major:    [0,2,4,5,7,9,11],
+    minor:    [0,2,3,5,7,8,10],
+    dorian:   [0,2,3,5,7,9,10],
+    phrygian: [0,1,3,5,7,8,10],
+    mixo:     [0,2,4,5,7,9,10],
+    lydian:   [0,2,4,6,7,9,11],
+    pent_min: [0,3,5,7,10],
+    pent_maj: [0,2,4,7,9],
+    blues:    [0,3,5,6,7,10],
+    yaman:    [0,2,4,6,7,9,11],
+    bhairavi: [0,1,3,5,7,8,10],
+    hirajoshi:[0,2,3,7,8]
+  };
+  function scaleNote(root, scaleName, idx) {
+    var s = SCALES[scaleName] || SCALES.major;
+    var len = s.length;
+    var oct = Math.floor(idx / len);
+    var semi = s[((idx % len) + len) % len];
+    var midi = (root + semi) % 12;
+    return { n: NOTE_NAMES[midi], o: oct };
+  }
+
+  /* Math sources — each returns an integer sequence with a distinct shape */
+  function pi(n){var s='31415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679';var a=[];for(var i=0;i<n;i++)a.push(parseInt(s.charAt(i%s.length),10));return a;}
+  function ec(n){var s='27182818284590452353602874713526624977572470936999595749669676277240766303535475945713821785251664274';var a=[];for(var i=0;i<n;i++)a.push(parseInt(s.charAt(i%s.length),10));return a;}
+  function phic(n){var s='16180339887498948482045868343656381177203091798057628621354486227052604628189024497072072041893911374';var a=[];for(var i=0;i<n;i++)a.push(parseInt(s.charAt(i%s.length),10));return a;}
+  function sqrt2c(n){var s='14142135623730950488016887242096980785696718753769480731766797379907324784621070388503875343276415727';var a=[];for(var i=0;i<n;i++)a.push(parseInt(s.charAt(i%s.length),10));return a;}
+  function fibc(n){var x=1,y=1,a=[];for(var i=0;i<n;i++){a.push(x%10);var z=(x+y)%997;x=y;y=z;}return a;}
+  function lucasc(n){var x=2,y=1,a=[];for(var i=0;i<n;i++){a.push(x%10);var z=(x+y)%997;x=y;y=z;}return a;}
+  function primesc(n){var a=[],k=2;while(a.length<n){var p=true;for(var j=2;j*j<=k;j++){if(k%j===0){p=false;break;}}if(p)a.push(k%10);k++;}return a;}
+  function thuec(n){var a=[];for(var i=0;i<n;i++){var b=0,x=i;while(x){b+=x&1;x>>>=1;}a.push((b&1)?7:2);}return a;}
+  function collatzc(n){var a=[],v=27;while(a.length<n){a.push(v%10);v=(v&1)?(3*v+1):(v>>1);if(v<=1)v=27+a.length;}return a;}
+  function sinec(n){var a=[];for(var i=0;i<n;i++)a.push(Math.round((Math.sin(i*0.42)*0.5+0.5)*9));return a;}
+  function logisticc(n){var a=[],x=0.31;for(var i=0;i<n;i++){x=3.91*x*(1-x);a.push(Math.floor(x*10)%10);}return a;}
+  function tribc(n){var a=[],t1=0,t2=1,t3=1;for(var i=0;i<n;i++){a.push(t3%10);var t4=(t1+t2+t3)%997;t1=t2;t2=t3;t3=t4;}return a;}
+  function caGen(rule, n){var w=Math.max(n,32);var row=new Array(w);for(var z=0;z<w;z++)row[z]=0;row[w>>1]=1;for(var s=0;s<8;s++){var nx=new Array(w);for(z=0;z<w;z++)nx[z]=0;for(var i=0;i<w;i++){var L=row[(i-1+w)%w],C=row[i],R=row[(i+1)%w];nx[i]=(rule>>((L<<2)|(C<<1)|R))&1;}row=nx;}var a=[];for(i=0;i<n;i++){var v=(row[(i*4)%w]<<3)|(row[(i*4+1)%w]<<2)|(row[(i*4+2)%w]<<1)|row[(i*4+3)%w];a.push(v);}return a;}
+  function catc(n){var a=[],c=1;for(var i=0;i<n;i++){a.push(c%10);c=Math.round(c*2*(2*i+1)/(i+2));if(!isFinite(c)||c>1e15)c=i+2;}return a;}
+  function ppc(n){var p=primesc(n+1);var a=[];for(var i=0;i<n;i++)a.push((p[i]+p[i+1])%10);return a;}
+
+  var MATH = {
+    pi: pi, e: ec, phi: phic, sqrt2: sqrt2c, fib: fibc, lucas: lucasc,
+    primes: primesc, thue: thuec, collatz: collatzc, sine: sinec,
+    logistic: logisticc, tribonacci: tribc, ca30: function(n){return caGen(30,n)},
+    ca90: function(n){return caGen(90,n)}, catalan: catc, primes_pairs: ppc
+  };
+
+  /* Stem profiles — each derives notes differently from the math sequence,
+     so the same source produces a distinct rhythmic + melodic shape per stem. */
+  var STEM_PROFILES = {
+    drone: {
+      preset: 'drone_organ', busKey: 'aux', color: '#8a6cf2', octOff: -1,
+      pitchFn: function(v,i){return 0;},
+      gapFn:   function(v){return 64;},
+      velFn:   function(v){return 0.45;},
+      lenFn:   function(v){return 64;}
+    },
+    pad: {
+      preset: 'pad', busKey: 'pad', color: '#10b981', octOff: 0,
+      pitchFn: function(v,i){return [0,2,4][i%3];},
+      gapFn:   function(v){return 16;},
+      velFn:   function(v){return 0.55;},
+      lenFn:   function(v){return 16;}
+    },
+    pluck: {
+      preset: 'pluck', busKey: 'aux', color: '#f0b774', octOff: 1,
+      pitchFn: function(v,i){return v%7;},
+      gapFn:   function(v){return (v%4)+2;},
+      velFn:   function(v){return 0.55+(v%5)*0.06;},
+      lenFn:   function(v){return 1+(v%2);}
+    },
+    counter: {
+      preset: 'felt_piano', busKey: 'aux', color: '#aab1ff', octOff: 0,
+      pitchFn: function(v,i){return 6-(v%5);},
+      gapFn:   function(v){return 4+((v%3)*2);},
+      velFn:   function(v){return 0.5+(v%4)*0.06;},
+      lenFn:   function(v){return 2+(v%3);}
+    },
+    bass: {
+      preset: 'sub', busKey: 'bass', color: '#7c3aed', octOff: -1,
+      pitchFn: function(v,i){return [0,4,0,7][i%4];},
+      gapFn:   function(v){return 8;},
+      velFn:   function(v){return 0.7+(v%3)*0.08;},
+      lenFn:   function(v){return 4+(v%2)*2;}
+    },
+    lead: {
+      preset: 'felt_piano', busKey: 'lead', color: '#e7eaef', octOff: 1,
+      pitchFn: function(v,i){return v%7;},
+      gapFn:   function(v){return (v%3)+2;},
+      velFn:   function(v){return 0.65+(v%5)*0.06;},
+      lenFn:   function(v){return 1+(v%3);}
+    },
+    arp: {
+      preset: 'celesta', busKey: 'aux', color: '#f0b774', octOff: 1,
+      pitchFn: function(v,i){return i%7;},
+      gapFn:   function(v){return 2;},
+      velFn:   function(v){return 0.45+(v%4)*0.06;},
+      lenFn:   function(v){return 1;}
+    },
+    drums: {
+      isDrum: true, busKey: 'drum', color: '#2563eb',
+      drumFn: function(intent, rng) {
+        var P = INTENT_PROFILES[intent] || INTENT_PROFILES.meditative;
+        var hits = [];
+        P.kicks.forEach(function(s){ hits.push({step:s, name:'kick', vel:P.kVel}); });
+        P.snares.forEach(function(s){ hits.push({step:s, name:'snare', vel:P.sVel}); });
+        for (var i = 0; i < 64; i++) {
+          if (rng() < P.hatProb) hits.push({step:i, name:'hat', vel:P.hVel*(i%4===0?1:0.6)});
+        }
+        return hits;
+      }
+    },
+    perc: {
+      isDrum: true, busKey: 'drum', color: '#2563eb',
+      drumFn: function(intent, rng) {
+        var hits = [];
+        for (var i = 0; i < 64; i++) {
+          if (rng() < 0.12 && i%8 !== 0) hits.push({step:i, name:'tom', vel:0.5+rng()*0.2});
+          if (rng() < 0.10 && i%4 === 2) hits.push({step:i, name:'perc', vel:0.55+rng()*0.15});
+        }
+        return hits;
+      }
+    },
+    shaker: {
+      isDrum: true, busKey: 'drum', color: '#2563eb',
+      drumFn: function(intent, rng) {
+        var hits = [];
+        for (var i = 0; i < 64; i++) {
+          if (i%4 !== 0 && rng() < 0.55) hits.push({step:i, name:'shaker', vel:0.3+rng()*0.15});
+        }
+        return hits;
+      }
+    }
+  };
+
+  var INTENT_PROFILES = {
+    meditative: { buildOrder: ['drone','pad','pluck','counter','bass','lead','arp','perc','shaker','drums'], kicks:[0,32], snares:[], hatProb:0.05, kVel:0.4, sVel:0, hVel:0.2 },
+    dreamy:     { buildOrder: ['drone','pad','pluck','arp','counter','lead','bass','shaker','perc','drums'], kicks:[0], snares:[], hatProb:0.04, kVel:0.3, sVel:0, hVel:0.15 },
+    cinematic:  { buildOrder: ['drone','pad','bass','counter','lead','pluck','arp','perc','drums','shaker'], kicks:[0,16,32,48], snares:[16,48], hatProb:0.10, kVel:0.6, sVel:0.4, hVel:0.18 },
+    devotional: { buildOrder: ['drone','pad','bass','counter','lead','pluck','perc','arp','shaker','drums'], kicks:[0,16,32,48], snares:[24,56], hatProb:0.20, kVel:0.5, sVel:0.45, hVel:0.3 },
+    playful:    { buildOrder: ['drums','bass','arp','lead','pluck','pad','perc','counter','shaker','drone'], kicks:[0,16,32,48,6,22,38,54], snares:[8,24,40,56], hatProb:0.6, kVel:0.75, sVel:0.7, hVel:0.45 },
+    driving:    { buildOrder: ['drums','bass','pad','lead','arp','pluck','perc','counter','shaker','drone'], kicks:[0,8,16,24,32,40,48,56], snares:[4,12,20,28,36,44,52,60], hatProb:0.75, kVel:0.9, sVel:0.8, hVel:0.5 },
+    anxious:    { buildOrder: ['drums','bass','arp','perc','lead','pluck','counter','pad','shaker','drone'], kicks:[0,14,30,46], snares:[7,23,39,55], hatProb:0.55, kVel:0.65, sVel:0.78, hVel:0.45 }
+  };
+
+  var QUICK_STARTS = [
+    { id:'meditative', name:'Meditative', sub:'A minor · π', intent:'meditative', root:9, scale:'minor',     source:'pi' },
+    { id:'dreamy',     name:'Dreamy',     sub:'C lydian · sine', intent:'dreamy',     root:0, scale:'lydian',    source:'sine' },
+    { id:'cinematic',  name:'Cinematic',  sub:'D minor · φ',     intent:'cinematic',  root:2, scale:'minor',     source:'phi' },
+    { id:'devotional', name:'Devotional', sub:'A bhairavi · primes', intent:'devotional', root:9, scale:'bhairavi', source:'primes' },
+    { id:'playful',    name:'Playful',    sub:'G pent · fib',    intent:'playful',    root:7, scale:'pent_maj',  source:'fib' },
+    { id:'driving',    name:'Driving',    sub:'E minor · thue',  intent:'driving',    root:4, scale:'minor',     source:'thue' }
+  ];
+
+  /* Compose state */
+  var compose = {
+    source: 'pi',          /* math source name */
+    sourceMode: 'math',    /* 'math' | 'text' | 'now' */
+    text: '',
+    intent: 'meditative',
+    root: 9,
+    scale: 'minor',
+    seed: 1,
+    tracks: [],            /* built up via Compose Layer */
+    song: null             /* {sections, idx, isPlaying} */
+  };
+
+  /* Mulberry32 — deterministic seeded PRNG */
+  function makeRng(seed) {
+    var t = (seed | 0) >>> 0;
+    return function () {
+      t = (t + 0x6D2B79F5) >>> 0;
+      var r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r = (r + Math.imul(r ^ (r >>> 7), 61 | r)) ^ r;
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /* Generate one track from a stem name, math source, and ctx */
+  function generateTrack(stem, ctx) {
+    var prof = STEM_PROFILES[stem];
+    if (!prof) return null;
+    var rng = makeRng(ctx.seed * 31 + stem.charCodeAt(0));
+    if (prof.isDrum) {
+      return {
+        stem: stem, preset: '(drum)', busKey: prof.busKey, color: prof.color,
+        drumHits: prof.drumFn(ctx.intent, rng),
+        muted: false, soloed: false
+      };
+    }
+    var srcFn = MATH[ctx.source] || MATH.pi;
+    var seq = srcFn(160);
+    /* mix in seed so the same source + different seeds vary */
+    for (var i = 0; i < seq.length; i++) seq[i] = (seq[i] + ((ctx.seed * (i + 1)) % 7)) % 10;
+    var notes = [];
+    var step = 0, idx = 0;
+    while (step < 64 && idx < 100) {
+      var v = seq[idx % seq.length];
+      var pitchIdx = prof.pitchFn(v, idx);
+      var sn = scaleNote(ctx.root, ctx.scale, pitchIdx);
+      var oct = 4 + sn.o + (prof.octOff || 0);
+      var gap = Math.max(1, prof.gapFn(v));
+      notes.push({
+        step: step, note: sn.n, oct: oct,
+        vel: Math.max(0.1, Math.min(1, prof.velFn(v))),
+        len: Math.max(1, prof.lenFn(v))
+      });
+      step += gap;
+      idx++;
+    }
+    return {
+      stem: stem, preset: prof.preset, busKey: prof.busKey, color: prof.color,
+      notes: notes, muted: false, soloed: false
+    };
+  }
+
+  /* Play a single track once (for immediate audition after compose) */
+  function playTrackOnce(track) {
+    var msPerStep = 60000 / (state.bpm * 4);
+    if (track.muted) return;
+    var anyS = compose.tracks.some(function(t){return t.soloed;});
+    if (anyS && !track.soloed) return;
+    if (track.drumHits) {
+      track.drumHits.forEach(function (h) {
+        setTimeout(function () { playDrum(h.name, h.vel); }, h.step * msPerStep);
+      });
+    } else if (track.notes) {
+      track.notes.forEach(function (n) {
+        setTimeout(function () {
+          trigger(track.preset, n.note, n.oct, n.vel, n.len * msPerStep / 1000, track.busKey);
+        }, n.step * msPerStep);
+      });
+    }
+  }
+
+  /* Play all tracks once in sync — used after every Compose Layer */
+  function playAllTracksOnce() {
+    compose.tracks.forEach(function (t) { playTrackOnce(t); });
+  }
+
+  /* Layer-by-layer build — adds the next stem from the intent's order */
+  function composeLayer() {
+    unlockAudio();
+    var P = INTENT_PROFILES[compose.intent] || INTENT_PROFILES.meditative;
+    var present = compose.tracks.map(function (t) { return t.stem; });
+    var nextStem = null;
+    for (var i = 0; i < P.buildOrder.length; i++) {
+      if (present.indexOf(P.buildOrder[i]) < 0) { nextStem = P.buildOrder[i]; break; }
+    }
+    if (!nextStem) {
+      toast('All 10 layers added — reset to start over');
+      return;
+    }
+    var track = generateTrack(nextStem, compose);
+    if (!track) return;
+    compose.tracks.push(track);
+    updateBuildInfo();
+    renderTimeline();
+    playAllTracksOnce();
+  }
+
+  function resetCompose() {
+    compose.tracks = [];
+    compose.song = null;
+    updateBuildInfo();
+    renderTimeline();
+    var s = document.getElementById('cvSongStrip');
+    if (s) s.innerHTML = '';
+    var w = document.getElementById('cvSongWrap');
+    if (w) w.hidden = true;
+    toast('Cleared');
+  }
+
+  function updateBuildInfo() {
+    var el = document.getElementById('cvBuildInfo');
+    if (!el) return;
+    var n = compose.tracks.length;
+    if (n === 0) {
+      el.innerHTML = 'No layers yet — tap <b>Compose Layer</b> to start with the foundation.';
+    } else {
+      var names = compose.tracks.map(function (t) { return t.stem; }).join(', ');
+      el.innerHTML = '<b>Layer ' + n + ' / 10</b> — ' + names;
+    }
+  }
+
+  function renderTimeline() {
+    var wrap = document.getElementById('cvTimelineWrap');
+    var list = document.getElementById('cvTimeline');
+    if (!list) return;
+    if (compose.tracks.length === 0) {
+      if (wrap) wrap.hidden = true;
+      list.innerHTML = '';
+      return;
+    }
+    if (wrap) wrap.hidden = false;
+    list.innerHTML = '';
+    var anyS = compose.tracks.some(function (t) { return t.soloed; });
+    compose.tracks.forEach(function (track, idx) {
+      var row = document.createElement('div'); row.className = 'cv-tl-row';
+      if (track.muted) row.classList.add('muted');
+      if (anyS && !track.soloed) row.classList.add('solo-off');
+      /* name */
+      var name = document.createElement('button'); name.className = 'cv-tl-name'; name.type = 'button';
+      var tag = document.createElement('span'); tag.className = 'cv-tl-tag'; tag.style.background = track.color;
+      name.appendChild(tag);
+      name.appendChild(document.createTextNode(track.stem));
+      row.appendChild(name);
+      /* M/S */
+      var ms = document.createElement('div'); ms.className = 'cv-tl-ms';
+      var mb = document.createElement('button'); mb.className = 'm' + (track.muted ? ' on' : ''); mb.textContent = 'M';
+      var sb = document.createElement('button'); sb.className = 's' + (track.soloed ? ' on' : ''); sb.textContent = 'S';
+      mb.addEventListener('click', function () { track.muted = !track.muted; renderTimeline(); });
+      sb.addEventListener('click', function () { track.soloed = !track.soloed; renderTimeline(); });
+      ms.appendChild(mb); ms.appendChild(sb);
+      row.appendChild(ms);
+      /* cells */
+      var cells = document.createElement('div'); cells.className = 'cv-tl-cells';
+      var hits = new Array(64);
+      if (track.drumHits) {
+        track.drumHits.forEach(function (h) { if (h.step < 64) hits[h.step] = h.vel; });
+      } else if (track.notes) {
+        track.notes.forEach(function (n) {
+          for (var k = 0; k < (n.len || 1); k++) {
+            var s = n.step + k;
+            if (s < 64 && (!hits[s] || hits[s] < n.vel)) hits[s] = n.vel;
+          }
+        });
+      }
+      for (var i = 0; i < 64; i++) {
+        var c = document.createElement('span'); c.className = 'cv-tl-cell';
+        if (i % 4 === 0) c.classList.add('beat');
+        if (hits[i]) {
+          c.classList.add('on');
+          c.style.background = track.color;
+          c.style.opacity = String(0.4 + 0.6 * Math.min(1, hits[i]));
+        }
+        cells.appendChild(c);
+      }
+      row.appendChild(cells);
+      list.appendChild(row);
+    });
+  }
+
+  /* Quick starts — tap a card to set everything and fire compose */
+  function applyQuickStart(qs) {
+    compose.source = qs.source;
+    compose.sourceMode = 'math';
+    compose.intent = qs.intent;
+    compose.root = qs.root;
+    compose.scale = qs.scale;
+    compose.seed = (Date.now() & 0xffff) || 1;
+    compose.tracks = [];
+    /* sync inputs */
+    var i = document.getElementById('cvIntent'); if (i) i.value = qs.intent;
+    var r = document.getElementById('cvRoot');   if (r) r.value = String(qs.root);
+    var s = document.getElementById('cvScale');  if (s) s.value = qs.scale;
+    var m = document.getElementById('cvMath');   if (m) m.value = qs.source;
+    /* switch to math tab */
+    document.querySelectorAll('.cv-insp-tab').forEach(function (t) { t.classList.toggle('active', t.dataset.tab === 'math'); });
+    document.querySelectorAll('.cv-insp-pane').forEach(function (p) { p.hidden = p.dataset.pane !== 'math'; });
+    composeLayer();
+  }
+
+  /* Text → derived params (hash for seed; punctuation/vowels for intent + scale) */
+  function deriveFromText(t) {
+    t = String(t || '').trim();
+    if (!t) return null;
+    var words = t.split(/\s+/).filter(Boolean);
+    var commas = (t.match(/,/g) || []).length;
+    var qs = (t.match(/\?/g) || []).length;
+    var bangs = (t.match(/!/g) || []).length;
+    var vowels = (t.match(/[aeiouAEIOU]/g) || []).length;
+    var letters = (t.match(/[a-zA-Z]/g) || []).length || 1;
+    var avgWord = words.reduce(function (s, w) { return s + w.length; }, 0) / Math.max(1, words.length);
+    var vr = vowels / letters;
+    var intent = 'meditative';
+    if (bangs >= 2) intent = 'driving';
+    else if (qs >= 2) intent = 'anxious';
+    else if (words.length > 80) intent = 'cinematic';
+    else if (avgWord > 5.4) intent = 'devotional';
+    else if (vr > 0.42) intent = 'dreamy';
+    else if (commas > 8) intent = 'playful';
+    var scale = 'major';
+    if (qs > 0) scale = 'minor';
+    else if (vr > 0.45) scale = 'lydian';
+    else if (vr < 0.35) scale = 'phrygian';
+    else if (commas >= words.length * 0.15) scale = 'dorian';
+    function hash(str) {
+      var h = 2166136261 >>> 0;
+      for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = (h * 16777619) >>> 0; }
+      return h >>> 0;
+    }
+    var srcs = ['pi', 'e', 'phi', 'sqrt2', 'fib', 'lucas', 'primes', 'thue', 'collatz', 'sine', 'logistic', 'tribonacci'];
+    return {
+      intent: intent, scale: scale, root: hash(t) % 12,
+      source: srcs[hash(t.slice(0, 32)) % srcs.length],
+      seed: (hash(t) % 99999) + 1
+    };
+  }
+
+  /* Now — derive from current time; never repeats */
+  function deriveFromNow() {
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes();
+    var dow = d.getDay();
+    var doy = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    var intent = (h < 5) ? 'dreamy' : (h < 9) ? 'meditative' : (h < 12) ? 'devotional'
+               : (h < 14) ? 'playful' : (h < 17) ? 'driving' : (h < 20) ? 'cinematic'
+               : (h < 23) ? 'anxious' : 'meditative';
+    var scales = ['major', 'minor', 'dorian', 'mixo', 'lydian', 'phrygian', 'yaman'];
+    var sources = ['pi', 'e', 'phi', 'sqrt2', 'fib', 'lucas', 'primes', 'thue', 'collatz', 'sine', 'logistic', 'tribonacci'];
+    return {
+      intent: intent, scale: scales[dow], root: (h + m) % 12,
+      source: sources[doy % sources.length],
+      seed: Math.floor(d.getTime() / 60000) % 99999
+    };
+  }
+
+  function updateNowReadout() {
+    var el = document.getElementById('cvNowReadout');
+    if (!el) return;
+    var p = deriveFromNow();
+    el.textContent = p.intent + ' · ' + NOTE_NAMES[p.root] + ' ' + p.scale + ' · ' + p.source + ' · seed ' + p.seed;
+  }
+
   /* ── Wire-up ── */
   function init() {
     /* restore */
@@ -1037,6 +1735,75 @@ var Sonicc = (function () {
     /* build instrument UIs */
     buildKeyboard();
     buildDrums();
+
+    /* render quick-start cards */
+    var qs = document.getElementById('cvQuicks');
+    if (qs) {
+      QUICK_STARTS.forEach(function (q) {
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'cv-quick';
+        btn.innerHTML = '<span class="name">' + q.name + '</span><span class="sub">' + q.sub + '</span>';
+        btn.addEventListener('click', function () { applyQuickStart(q); });
+        qs.appendChild(btn);
+      });
+    }
+
+    /* compose inputs sync to state */
+    function bindCv(id, prop, parse) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('change', function () { compose[prop] = parse ? parse(el.value) : el.value; });
+    }
+    bindCv('cvIntent', 'intent');
+    bindCv('cvRoot', 'root', function (v) { return parseInt(v, 10); });
+    bindCv('cvScale', 'scale');
+    bindCv('cvMath', 'source');
+
+    /* inspiration tabs */
+    document.querySelectorAll('.cv-insp-tab').forEach(function (t) {
+      t.addEventListener('click', function () {
+        document.querySelectorAll('.cv-insp-tab').forEach(function (b) { b.classList.toggle('active', b === t); });
+        document.querySelectorAll('.cv-insp-pane').forEach(function (p) { p.hidden = p.dataset.pane !== t.dataset.tab; });
+        compose.sourceMode = t.dataset.tab;
+        if (t.dataset.tab === 'now') updateNowReadout();
+      });
+    });
+    /* live now-readout refresh while pane is open */
+    setInterval(function () {
+      var pane = document.querySelector('.cv-insp-pane[data-pane="now"]');
+      if (pane && !pane.hidden) updateNowReadout();
+    }, 2000);
+
+    /* compose / reset */
+    var cvCompose = document.getElementById('cvCompose');
+    var cvReset = document.getElementById('cvReset');
+    if (cvCompose) cvCompose.addEventListener('click', function () {
+      /* if user is on text or now tab, derive params first */
+      if (compose.sourceMode === 'text') {
+        var d = deriveFromText(document.getElementById('cvText').value);
+        if (!d) { toast('Type something to compose from'); return; }
+        compose.intent = d.intent; compose.root = d.root; compose.scale = d.scale;
+        compose.source = d.source; compose.seed = d.seed;
+        document.getElementById('cvIntent').value = d.intent;
+        document.getElementById('cvRoot').value = String(d.root);
+        document.getElementById('cvScale').value = d.scale;
+        document.getElementById('cvMath').value = d.source;
+      } else if (compose.sourceMode === 'now') {
+        var n = deriveFromNow();
+        compose.intent = n.intent; compose.root = n.root; compose.scale = n.scale;
+        compose.source = n.source; compose.seed = n.seed;
+        document.getElementById('cvIntent').value = n.intent;
+        document.getElementById('cvRoot').value = String(n.root);
+        document.getElementById('cvScale').value = n.scale;
+        document.getElementById('cvMath').value = n.source;
+      }
+      composeLayer();
+    });
+    if (cvReset) cvReset.addEventListener('click', resetCompose);
+
+    /* initial state */
+    updateBuildInfo();
+    updateNowReadout();
 
     /* octave controls */
     var oDown = document.getElementById('keysOctDown');
