@@ -342,6 +342,45 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
   color: var(--text-2);
 }
 
+/* ── STEPS PANEL ───────────────────────────────────────────────────── */
+.steps-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--surface);
+}
+.steps-bar .cv-btn { height: 32px; padding: 0 12px; }
+.steps-bar .cv-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.steps-wrap {
+  flex: 1; min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  background: var(--surface-2);
+}
+.steps-table {
+  border-collapse: separate; border-spacing: 2px;
+  width: 100%; height: 100%;
+}
+.steps-row-label {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 0 10px; min-width: 60px;
+  text-align: right;
+}
+.steps-cell {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  min-width: 16px; height: 28px;
+  transition: background 60ms ease;
+}
+.steps-cell:hover { border-color: var(--accent); }
+.steps-cell.beat { background: var(--surface-2); }
+.steps-cell.on { background: var(--accent); border-color: var(--accent); }
+.steps-cell.playhead { box-shadow: 0 0 0 1px var(--accent-warm); }
+
 /* ── DRUMS PANEL ───────────────────────────────────────────────────── */
 .drums-grid {
   flex: 1; min-height: 0;
@@ -685,10 +724,18 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
   </section>
 
   <section class="mode-panel" id="panel-steps" data-mode="steps">
-    <div class="panel-empty">
-      <div class="ico">▦</div>
-      <div>Steps — coming in phase 6</div>
+    <div class="steps-bar">
+      <span class="keys-label">Drum sequencer</span>
+      <span style="flex:1"></span>
+      <button class="cv-btn" data-stepcount="16">16</button>
+      <button class="cv-btn active" data-stepcount="32">32</button>
+      <button class="cv-btn" data-stepcount="64">64</button>
+      <button class="cv-btn" id="stepsClear">Clear</button>
     </div>
+    <div class="steps-wrap">
+      <table class="steps-table" id="stepsTable"></table>
+    </div>
+    <div class="keys-hint">Tap cells to toggle. Plays alongside COMPOSE when you press <kbd>PLAY</kbd>.</div>
   </section>
 
   <section class="mode-panel" id="panel-compose" data-mode="compose">
@@ -1761,8 +1808,9 @@ var Sonicc = (function () {
   function startPlayback() {
     unlockAudio();
     if (state.isPlaying) return;
-    if (compose.tracks.length === 0 && !compose.song) {
-      toast('Compose at least one layer first');
+    var hasSteps = stepsGrid.some(function (row) { return row.some(function (v) { return v > 0; }); });
+    if (compose.tracks.length === 0 && !compose.song && !hasSteps) {
+      toast('Compose a layer or paint a step pattern first');
       return;
     }
     state.isPlaying = true;
@@ -1771,6 +1819,19 @@ var Sonicc = (function () {
     if (btn) { btn.textContent = 'STOP'; btn.classList.add('active'); }
     var msPerStep = 60000 / (state.bpm * 4);
     seqInterval = setInterval(function () {
+      /* STEPS panel drum cells fire alongside compose */
+      var stepInGrid = currentStep % stepsCount;
+      for (var sr = 0; sr < DRUMS.length; sr++) {
+        if (stepsGrid[sr][stepInGrid]) playDrum(DRUMS[sr], stepsGrid[sr][stepInGrid]);
+      }
+      /* Steps playhead highlight */
+      var prevPh = document.querySelector('.steps-cell.playhead');
+      if (prevPh) prevPh.classList.remove('playhead');
+      var col = stepInGrid;
+      document.querySelectorAll('.steps-table tr').forEach(function (tr) {
+        var c = tr.children[col + 1]; /* +1 for label cell */
+        if (c) c.classList.add('playhead');
+      });
       var anyS = compose.tracks.some(function (t) { return t.soloed; });
       compose.tracks.forEach(function (t) {
         if (t.muted) return;
@@ -1907,6 +1968,73 @@ var Sonicc = (function () {
       p.addEventListener('click', function () { loadSongSection(i); });
       strip.appendChild(p);
     });
+  }
+
+  /* ── STEPS — manual drum sequencer that plays alongside compose ───── */
+  var stepsCount = 32;
+  /* steps[drumIdx][step] = velocity 0..1, 0 = off */
+  var stepsGrid = (function () {
+    var g = [];
+    for (var r = 0; r < DRUMS.length; r++) {
+      g[r] = []; for (var c = 0; c < 64; c++) g[r][c] = 0;
+    }
+    return g;
+  })();
+
+  function renderStepsTable() {
+    var tbl = document.getElementById('stepsTable');
+    if (!tbl) return;
+    tbl.innerHTML = '';
+    for (var r = 0; r < DRUMS.length; r++) {
+      var tr = document.createElement('tr');
+      var lbl = document.createElement('td');
+      lbl.className = 'steps-row-label';
+      lbl.textContent = DRUMS[r];
+      tr.appendChild(lbl);
+      for (var c = 0; c < stepsCount; c++) {
+        var td = document.createElement('td');
+        td.className = 'steps-cell' + (c % 4 === 0 ? ' beat' : '') + (stepsGrid[r][c] ? ' on' : '');
+        td.dataset.row = String(r);
+        td.dataset.col = String(c);
+        tr.appendChild(td);
+      }
+      tbl.appendChild(tr);
+    }
+    /* paint bind once */
+    if (!tbl._bound) {
+      var painting = false, paintVal = 0;
+      tbl.addEventListener('pointerdown', function (e) {
+        var t = e.target;
+        if (!t.dataset.row) return;
+        e.preventDefault(); painting = true;
+        var r = +t.dataset.row, c = +t.dataset.col;
+        paintVal = stepsGrid[r][c] ? 0 : 0.85;
+        stepsGrid[r][c] = paintVal;
+        t.classList.toggle('on', !!paintVal);
+        if (paintVal) { unlockAudio(); playDrum(DRUMS[r], paintVal); }
+      });
+      tbl.addEventListener('pointermove', function (e) {
+        if (!painting) return;
+        var t = document.elementFromPoint(e.clientX, e.clientY);
+        if (!t || !t.dataset || t.dataset.row === undefined) return;
+        var r = +t.dataset.row, c = +t.dataset.col;
+        stepsGrid[r][c] = paintVal;
+        t.classList.toggle('on', !!paintVal);
+      });
+      document.addEventListener('pointerup', function () { painting = false; });
+      tbl._bound = true;
+    }
+  }
+  function setStepCount(n) {
+    stepsCount = n;
+    document.querySelectorAll('[data-stepcount]').forEach(function (b) {
+      b.classList.toggle('active', +b.dataset.stepcount === n);
+    });
+    renderStepsTable();
+  }
+  function clearSteps() {
+    for (var r = 0; r < DRUMS.length; r++) for (var c = 0; c < 64; c++) stepsGrid[r][c] = 0;
+    renderStepsTable();
   }
 
   /* ── LIBRARY + ALBUMS ────────────────────────────────────────────── */
@@ -2141,6 +2269,17 @@ var Sonicc = (function () {
     if (cvSave) cvSave.addEventListener('click', saveCurrentSong);
     if (cvAlbum) cvAlbum.addEventListener('click', playAlbum);
     renderLibrary();
+
+    /* steps */
+    renderStepsTable();
+    document.querySelectorAll('[data-stepcount]').forEach(function (b) {
+      b.addEventListener('click', function () { setStepCount(+b.dataset.stepcount); });
+    });
+    var stepsClear = document.getElementById('stepsClear');
+    if (stepsClear) stepsClear.addEventListener('click', clearSteps);
+
+    /* PLAY also runs the steps grid even with no compose tracks */
+    on('modeChange', function (m) { if (m === 'steps') renderStepsTable(); });
 
     /* keep BPM live: if playing, restart at the new tempo */
     on('bpmChange', function () {
