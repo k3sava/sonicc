@@ -739,6 +739,48 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
 .cv-lib-btn:hover { border-color: var(--accent); color: var(--accent); }
 .cv-lib-btn.del:hover { border-color: var(--bad); color: var(--bad); }
 
+/* Mixer */
+.mix-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+}
+.mix-strip {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  padding: 10px 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+}
+.mix-strip.muted { opacity: 0.5; }
+.mix-name {
+  text-align: center;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  color: var(--text); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.mix-fader, .mix-pan {
+  width: 100%; accent-color: var(--accent);
+}
+.mix-fader { height: 28px; }
+.mix-pan { height: 18px; }
+.mix-row-vals {
+  display: flex; justify-content: space-between;
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-3);
+}
+.mix-mute {
+  height: 26px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--text-3);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.mix-mute:hover { border-color: var(--accent); color: var(--accent); }
+.mix-mute.on { background: var(--bad); color: #fff; border-color: var(--bad); }
+@media (max-width: 600px) {
+  .mix-grid { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .mix-strip { padding: 6px 4px; }
+  .mix-name { font-size: 9px; }
+}
+
 /* ── PROGRESSIVE DISCLOSURE ────────────────────────────────────────── */
 body.lvl-beginner [data-min-lvl="2"],
 body.lvl-beginner [data-min-lvl="3"],
@@ -938,6 +980,11 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
       <div class="cv-section" data-min-lvl="3" id="cvSongWrap" hidden>
         <div class="cv-label">Song</div>
         <div class="cv-song-strip" id="cvSongStrip"></div>
+      </div>
+
+      <div class="cv-section" data-min-lvl="4">
+        <div class="cv-label">Mixer</div>
+        <div class="mix-grid" id="mixGrid"></div>
       </div>
 
       <div class="cv-section" data-min-lvl="3">
@@ -2077,6 +2124,54 @@ var Sonicc = (function () {
     });
   }
 
+  /* ── MIXER ── 5-bus channel strips */
+  function buildMixer() {
+    var grid = document.getElementById('mixGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    var STRIPS = [
+      { k: 'lead', name: 'Lead' },
+      { k: 'bass', name: 'Bass' },
+      { k: 'pad',  name: 'Pad' },
+      { k: 'drum', name: 'Drum' },
+      { k: 'aux',  name: 'Aux' }
+    ];
+    STRIPS.forEach(function (s) {
+      var strip = document.createElement('div');
+      strip.className = 'mix-strip'; strip.dataset.bus = s.k;
+      strip.innerHTML =
+        '<div class="mix-name">' + s.name + '</div>' +
+        '<input class="mix-fader" type="range" min="0" max="120" value="100" aria-label="' + s.name + ' level">' +
+        '<input class="mix-pan"   type="range" min="-100" max="100" value="0" aria-label="' + s.name + ' pan">' +
+        '<div class="mix-row-vals"><span class="vlvl">100</span><span class="vpan">C</span></div>' +
+        '<button class="mix-mute" type="button">M</button>';
+      var fader = strip.querySelector('.mix-fader');
+      var pan   = strip.querySelector('.mix-pan');
+      var mute  = strip.querySelector('.mix-mute');
+      var vlvl  = strip.querySelector('.vlvl');
+      var vpan  = strip.querySelector('.vpan');
+      function fmtPan(n) { return n === 0 ? 'C' : n < 0 ? 'L' + (-n) : 'R' + n; }
+      fader.addEventListener('input', function () {
+        var v = parseInt(fader.value, 10) / 100;
+        ensureAudio(); setBusLevel(s.k, v);
+        vlvl.textContent = String(parseInt(fader.value, 10));
+      });
+      pan.addEventListener('input', function () {
+        var p = parseInt(pan.value, 10);
+        ensureAudio(); setBusPan(s.k, p / 100);
+        vpan.textContent = fmtPan(p);
+      });
+      mute.addEventListener('click', function () {
+        ensureAudio();
+        var on = !mute.classList.contains('on');
+        mute.classList.toggle('on', on);
+        strip.classList.toggle('muted', on);
+        setBusMute(s.k, on);
+      });
+      grid.appendChild(strip);
+    });
+  }
+
   /* ── MIC RECORDING ── raw PCM → 16-bit WAV (lossless) ───────────── */
   var mic = {
     stream: null, source: null, processor: null, analyser: null,
@@ -2585,6 +2680,44 @@ var Sonicc = (function () {
     }
     if (sClear) sClear.addEventListener('click', function () {
       sampPads = [null, null, null, null]; buildSampler(); toast('Cleared all pads');
+    });
+
+    /* mixer */
+    buildMixer();
+
+    /* auto-save compose state to localStorage */
+    var SAVE_KEY = 'sonicc:v2:compose';
+    function snapshot() {
+      return {
+        intent: compose.intent, root: compose.root, scale: compose.scale,
+        source: compose.source, seed: compose.seed,
+        tracks: compose.tracks, song: compose.song
+      };
+    }
+    function restoreSnap() {
+      try {
+        var raw = lsGet(SAVE_KEY); if (!raw) return;
+        var s = JSON.parse(raw);
+        if (s.intent) compose.intent = s.intent;
+        if (s.root != null) compose.root = s.root;
+        if (s.scale) compose.scale = s.scale;
+        if (s.source) compose.source = s.source;
+        if (s.seed) compose.seed = s.seed;
+        if (Array.isArray(s.tracks)) compose.tracks = s.tracks;
+        if (s.song) compose.song = s.song;
+        var ie = document.getElementById('cvIntent'); if (ie) ie.value = compose.intent;
+        var re = document.getElementById('cvRoot');   if (re) re.value = String(compose.root);
+        var se = document.getElementById('cvScale');  if (se) se.value = compose.scale;
+        var me = document.getElementById('cvMath');   if (me) me.value = compose.source;
+        updateBuildInfo(); renderTimeline(); renderSongStrip();
+      } catch (e) {}
+    }
+    restoreSnap();
+    setInterval(function () {
+      try { lsSet(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) {}
+    }, 3000);
+    window.addEventListener('pagehide', function () {
+      try { lsSet(SAVE_KEY, JSON.stringify(snapshot())); } catch (e) {}
     });
 
     /* keep BPM live: if playing, restart at the new tempo */
