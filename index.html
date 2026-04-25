@@ -48,6 +48,8 @@ body.performing #mobileTabs:hover,body.performing #mobileTabs:focus-within{opaci
 .mt-tab .mt-lbl{font-size:0.58rem;letter-spacing:0.06em;text-transform:uppercase}
 .mt-tab.active{color:var(--accent);background:var(--accent-soft)}
 .mt-tab:active{background:var(--accent-soft)}
+.mt-tab[data-group="generate"].active{background:var(--accent);color:var(--accent-contrast)}
+.mt-divider{width:1px;height:60%;background:var(--border);align-self:center;margin:0 4px;flex-shrink:0}
 @media (max-width:900px){
   #mobileTabs{display:flex}
   body{padding-bottom:calc(62px + env(safe-area-inset-bottom))}
@@ -129,6 +131,9 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
 #controlBar .ctrl-section.presets::-webkit-scrollbar{display:none}
 #controlBar .ctrl-section.presets .pill{scroll-snap-align:start}
 #controlBar .ctrl-divider{width:1px;height:24px;background:var(--border);flex-shrink:0;margin:0 4px}
+.mode-group-label{font-family:var(--font-label);font-size:0.55rem;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;padding:0 6px 0 2px;align-self:center;flex-shrink:0}
+.mode-group-divider{width:1px;height:24px;background:var(--border);align-self:center;margin:0 6px;flex-shrink:0}
+@media(max-width:600px){.mode-group-label{display:none}.mode-group-divider{margin:0 4px}}
 #controlBar .pill.sm{justify-content:center}
 #controlBar .transport{display:flex;align-items:center;gap:4px}
 
@@ -680,12 +685,15 @@ body.performing #header:focus-within,body.performing #controlBar:focus-within{op
   <!-- ── CONTROL BAR (top) ── -->
   <div id="controlBar">
     <div class="ctrl-section modes" id="modeTabs">
-      <button class="pill sm active" data-mode="keys" aria-label="Keys mode">KEYS<span class="shortcut">F1</span></button>
-      <button class="pill sm" data-mode="drums" aria-label="Drums mode">DRUMS<span class="shortcut">F2</span></button>
-      <button class="pill sm" data-mode="pattern" aria-label="Pattern sequencer">STEPS<span class="shortcut">F3</span></button>
-      <button class="pill sm" data-mode="compose" aria-label="Music Director composer">COMPOSE<span class="shortcut">F4</span></button>
-      <button class="pill sm" data-mode="sampler" aria-label="Audio sampler">SAMP<span class="shortcut">F5</span></button>
-      <button class="pill sm" data-mode="mic" aria-label="Microphone recorder">MIC<span class="shortcut">F6</span></button>
+      <span class="mode-group-label">Create</span>
+      <button class="pill sm active" data-mode="keys" data-group="create" aria-label="Keys mode">KEYS<span class="shortcut">F1</span></button>
+      <button class="pill sm" data-mode="drums" data-group="create" aria-label="Drums mode">DRUMS<span class="shortcut">F2</span></button>
+      <button class="pill sm" data-mode="pattern" data-group="create" aria-label="Pattern sequencer">STEPS<span class="shortcut">F3</span></button>
+      <button class="pill sm" data-mode="sampler" data-group="create" aria-label="Audio sampler">SAMP<span class="shortcut">F5</span></button>
+      <button class="pill sm" data-mode="mic" data-group="create" aria-label="Microphone recorder">MIC<span class="shortcut">F6</span></button>
+      <span class="mode-group-divider"></span>
+      <span class="mode-group-label">Generate</span>
+      <button class="pill sm" data-mode="compose" data-group="generate" aria-label="Music Director composer">COMPOSE<span class="shortcut">F4</span></button>
     </div>
     <div style="flex:1;display:flex;justify-content:center;align-items:center;gap:4px">
       <button class="bpm-btn" id="bpmDown" aria-label="Decrease BPM">&minus;</button>
@@ -1105,12 +1113,13 @@ THEN ASSIGN TO PADS Q W E R</div>
 
 <!-- ── MOBILE TAB BAR ── mirrors the top mode pills; visible only under 900px -->
 <nav id="mobileTabs" aria-label="Main navigation">
-  <button type="button" data-mode="keys" class="mt-tab active"><span class="mt-ico">&#9833;</span><span class="mt-lbl">Keys</span></button>
-  <button type="button" data-mode="drums" class="mt-tab"><span class="mt-ico">&#9673;</span><span class="mt-lbl">Drums</span></button>
-  <button type="button" data-mode="pattern" class="mt-tab"><span class="mt-ico">&#9638;</span><span class="mt-lbl">Steps</span></button>
-  <button type="button" data-mode="compose" class="mt-tab"><span class="mt-ico">&#9881;</span><span class="mt-lbl">Compose</span></button>
-  <button type="button" data-mode="sampler" class="mt-tab"><span class="mt-ico">&#9719;</span><span class="mt-lbl">Sample</span></button>
-  <button type="button" data-mode="mic" class="mt-tab"><span class="mt-ico">&#9210;</span><span class="mt-lbl">Mic</span></button>
+  <button type="button" data-mode="keys" data-group="create" class="mt-tab active"><span class="mt-ico">&#9833;</span><span class="mt-lbl">Keys</span></button>
+  <button type="button" data-mode="drums" data-group="create" class="mt-tab"><span class="mt-ico">&#9673;</span><span class="mt-lbl">Drums</span></button>
+  <button type="button" data-mode="pattern" data-group="create" class="mt-tab"><span class="mt-ico">&#9638;</span><span class="mt-lbl">Steps</span></button>
+  <button type="button" data-mode="sampler" data-group="create" class="mt-tab"><span class="mt-ico">&#9719;</span><span class="mt-lbl">Sample</span></button>
+  <button type="button" data-mode="mic" data-group="create" class="mt-tab"><span class="mt-ico">&#9210;</span><span class="mt-lbl">Mic</span></button>
+  <span class="mt-divider" aria-hidden="true"></span>
+  <button type="button" data-mode="compose" data-group="generate" class="mt-tab"><span class="mt-ico">&#9881;</span><span class="mt-lbl">Compose</span></button>
 </nav>
 
 <!-- ── HELP MODAL ── -->
