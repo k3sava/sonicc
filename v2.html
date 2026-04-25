@@ -537,6 +537,7 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
 }
 .cv-tl-cell.beat { background: var(--line); }
 .cv-tl-cell.on { background: var(--accent); }
+.cv-tl-cell.playhead { box-shadow: 0 -2px 0 var(--accent-warm), 0 2px 0 var(--accent-warm); z-index: 1; }
 
 /* Song strip */
 .cv-song-strip {
@@ -857,7 +858,8 @@ var Sonicc = (function () {
   }
 
   /* ── Transport (stubs for phase 1) ── */
-  function togglePlay() {
+  /* defaults to a stub; phase-4 startPlayback / stopPlayback reassign it */
+  var togglePlay = function () {
     unlockAudio();
     state.isPlaying = !state.isPlaying;
     var btn = document.getElementById('btnPlay');
@@ -867,8 +869,8 @@ var Sonicc = (function () {
     }
     document.body.classList.toggle('performing', state.isPlaying);
     emit('playChange', state.isPlaying);
-    if (state.isPlaying) toast('sequencer arrives in phase 4 — try the keys/drums to verify audio');
-  }
+    if (state.isPlaying) toast('sequencer not yet wired');
+  };
   function toggleRec() {
     state.isRecording = !state.isRecording;
     var btn = document.getElementById('btnRec');
@@ -1691,6 +1693,143 @@ var Sonicc = (function () {
     el.textContent = p.intent + ' · ' + NOTE_NAMES[p.root] + ' ' + p.scale + ' · ' + p.source + ' · seed ' + p.seed;
   }
 
+  /* ── PLAYBACK ENGINE ─────────────────────────────────────────────── */
+  var seqInterval = null;
+  var currentStep = 0;
+
+  function startPlayback() {
+    unlockAudio();
+    if (state.isPlaying) return;
+    if (compose.tracks.length === 0 && !compose.song) {
+      toast('Compose at least one layer first');
+      return;
+    }
+    state.isPlaying = true;
+    document.body.classList.add('performing');
+    var btn = document.getElementById('btnPlay');
+    if (btn) { btn.textContent = 'STOP'; btn.classList.add('active'); }
+    var msPerStep = 60000 / (state.bpm * 4);
+    seqInterval = setInterval(function () {
+      var anyS = compose.tracks.some(function (t) { return t.soloed; });
+      compose.tracks.forEach(function (t) {
+        if (t.muted) return;
+        if (anyS && !t.soloed) return;
+        if (t.drumHits) {
+          for (var k = 0; k < t.drumHits.length; k++) {
+            var h = t.drumHits[k];
+            if (h.step === currentStep) playDrum(h.name, h.vel);
+          }
+        } else if (t.notes) {
+          for (var k = 0; k < t.notes.length; k++) {
+            var n = t.notes[k];
+            if (n.step === currentStep) {
+              trigger(t.preset, n.note, n.oct, n.vel, n.len * msPerStep / 1000, t.busKey);
+            }
+          }
+        }
+      });
+      /* update playhead */
+      document.querySelectorAll('.cv-tl-cell.playhead').forEach(function (c) { c.classList.remove('playhead'); });
+      document.querySelectorAll('#cvTimeline .cv-tl-cells').forEach(function (cells) {
+        var cell = cells.children[currentStep];
+        if (cell) cell.classList.add('playhead');
+      });
+      currentStep = (currentStep + 1) % 64;
+      /* SONG ADVANCE: at wrap, step to next section */
+      if (currentStep === 0 && compose.song) {
+        var ni = compose.song.idx + 1;
+        if (ni >= compose.song.sections.length) {
+          if (compose.song.loop) ni = 0;
+          else { stopPlayback(); return; }
+        }
+        loadSongSection(ni);
+      }
+    }, msPerStep);
+  }
+  function stopPlayback() {
+    state.isPlaying = false;
+    document.body.classList.remove('performing');
+    var btn = document.getElementById('btnPlay');
+    if (btn) { btn.textContent = 'PLAY'; btn.classList.remove('active'); }
+    if (seqInterval) { clearInterval(seqInterval); seqInterval = null; }
+    currentStep = 0;
+    document.querySelectorAll('.cv-tl-cell.playhead').forEach(function (c) { c.classList.remove('playhead'); });
+  }
+  /* override the stub togglePlay defined earlier */
+  togglePlay = function () {
+    if (state.isPlaying) stopPlayback(); else startPlayback();
+  };
+
+  /* ── SONG MODE — sections that genuinely differ ──────────────────── */
+  function makeSong() {
+    unlockAudio();
+    var intent = compose.intent;
+    var energetic = ['driving', 'playful', 'anxious'].indexOf(intent) >= 0;
+    var FORMS = energetic ? [
+      { name: 'intro',  stems: ['drums', 'bass'] },
+      { name: 'verse',  stems: ['drums', 'bass', 'pad', 'lead'] },
+      { name: 'chorus', stems: ['drums', 'bass', 'pad', 'lead', 'arp', 'perc'] },
+      { name: 'verse',  stems: ['drums', 'bass', 'pad', 'lead', 'counter'] },
+      { name: 'chorus', stems: ['drums', 'bass', 'pad', 'lead', 'arp', 'perc', 'shaker'] },
+      { name: 'outro',  stems: ['drums', 'bass', 'pad'] }
+    ] : [
+      { name: 'intro',  stems: ['drone', 'pad'] },
+      { name: 'verse',  stems: ['drone', 'pad', 'bass', 'pluck'] },
+      { name: 'chorus', stems: ['drone', 'pad', 'bass', 'lead', 'arp'] },
+      { name: 'bridge', stems: ['drone', 'pad', 'counter', 'pluck'] },
+      { name: 'chorus', stems: ['drone', 'pad', 'bass', 'lead', 'arp', 'shaker'] },
+      { name: 'outro',  stems: ['drone', 'pad'] }
+    ];
+    var sections = FORMS.map(function (f, i) {
+      /* each section gets its own seed AND a slightly perturbed source rotation
+         so the same stems sound different across sections */
+      var ctx = {
+        source: compose.source, intent: intent,
+        root: compose.root, scale: compose.scale,
+        seed: compose.seed + i * 17 + (f.name.charCodeAt(0))
+      };
+      var tracks = f.stems.map(function (st) { return generateTrack(st, ctx); }).filter(Boolean);
+      return { name: f.name, tracks: tracks };
+    });
+    compose.song = { sections: sections, idx: 0, loop: false };
+    loadSongSection(0);
+    toast('6 sections generated — press PLAY');
+  }
+
+  function loadSongSection(i) {
+    var sec = compose.song.sections[i];
+    if (!sec) return;
+    compose.tracks = sec.tracks.map(function (t) {
+      /* reset mute / solo across sections; user can re-set per their preference */
+      return Object.assign({}, t, { muted: false, soloed: false });
+    });
+    compose.song.idx = i;
+    updateBuildInfo();
+    renderTimeline();
+    renderSongStrip();
+  }
+
+  function renderSongStrip() {
+    var wrap = document.getElementById('cvSongWrap');
+    var strip = document.getElementById('cvSongStrip');
+    if (!strip) return;
+    if (!compose.song) {
+      if (wrap) wrap.hidden = true;
+      strip.innerHTML = '';
+      return;
+    }
+    if (wrap) wrap.hidden = false;
+    strip.innerHTML = '';
+    compose.song.sections.forEach(function (sec, i) {
+      var p = document.createElement('button');
+      p.type = 'button';
+      p.className = 'cv-song-pill' + (i === compose.song.idx ? ' active' : '');
+      p.textContent = (i + 1) + ' · ' + sec.name;
+      p.addEventListener('click', function () { loadSongSection(i); });
+      strip.appendChild(p);
+    });
+  }
+
   /* ── Wire-up ── */
   function init() {
     /* restore */
@@ -1800,6 +1939,15 @@ var Sonicc = (function () {
       composeLayer();
     });
     if (cvReset) cvReset.addEventListener('click', resetCompose);
+
+    /* make a song */
+    var cvSong = document.getElementById('cvSong');
+    if (cvSong) cvSong.addEventListener('click', makeSong);
+
+    /* keep BPM live: if playing, restart at the new tempo */
+    on('bpmChange', function () {
+      if (state.isPlaying) { stopPlayback(); startPlayback(); }
+    });
 
     /* initial state */
     updateBuildInfo();
