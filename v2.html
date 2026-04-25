@@ -557,6 +557,58 @@ body.performing nav#bottomTabs:hover, body.performing nav#bottomTabs:focus-withi
 .cv-song-pill:hover { border-color: var(--accent); color: var(--accent); }
 .cv-song-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+/* Library */
+.cv-lib-controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.cv-lib-list {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 280px; overflow-y: auto;
+}
+.cv-lib-empty {
+  padding: 14px; text-align: center;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-3);
+  letter-spacing: 0.04em;
+}
+.cv-lib-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto auto auto;
+  align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+}
+.cv-lib-item.playing {
+  border-color: var(--accent-warm);
+  background: rgba(240, 183, 116, 0.08);
+}
+.cv-lib-num {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-3); text-align: right;
+}
+.cv-lib-name {
+  background: transparent; border: none; outline: none;
+  color: var(--text);
+  font-family: var(--font-ui); font-size: 13px;
+  padding: 4px 6px; border-radius: var(--r-sm);
+  width: 100%;
+}
+.cv-lib-name:focus { background: var(--surface); border: 1px solid var(--accent); padding: 3px 5px; }
+.cv-lib-meta {
+  font-family: var(--font-mono); font-size: 9px;
+  color: var(--text-3); letter-spacing: 0.04em;
+  text-transform: uppercase; white-space: nowrap;
+}
+.cv-lib-btn {
+  width: 32px; height: 26px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--text-2);
+  font-family: var(--font-mono); font-size: 11px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+}
+.cv-lib-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cv-lib-btn.del:hover { border-color: var(--bad); color: var(--bad); }
+
 /* ── PROGRESSIVE DISCLOSURE ────────────────────────────────────────── */
 body.lvl-beginner [data-min-lvl="2"],
 body.lvl-beginner [data-min-lvl="3"],
@@ -748,6 +800,15 @@ body.lvl-producer [data-min-lvl="4"] { display: none !important; }
       <div class="cv-section" data-min-lvl="3" id="cvSongWrap" hidden>
         <div class="cv-label">Song</div>
         <div class="cv-song-strip" id="cvSongStrip"></div>
+      </div>
+
+      <div class="cv-section" data-min-lvl="3">
+        <div class="cv-label">Library &amp; Albums</div>
+        <div class="cv-lib-controls">
+          <button class="cv-btn" id="cvSave" title="Save the current song to your library">+ Save Song</button>
+          <button class="cv-btn" id="cvPlayAlbum" title="Play every saved song in order">▶ Play Album</button>
+        </div>
+        <div class="cv-lib-list" id="cvLibList"></div>
       </div>
     </div>
   </section>
@@ -1735,12 +1796,30 @@ var Sonicc = (function () {
         if (cell) cell.classList.add('playhead');
       });
       currentStep = (currentStep + 1) % 64;
-      /* SONG ADVANCE: at wrap, step to next section */
+      /* SONG ADVANCE: at wrap, step to next section. If song ends and
+         we're in album mode, chain to the next library song. */
       if (currentStep === 0 && compose.song) {
         var ni = compose.song.idx + 1;
         if (ni >= compose.song.sections.length) {
-          if (compose.song.loop) ni = 0;
-          else { stopPlayback(); return; }
+          if (compose.song.loop) {
+            ni = 0;
+          } else if (albumMode) {
+            albumIdx++;
+            if (albumIdx < library.length) {
+              playLibrarySong(library[albumIdx].id);
+              return;
+            }
+            albumMode = false;
+            stopPlayback();
+            playingLibId = null;
+            renderLibrary();
+            return;
+          } else {
+            stopPlayback();
+            playingLibId = null;
+            renderLibrary();
+            return;
+          }
         }
         loadSongSection(ni);
       }
@@ -1829,6 +1908,117 @@ var Sonicc = (function () {
       strip.appendChild(p);
     });
   }
+
+  /* ── LIBRARY + ALBUMS ────────────────────────────────────────────── */
+  var LIB_KEY = 'sonicc:v2:library';
+  var library = [];
+  var albumMode = false;
+  var albumIdx = 0;
+  var playingLibId = null;
+
+  function loadLibraryLS() {
+    try { var raw = lsGet(LIB_KEY); if (raw) library = JSON.parse(raw) || []; } catch (e) {}
+  }
+  function saveLibraryLS() {
+    try { lsSet(LIB_KEY, JSON.stringify(library)); } catch (e) {}
+  }
+  function fmtAge(ts) {
+    var s = Math.floor((Date.now() - ts) / 1000);
+    if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
+  function renderLibrary() {
+    var list = document.getElementById('cvLibList');
+    if (!list) return;
+    if (library.length === 0) {
+      list.innerHTML = '<div class="cv-lib-empty">No songs saved. Make a song, then tap Save.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    library.forEach(function (sng, i) {
+      var item = document.createElement('div');
+      item.className = 'cv-lib-item' + (playingLibId === sng.id ? ' playing' : '');
+      item.innerHTML =
+        '<span class="cv-lib-num">' + (i + 1) + '</span>' +
+        '<input class="cv-lib-name" type="text" value="' + sng.name.replace(/"/g, '&quot;') + '">' +
+        '<span class="cv-lib-meta">' + sng.intent + ' · ' + NOTE_NAMES[sng.root] + ' ' + sng.scale + ' · ' + fmtAge(sng.createdAt) + '</span>' +
+        '<button class="cv-lib-btn play" title="Play">▶</button>' +
+        '<button class="cv-lib-btn del" title="Delete">×</button>';
+      item.querySelector('.cv-lib-name').addEventListener('change', function (e) {
+        sng.name = e.target.value.trim() || sng.name;
+        saveLibraryLS();
+      });
+      item.querySelector('.play').addEventListener('click', function () { playLibrarySong(sng.id); });
+      item.querySelector('.del').addEventListener('click', function () {
+        if (!confirm('Delete "' + sng.name + '"?')) return;
+        library = library.filter(function (s) { return s.id !== sng.id; });
+        saveLibraryLS(); renderLibrary();
+      });
+      list.appendChild(item);
+    });
+  }
+
+  function saveCurrentSong() {
+    if (!compose.song || !compose.song.sections.length) {
+      toast('Make a song first');
+      return;
+    }
+    var name = prompt('Name this song:', 'Song ' + (library.length + 1));
+    if (!name) return;
+    var sng = {
+      id: 'sng_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      name: name,
+      intent: compose.intent,
+      root: compose.root,
+      scale: compose.scale,
+      source: compose.source,
+      seed: compose.seed,
+      sections: compose.song.sections,  /* deep enough — tracks have plain data */
+      createdAt: Date.now()
+    };
+    library.push(sng);
+    saveLibraryLS();
+    renderLibrary();
+    toast('Saved "' + name + '"');
+  }
+
+  function playLibrarySong(id) {
+    var sng = null;
+    for (var i = 0; i < library.length; i++) if (library[i].id === id) { sng = library[i]; break; }
+    if (!sng) return;
+    /* hydrate compose state from the saved song */
+    compose.intent = sng.intent;
+    compose.root = sng.root;
+    compose.scale = sng.scale;
+    compose.source = sng.source;
+    compose.seed = sng.seed;
+    compose.song = { sections: sng.sections, idx: 0, loop: false };
+    /* sync inputs so user sees what's playing */
+    var i_ = document.getElementById('cvIntent'); if (i_) i_.value = sng.intent;
+    var r_ = document.getElementById('cvRoot');   if (r_) r_.value = String(sng.root);
+    var s_ = document.getElementById('cvScale');  if (s_) s_.value = sng.scale;
+    var m_ = document.getElementById('cvMath');   if (m_) m_.value = sng.source;
+    playingLibId = id;
+    loadSongSection(0);
+    renderLibrary();
+    if (!state.isPlaying) startPlayback();
+  }
+
+  function playAlbum() {
+    if (!library.length) { toast('No songs in the library yet'); return; }
+    albumMode = true; albumIdx = 0;
+    playLibrarySong(library[0].id);
+    toast('Playing album — ' + library.length + ' song' + (library.length === 1 ? '' : 's'));
+  }
+
+  /* override the playback section-end behaviour to chain to next album song */
+  var _origStartPlayback = startPlayback;
+  startPlayback = function () {
+    _origStartPlayback();
+    /* nothing to do here — the section-end branch in the interval checks albumMode */
+  };
 
   /* ── Wire-up ── */
   function init() {
@@ -1943,6 +2133,14 @@ var Sonicc = (function () {
     /* make a song */
     var cvSong = document.getElementById('cvSong');
     if (cvSong) cvSong.addEventListener('click', makeSong);
+
+    /* library + albums */
+    loadLibraryLS();
+    var cvSave = document.getElementById('cvSave');
+    var cvAlbum = document.getElementById('cvPlayAlbum');
+    if (cvSave) cvSave.addEventListener('click', saveCurrentSong);
+    if (cvAlbum) cvAlbum.addEventListener('click', playAlbum);
+    renderLibrary();
 
     /* keep BPM live: if playing, restart at the new tempo */
     on('bpmChange', function () {
