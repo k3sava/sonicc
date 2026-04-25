@@ -1327,12 +1327,13 @@ var Sonicc = (function () {
 
   /* ── TRIGGER NOTE ── */
   var voicesActive = [];
-  function trigger(presetName, note, oct, vel, lenSec, busKey) {
+  function trigger(presetName, note, oct, vel, lenSec, destOrKey) {
     ensureAudio();
     if (actx.state === 'suspended') actx.resume();
     vel = Math.max(0, Math.min(1, vel == null ? 0.8 : vel));
     if (lenSec == null || lenSec < 0.05) lenSec = 0.5;
-    var dest = getBus(busKey || 'lead');
+    /* destOrKey accepts a bus key string OR an AudioNode (per-track mix node) */
+    var dest = (destOrKey && typeof destOrKey !== 'string') ? destOrKey : getBus(destOrKey || 'lead');
     var voice = buildVoice(presetName, note, oct, dest);
     var p = voice.preset;
     var now = actx.currentTime;
@@ -1354,11 +1355,11 @@ var Sonicc = (function () {
 
   /* ── DRUMS ── 8 organic voices */
   var DRUMS = ['kick', 'snare', 'hat', 'clap', 'tom', 'rim', 'shaker', 'perc'];
-  function playDrum(name, vel) {
+  function playDrum(name, vel, destOrKey) {
     ensureAudio();
     if (actx.state === 'suspended') actx.resume();
     vel = Math.max(0, Math.min(1, vel == null ? 0.8 : vel));
-    var bus = getBus('drum');
+    var bus = (destOrKey && typeof destOrKey !== 'string') ? destOrKey : getBus(destOrKey || 'drum');
     var now = actx.currentTime;
     function noiseBuf(durSec, decay) {
       var bl = Math.floor(actx.sampleRate * durSec);
@@ -1708,6 +1709,47 @@ var Sonicc = (function () {
     };
   }
 
+  /* Per-track audio routing — each track gets its own gain + pan node
+     between its source and its bus. mixer adjustments hit these directly
+     so per-stem (and per-section) mixing is real, not bus-level. */
+  function ensureTrackNodes(track) {
+    if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
+    if (track._mixGain) return track._mixGain;
+    ensureAudio();
+    track._mixGain = actx.createGain();
+    track._mixGain.gain.value = track.mix.muted ? 0 : track.mix.gain;
+    if (actx.createStereoPanner) {
+      track._mixPan = actx.createStereoPanner();
+      track._mixPan.pan.value = track.mix.pan;
+      track._mixGain.connect(track._mixPan);
+      track._mixPan.connect(getBus(track.busKey));
+    } else {
+      track._mixGain.connect(getBus(track.busKey));
+    }
+    return track._mixGain;
+  }
+  function setTrackGain(track, v) {
+    if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
+    track.mix.gain = v;
+    if (track._mixGain && !track.mix.muted) track._mixGain.gain.setTargetAtTime(v, actx.currentTime, 0.01);
+  }
+  function setTrackPan(track, v) {
+    if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
+    track.mix.pan = v;
+    if (track._mixPan) track._mixPan.pan.setTargetAtTime(v, actx.currentTime, 0.01);
+  }
+  function setTrackMute(track, m) {
+    if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
+    track.mix.muted = m;
+    if (track._mixGain) track._mixGain.gain.setTargetAtTime(m ? 0 : track.mix.gain, actx.currentTime, 0.01);
+    track.muted = m; /* keep legacy flag in sync for the playback gate */
+  }
+  function disposeTrackNodes(track) {
+    try { if (track._mixGain) track._mixGain.disconnect(); } catch (e) {}
+    try { if (track._mixPan) track._mixPan.disconnect(); } catch (e) {}
+    track._mixGain = null; track._mixPan = null;
+  }
+
   /* Generate one track from a stem name, math source, and ctx */
   function generateTrack(stem, ctx) {
     var prof = STEM_PROFILES[stem];
@@ -1717,7 +1759,8 @@ var Sonicc = (function () {
       return {
         stem: stem, preset: '(drum)', busKey: prof.busKey, color: prof.color,
         drumHits: prof.drumFn(ctx.intent, rng),
-        muted: false, soloed: false
+        muted: false, soloed: false,
+        mix: { gain: 1, pan: 0, muted: false }
       };
     }
     var srcFn = MATH[ctx.source] || MATH.pi;
@@ -1742,24 +1785,26 @@ var Sonicc = (function () {
     }
     return {
       stem: stem, preset: prof.preset, busKey: prof.busKey, color: prof.color,
-      notes: notes, muted: false, soloed: false
+      notes: notes, muted: false, soloed: false,
+      mix: { gain: 1, pan: 0, muted: false }
     };
   }
 
   /* Play a single track once (for immediate audition after compose) */
   function playTrackOnce(track) {
     var msPerStep = 60000 / (state.bpm * 4);
-    if (track.muted) return;
+    if (track.muted || (track.mix && track.mix.muted)) return;
     var anyS = compose.tracks.some(function(t){return t.soloed;});
     if (anyS && !track.soloed) return;
+    var dest = ensureTrackNodes(track);
     if (track.drumHits) {
       track.drumHits.forEach(function (h) {
-        setTimeout(function () { playDrum(h.name, h.vel); }, h.step * msPerStep);
+        setTimeout(function () { playDrum(h.name, h.vel, dest); }, h.step * msPerStep);
       });
     } else if (track.notes) {
       track.notes.forEach(function (n) {
         setTimeout(function () {
-          trigger(track.preset, n.note, n.oct, n.vel, n.len * msPerStep / 1000, track.busKey);
+          trigger(track.preset, n.note, n.oct, n.vel, n.len * msPerStep / 1000, dest);
         }, n.step * msPerStep);
       });
     }
@@ -1788,14 +1833,18 @@ var Sonicc = (function () {
     compose.tracks.push(track);
     updateBuildInfo();
     renderTimeline();
+    renderMixer();
     playAllTracksOnce();
   }
 
   function resetCompose() {
+    /* dispose any per-track audio nodes so we don't leak */
+    compose.tracks.forEach(disposeTrackNodes);
     compose.tracks = [];
     compose.song = null;
     updateBuildInfo();
     renderTimeline();
+    renderMixer();
     var s = document.getElementById('cvSongStrip');
     if (s) s.innerHTML = '';
     var w = document.getElementById('cvSongWrap');
@@ -1988,18 +2037,19 @@ var Sonicc = (function () {
       });
       var anyS = compose.tracks.some(function (t) { return t.soloed; });
       compose.tracks.forEach(function (t) {
-        if (t.muted) return;
+        if (t.muted || (t.mix && t.mix.muted)) return;
         if (anyS && !t.soloed) return;
+        var dest = ensureTrackNodes(t);
         if (t.drumHits) {
           for (var k = 0; k < t.drumHits.length; k++) {
             var h = t.drumHits[k];
-            if (h.step === currentStep) playDrum(h.name, h.vel);
+            if (h.step === currentStep) playDrum(h.name, h.vel, dest);
           }
         } else if (t.notes) {
           for (var k = 0; k < t.notes.length; k++) {
             var n = t.notes[k];
             if (n.step === currentStep) {
-              trigger(t.preset, n.note, n.oct, n.vel, n.len * msPerStep / 1000, t.busKey);
+              trigger(t.preset, n.note, n.oct, n.vel, n.len * msPerStep / 1000, dest);
             }
           }
         }
@@ -2101,6 +2151,7 @@ var Sonicc = (function () {
     updateBuildInfo();
     renderTimeline();
     renderSongStrip();
+    renderMixer();
   }
 
   function renderSongStrip() {
@@ -2124,53 +2175,63 @@ var Sonicc = (function () {
     });
   }
 
-  /* ── MIXER ── 5-bus channel strips */
-  function buildMixer() {
+  /* ── MIXER ── per-track strips for the active section.
+     Each section keeps its own track.mix so chorus pad can be louder
+     than intro pad without any extra UI. */
+  function renderMixer() {
     var grid = document.getElementById('mixGrid');
     if (!grid) return;
     grid.innerHTML = '';
-    var STRIPS = [
-      { k: 'lead', name: 'Lead' },
-      { k: 'bass', name: 'Bass' },
-      { k: 'pad',  name: 'Pad' },
-      { k: 'drum', name: 'Drum' },
-      { k: 'aux',  name: 'Aux' }
-    ];
-    STRIPS.forEach(function (s) {
+    if (compose.tracks.length === 0) {
+      var hint = document.createElement('div');
+      hint.style.cssText = 'grid-column:1/-1;padding:16px;text-align:center;color:var(--text-3);font-family:var(--font-mono);font-size:11px;letter-spacing:0.04em';
+      hint.textContent = 'No tracks yet. Compose a layer first.';
+      grid.appendChild(hint);
+      grid.style.gridTemplateColumns = '1fr';
+      return;
+    }
+    grid.style.gridTemplateColumns = 'repeat(' + Math.min(compose.tracks.length, 6) + ', 1fr)';
+    if (compose.tracks.length > 6) grid.style.gridTemplateColumns = 'repeat(6, 1fr)';
+    function fmtPan(n) { return n === 0 ? 'C' : n < 0 ? 'L' + (-n) : 'R' + n; }
+    compose.tracks.forEach(function (track, idx) {
+      if (!track.mix) track.mix = { gain: 1, pan: 0, muted: false };
       var strip = document.createElement('div');
-      strip.className = 'mix-strip'; strip.dataset.bus = s.k;
+      strip.className = 'mix-strip' + (track.mix.muted ? ' muted' : '');
+      var lvlPct = Math.round(track.mix.gain * 100);
+      var panInt = Math.round(track.mix.pan * 100);
       strip.innerHTML =
-        '<div class="mix-name">' + s.name + '</div>' +
-        '<input class="mix-fader" type="range" min="0" max="120" value="100" aria-label="' + s.name + ' level">' +
-        '<input class="mix-pan"   type="range" min="-100" max="100" value="0" aria-label="' + s.name + ' pan">' +
-        '<div class="mix-row-vals"><span class="vlvl">100</span><span class="vpan">C</span></div>' +
-        '<button class="mix-mute" type="button">M</button>';
+        '<div class="mix-name" style="border-left:3px solid ' + track.color + ';padding-left:6px;text-align:left">' + track.stem + '</div>' +
+        '<input class="mix-fader" type="range" min="0" max="150" value="' + lvlPct + '" aria-label="' + track.stem + ' level">' +
+        '<input class="mix-pan"   type="range" min="-100" max="100" value="' + panInt + '" aria-label="' + track.stem + ' pan">' +
+        '<div class="mix-row-vals"><span class="vlvl">' + lvlPct + '</span><span class="vpan">' + fmtPan(panInt) + '</span></div>' +
+        '<button class="mix-mute' + (track.mix.muted ? ' on' : '') + '" type="button">M</button>';
       var fader = strip.querySelector('.mix-fader');
       var pan   = strip.querySelector('.mix-pan');
       var mute  = strip.querySelector('.mix-mute');
       var vlvl  = strip.querySelector('.vlvl');
       var vpan  = strip.querySelector('.vpan');
-      function fmtPan(n) { return n === 0 ? 'C' : n < 0 ? 'L' + (-n) : 'R' + n; }
       fader.addEventListener('input', function () {
         var v = parseInt(fader.value, 10) / 100;
-        ensureAudio(); setBusLevel(s.k, v);
+        ensureAudio(); ensureTrackNodes(track); setTrackGain(track, v);
         vlvl.textContent = String(parseInt(fader.value, 10));
       });
       pan.addEventListener('input', function () {
         var p = parseInt(pan.value, 10);
-        ensureAudio(); setBusPan(s.k, p / 100);
+        ensureAudio(); ensureTrackNodes(track); setTrackPan(track, p / 100);
         vpan.textContent = fmtPan(p);
       });
       mute.addEventListener('click', function () {
-        ensureAudio();
-        var on = !mute.classList.contains('on');
+        ensureAudio(); ensureTrackNodes(track);
+        var on = !track.mix.muted;
+        setTrackMute(track, on);
         mute.classList.toggle('on', on);
         strip.classList.toggle('muted', on);
-        setBusMute(s.k, on);
       });
       grid.appendChild(strip);
     });
   }
+  /* keep the old name available — a few call-sites still reference it */
+  function buildMixer() { renderMixer(); }
 
   /* ── MIC RECORDING ── raw PCM → 16-bit WAV (lossless) ───────────── */
   var mic = {
@@ -2680,11 +2741,25 @@ var Sonicc = (function () {
 
     /* auto-save compose state to localStorage */
     var SAVE_KEY = 'sonicc:v2:compose';
+    function cleanTrack(t) {
+      /* strip live AudioNodes — they don't serialise and rebuild on demand */
+      var c = {}; for (var k in t) if (t.hasOwnProperty(k) && k.charAt(0) !== '_') c[k] = t[k];
+      return c;
+    }
+    function cleanSong(sg) {
+      if (!sg) return null;
+      return {
+        idx: sg.idx, loop: sg.loop,
+        sections: sg.sections.map(function (sec) {
+          return { name: sec.name, tracks: sec.tracks.map(cleanTrack) };
+        })
+      };
+    }
     function snapshot() {
       return {
         intent: compose.intent, root: compose.root, scale: compose.scale,
         source: compose.source, seed: compose.seed,
-        tracks: compose.tracks, song: compose.song
+        tracks: compose.tracks.map(cleanTrack), song: cleanSong(compose.song)
       };
     }
     function restoreSnap() {
