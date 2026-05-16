@@ -1,0 +1,587 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B00000000000000000000001 /* SoniccApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000001 /* SoniccApp.swift */; };
+		B00000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000002 /* ContentView.swift */; };
+		B00000000000000000000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000005 /* Assets.xcassets */; };
+		B00000000000000000000006 /* ADSREnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000006 /* ADSREnvelope.swift */; };
+		B00000000000000000000007 /* AudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000007 /* AudioEngine.swift */; };
+		B00000000000000000000008 /* AudioSessionConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000008 /* AudioSessionConfigurator.swift */; };
+		B00000000000000000000009 /* BiquadLowpass.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000009 /* BiquadLowpass.swift */; };
+		B0000000000000000000000A /* SynthVoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000000A /* SynthVoice.swift */; };
+		B0000000000000000000000B /* VoiceAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000000B /* VoiceAllocator.swift */; };
+		B0000000000000000000000C /* Waveforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000000C /* Waveforms.swift */; };
+		B0000000000000000000000D /* CustomEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000000D /* CustomEffects.swift */; };
+		B0000000000000000000000E /* EffectsRack.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000000E /* EffectsRack.swift */; };
+		B0000000000000000000000F /* DrumSynth.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000000F /* DrumSynth.swift */; };
+		B00000000000000000000010 /* WorldInstruments.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000010 /* WorldInstruments.swift */; };
+		B00000000000000000000011 /* MIDIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000011 /* MIDIManager.swift */; };
+		B00000000000000000000012 /* MicrophoneRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000012 /* MicrophoneRecorder.swift */; };
+		B00000000000000000000013 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000013 /* AppState.swift */; };
+		B00000000000000000000014 /* NotePitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000014 /* NotePitch.swift */; };
+		B00000000000000000000015 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000015 /* SynthState.swift */; };
+		B00000000000000000000016 /* PresetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000016 /* PresetLibrary.swift */; };
+		B00000000000000000000017 /* SamplerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000017 /* SamplerEngine.swift */; };
+		B00000000000000000000018 /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000018 /* Sequencer.swift */; };
+		B00000000000000000000019 /* ThemeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000019 /* ThemeLibrary.swift */; };
+		B0000000000000000000001A /* DrumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001A /* DrumsView.swift */; };
+		B0000000000000000000001B /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001B /* KeyboardView.swift */; };
+		B0000000000000000000001C /* MicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001C /* MicView.swift */; };
+		B0000000000000000000001D /* PatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001D /* PatternView.swift */; };
+		B0000000000000000000001E /* SamplerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001E /* SamplerView.swift */; };
+		B0000000000000000000001F /* ControlBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0000000000000000000001F /* ControlBar.swift */; };
+		B00000000000000000000020 /* HeaderBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000020 /* HeaderBar.swift */; };
+		B00000000000000000000021 /* InspectorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000021 /* InspectorPanel.swift */; };
+		B00000000000000000000022 /* Knob.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000022 /* Knob.swift */; };
+		B00000000000000000000023 /* IPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000023 /* IPadRootView.swift */; };
+		B00000000000000000000024 /* IPhoneRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000024 /* IPhoneRootView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1A00000000000000000000AE /* Sonicc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sonicc.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F00000000000000000000001 /* SoniccApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoniccApp.swift; sourceTree = "<group>"; };
+		F00000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		F00000000000000000000003 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F00000000000000000000004 /* Sonicc.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Sonicc.entitlements; sourceTree = "<group>"; };
+		F00000000000000000000005 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F00000000000000000000006 /* ADSREnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADSREnvelope.swift; sourceTree = "<group>"; };
+		F00000000000000000000007 /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
+		F00000000000000000000008 /* AudioSessionConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionConfigurator.swift; sourceTree = "<group>"; };
+		F00000000000000000000009 /* BiquadLowpass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiquadLowpass.swift; sourceTree = "<group>"; };
+		F0000000000000000000000A /* SynthVoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthVoice.swift; sourceTree = "<group>"; };
+		F0000000000000000000000B /* VoiceAllocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAllocator.swift; sourceTree = "<group>"; };
+		F0000000000000000000000C /* Waveforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waveforms.swift; sourceTree = "<group>"; };
+		F0000000000000000000000D /* CustomEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEffects.swift; sourceTree = "<group>"; };
+		F0000000000000000000000E /* EffectsRack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectsRack.swift; sourceTree = "<group>"; };
+		F0000000000000000000000F /* DrumSynth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumSynth.swift; sourceTree = "<group>"; };
+		F00000000000000000000010 /* WorldInstruments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldInstruments.swift; sourceTree = "<group>"; };
+		F00000000000000000000011 /* MIDIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIManager.swift; sourceTree = "<group>"; };
+		F00000000000000000000012 /* MicrophoneRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneRecorder.swift; sourceTree = "<group>"; };
+		F00000000000000000000013 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		F00000000000000000000014 /* NotePitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotePitch.swift; sourceTree = "<group>"; };
+		F00000000000000000000015 /* SynthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthState.swift; sourceTree = "<group>"; };
+		F00000000000000000000016 /* PresetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetLibrary.swift; sourceTree = "<group>"; };
+		F00000000000000000000017 /* SamplerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SamplerEngine.swift; sourceTree = "<group>"; };
+		F00000000000000000000018 /* Sequencer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequencer.swift; sourceTree = "<group>"; };
+		F00000000000000000000019 /* ThemeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeLibrary.swift; sourceTree = "<group>"; };
+		F0000000000000000000001A /* DrumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumsView.swift; sourceTree = "<group>"; };
+		F0000000000000000000001B /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
+		F0000000000000000000001C /* MicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicView.swift; sourceTree = "<group>"; };
+		F0000000000000000000001D /* PatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternView.swift; sourceTree = "<group>"; };
+		F0000000000000000000001E /* SamplerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SamplerView.swift; sourceTree = "<group>"; };
+		F0000000000000000000001F /* ControlBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlBar.swift; sourceTree = "<group>"; };
+		F00000000000000000000020 /* HeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderBar.swift; sourceTree = "<group>"; };
+		F00000000000000000000021 /* InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorPanel.swift; sourceTree = "<group>"; };
+		F00000000000000000000022 /* Knob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knob.swift; sourceTree = "<group>"; };
+		F00000000000000000000023 /* IPadRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPadRootView.swift; sourceTree = "<group>"; };
+		F00000000000000000000024 /* IPhoneRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRootView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1A00000000000000000000A5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1A00000000000000000000AC /* Main */ = {
+			isa = PBXGroup;
+			children = (
+				G00000000000000000000001 /* Sonicc */,
+				1A00000000000000000000AD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1A00000000000000000000AD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A00000000000000000000AE /* Sonicc.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000001 /* Sonicc */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000001 /* SoniccApp.swift */,
+				F00000000000000000000002 /* ContentView.swift */,
+				G00000000000000000000007 /* Models */,
+				G00000000000000000000002 /* Audio */,
+				G0000000000000000000000A /* Sequencer */,
+				G00000000000000000000009 /* Sampler */,
+				G00000000000000000000006 /* Microphone */,
+				G00000000000000000000005 /* MIDI */,
+				G00000000000000000000008 /* Presets */,
+				G0000000000000000000000B /* Themes */,
+				G0000000000000000000000C /* Views */,
+				F00000000000000000000005 /* Assets.xcassets */,
+				F00000000000000000000003 /* Info.plist */,
+				F00000000000000000000004 /* Sonicc.entitlements */,
+			);
+			path = Sonicc;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000002 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000007 /* AudioEngine.swift */,
+				F00000000000000000000008 /* AudioSessionConfigurator.swift */,
+				F0000000000000000000000A /* SynthVoice.swift */,
+				F0000000000000000000000B /* VoiceAllocator.swift */,
+				F00000000000000000000006 /* ADSREnvelope.swift */,
+				F00000000000000000000009 /* BiquadLowpass.swift */,
+				F0000000000000000000000C /* Waveforms.swift */,
+				G00000000000000000000003 /* Effects */,
+				G00000000000000000000004 /* Instruments */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000003 /* Effects */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000000D /* CustomEffects.swift */,
+				F0000000000000000000000E /* EffectsRack.swift */,
+			);
+			path = Effects;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000004 /* Instruments */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000000F /* DrumSynth.swift */,
+				F00000000000000000000010 /* WorldInstruments.swift */,
+			);
+			path = Instruments;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000005 /* MIDI */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000011 /* MIDIManager.swift */,
+			);
+			path = MIDI;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000006 /* Microphone */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000012 /* MicrophoneRecorder.swift */,
+			);
+			path = Microphone;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000007 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000013 /* AppState.swift */,
+				F00000000000000000000014 /* NotePitch.swift */,
+				F00000000000000000000015 /* SynthState.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000008 /* Presets */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000016 /* PresetLibrary.swift */,
+			);
+			path = Presets;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000009 /* Sampler */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000017 /* SamplerEngine.swift */,
+			);
+			path = Sampler;
+			sourceTree = "<group>";
+		};
+		G0000000000000000000000A /* Sequencer */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000018 /* Sequencer.swift */,
+			);
+			path = Sequencer;
+			sourceTree = "<group>";
+		};
+		G0000000000000000000000B /* Themes */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000019 /* ThemeLibrary.swift */,
+			);
+			path = Themes;
+			sourceTree = "<group>";
+		};
+		G0000000000000000000000C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				G0000000000000000000000E /* Shared */,
+				G0000000000000000000000D /* Modes */,
+				G0000000000000000000000F /* iPad */,
+				G00000000000000000000010 /* iPhone */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		G0000000000000000000000D /* Modes */ = {
+			isa = PBXGroup;
+			children = (
+				F0000000000000000000001B /* KeyboardView.swift */,
+				F0000000000000000000001A /* DrumsView.swift */,
+				F0000000000000000000001D /* PatternView.swift */,
+				F0000000000000000000001E /* SamplerView.swift */,
+				F0000000000000000000001C /* MicView.swift */,
+			);
+			path = Modes;
+			sourceTree = "<group>";
+		};
+		G0000000000000000000000E /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000020 /* HeaderBar.swift */,
+				F0000000000000000000001F /* ControlBar.swift */,
+				F00000000000000000000022 /* Knob.swift */,
+				F00000000000000000000021 /* InspectorPanel.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		G0000000000000000000000F /* iPad */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000023 /* IPadRootView.swift */,
+			);
+			path = iPad;
+			sourceTree = "<group>";
+		};
+		G00000000000000000000010 /* iPhone */ = {
+			isa = PBXGroup;
+			children = (
+				F00000000000000000000024 /* IPhoneRootView.swift */,
+			);
+			path = iPhone;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1A00000000000000000000A2 /* Sonicc */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A00000000000000000000AB /* Build configuration list for PBXNativeTarget "Sonicc" */;
+			buildPhases = (
+				1A00000000000000000000A3 /* Sources */,
+				1A00000000000000000000A4 /* Resources */,
+				1A00000000000000000000A5 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Sonicc;
+			productName = Sonicc;
+			productReference = 1A00000000000000000000AE /* Sonicc.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1A00000000000000000000A1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					1A00000000000000000000A2 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 1A00000000000000000000AA /* Build configuration list for PBXProject "Sonicc" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1A00000000000000000000AC;
+			productRefGroup = 1A00000000000000000000AD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1A00000000000000000000A2 /* Sonicc */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A00000000000000000000A4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000005 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1A00000000000000000000A3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00000000000000000000001 /* SoniccApp.swift in Sources */,
+				B00000000000000000000002 /* ContentView.swift in Sources */,
+				B00000000000000000000006 /* ADSREnvelope.swift in Sources */,
+				B00000000000000000000007 /* AudioEngine.swift in Sources */,
+				B00000000000000000000008 /* AudioSessionConfigurator.swift in Sources */,
+				B00000000000000000000009 /* BiquadLowpass.swift in Sources */,
+				B0000000000000000000000A /* SynthVoice.swift in Sources */,
+				B0000000000000000000000B /* VoiceAllocator.swift in Sources */,
+				B0000000000000000000000C /* Waveforms.swift in Sources */,
+				B0000000000000000000000D /* CustomEffects.swift in Sources */,
+				B0000000000000000000000E /* EffectsRack.swift in Sources */,
+				B0000000000000000000000F /* DrumSynth.swift in Sources */,
+				B00000000000000000000010 /* WorldInstruments.swift in Sources */,
+				B00000000000000000000011 /* MIDIManager.swift in Sources */,
+				B00000000000000000000012 /* MicrophoneRecorder.swift in Sources */,
+				B00000000000000000000013 /* AppState.swift in Sources */,
+				B00000000000000000000014 /* NotePitch.swift in Sources */,
+				B00000000000000000000015 /* SynthState.swift in Sources */,
+				B00000000000000000000016 /* PresetLibrary.swift in Sources */,
+				B00000000000000000000017 /* SamplerEngine.swift in Sources */,
+				B00000000000000000000018 /* Sequencer.swift in Sources */,
+				B00000000000000000000019 /* ThemeLibrary.swift in Sources */,
+				B0000000000000000000001A /* DrumsView.swift in Sources */,
+				B0000000000000000000001B /* KeyboardView.swift in Sources */,
+				B0000000000000000000001C /* MicView.swift in Sources */,
+				B0000000000000000000001D /* PatternView.swift in Sources */,
+				B0000000000000000000001E /* SamplerView.swift in Sources */,
+				B0000000000000000000001F /* ControlBar.swift in Sources */,
+				B00000000000000000000020 /* HeaderBar.swift in Sources */,
+				B00000000000000000000021 /* InspectorPanel.swift in Sources */,
+				B00000000000000000000022 /* Knob.swift in Sources */,
+				B00000000000000000000023 /* IPadRootView.swift in Sources */,
+				B00000000000000000000024 /* IPhoneRootView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1A00000000000000000000A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1A00000000000000000000A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1A00000000000000000000A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Sonicc/Sonicc.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sonicc/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.sonicc.Sonicc;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1A00000000000000000000A9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Sonicc/Sonicc.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Sonicc/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.sonicc.Sonicc;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A00000000000000000000AA /* Build configuration list for PBXProject "Sonicc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A00000000000000000000A6 /* Debug */,
+				1A00000000000000000000A7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A00000000000000000000AB /* Build configuration list for PBXNativeTarget "Sonicc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A00000000000000000000A8 /* Debug */,
+				1A00000000000000000000A9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1A00000000000000000000A1 /* Project object */;
+}
