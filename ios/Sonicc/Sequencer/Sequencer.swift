@@ -13,7 +13,7 @@ final class Sequencer: ObservableObject {
         var label: String { "\(rawValue)" }
     }
 
-    @Published var stepCount: StepSize = .16
+    @Published var stepCount: StepSize = .s16
     @Published var bpm: Double = 120
     @Published var swing: Double = 0 // 0..1
     @Published var isPlaying: Bool = false

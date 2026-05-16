@@ -85,7 +85,7 @@ final class EffectsRack {
         delay.lowPassCutoff = 6_000
         delay.wetDryMix = 0
 
-        distortion.loadFactoryPreset(.multiDistortedFunk)
+        distortion.loadFactoryPreset(.multiDistortedCubed)
         distortion.wetDryMix = 0
         distortion.preGain = -2
 

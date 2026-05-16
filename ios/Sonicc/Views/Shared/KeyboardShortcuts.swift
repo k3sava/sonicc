@@ -26,7 +26,7 @@ struct KeyboardShortcutLayer: ViewModifier {
                     Button("Toggle play") {
                         if app.sequencer.isPlaying { app.sequencer.stop() } else { app.sequencer.play() }
                     }
-                    .keyboardShortcut(.space, modifiers: [])
+                    .keyboardShortcut(" ", modifiers: [])
                     Button("Toggle record") { app.sequencer.toggleRecord() }
                         .keyboardShortcut("r", modifiers: [])
                     Button("Octave up") { app.baseOctave = min(7, app.baseOctave + 1) }
