@@ -37,6 +37,7 @@ struct DrumPad: View {
     var body: some View {
         Button {
             app.playDrum(index: kind.rawValue)
+            Haptics.tap()
             pulsing = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) { pulsing = false }
         } label: {
@@ -60,5 +61,6 @@ struct DrumPad: View {
         }
         .buttonStyle(.plain)
         .animation(.easeOut(duration: 0.12), value: pulsing)
+        .hoverEffect(.lift)
     }
 }

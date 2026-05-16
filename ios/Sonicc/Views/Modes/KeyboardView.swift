@@ -115,7 +115,11 @@ struct WhiteKey: View {
     private var touch: some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { _ in
-                if !held { held = true; app.noteOn(pitch: pitch) }
+                if !held {
+                    held = true
+                    app.noteOn(pitch: pitch)
+                    Haptics.light()
+                }
             }
             .onEnded { _ in
                 held = false
@@ -143,7 +147,11 @@ struct BlackKey: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { _ in
-                        if !held { held = true; app.noteOn(pitch: pitch) }
+                        if !held {
+                            held = true
+                            app.noteOn(pitch: pitch)
+                            Haptics.light()
+                        }
                     }
                     .onEnded { _ in
                         held = false

@@ -15,6 +15,7 @@ struct ContentView: View {
         }
         .tint(app.theme.accent)
         .background(app.theme.bg.ignoresSafeArea())
+        .keyboardShortcutLayer()
     }
 
     private var isPad: Bool {
