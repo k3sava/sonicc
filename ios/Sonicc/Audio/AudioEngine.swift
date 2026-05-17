@@ -108,4 +108,49 @@ final class AudioEngine {
         }
         player.play()
     }
+
+    // MARK: - Track render
+
+    /// Active render-to-file session, if any.
+    private var renderFile: AVAudioFile?
+    private(set) var isRendering: Bool = false
+
+    /// Begin capturing everything coming out of the master bus to a new
+    /// .m4a file. The caller is responsible for actually playing the
+    /// sequencer / keyboard during the capture window.
+    @discardableResult
+    func startTrackRender(to url: URL) throws -> URL {
+        // .m4a (AAC) settings — matches what Voice Memos exports.
+        let masterBus = engine.mainMixerNode.outputFormat(forBus: 0)
+        let settings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: masterBus.sampleRate,
+            AVNumberOfChannelsKey: 2,
+            AVEncoderBitRateKey: 192_000,
+        ]
+        let file = try AVAudioFile(forWriting: url, settings: settings)
+        renderFile = file
+        isRendering = true
+        engine.mainMixerNode.installTap(onBus: 0, bufferSize: 4096, format: masterBus) { [weak self] buf, _ in
+            guard let self, let renderFile = self.renderFile else { return }
+            do {
+                try renderFile.write(from: buf)
+            } catch {
+                print("AudioEngine render write error: \(error)")
+            }
+        }
+        return url
+    }
+
+    /// Close the file and remove the tap. Returns the rendered file URL
+    /// if there was an active render.
+    @discardableResult
+    func stopTrackRender() -> URL? {
+        guard isRendering else { return nil }
+        engine.mainMixerNode.removeTap(onBus: 0)
+        let url = renderFile?.url
+        renderFile = nil
+        isRendering = false
+        return url
+    }
 }

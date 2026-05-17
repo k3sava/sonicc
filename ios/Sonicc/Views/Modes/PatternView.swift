@@ -5,17 +5,29 @@ struct PatternView: View {
     @EnvironmentObject var app: AppState
     @ObservedObject var sequencer: Sequencer
     @StateObject private var library = PatternLibrary.shared
+    @StateObject private var recordings = RecordingLibrary.shared
     @State private var showLibrary: Bool = false
     @State private var showSaveDialog: Bool = false
     @State private var saveName: String = ""
+    @State private var isBouncing: Bool = false
+    @State private var bounceURL: URL?
+    @State private var toast: String?
 
     var body: some View {
         VStack(spacing: 12) {
             controls
             Divider()
             grid
+            if let toast {
+                Text(toast)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(app.theme.accent)
+                    .padding(.bottom, 4)
+                    .transition(.opacity)
+            }
         }
         .padding(16)
+        .animation(.easeInOut, value: toast)
         .sheet(isPresented: $showLibrary) {
             PatternLibrarySheet(
                 library: library,
@@ -76,10 +88,51 @@ struct PatternView: View {
                 Label("Library", systemImage: "tray.full")
                     .font(.system(size: 11, design: .monospaced))
             }
+            Button(action: toggleBounce) {
+                Label(isBouncing ? "Bouncing…" : "Bounce",
+                       systemImage: isBouncing ? "stop.circle.fill" : "waveform.path.badge.plus")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(isBouncing ? .red : app.theme.text)
+            }
             Button { sequencer.clear() } label: {
                 Label("Clear", systemImage: "trash")
                     .font(.system(size: 11, design: .monospaced))
             }
+        }
+    }
+
+    /// Tap once: start playback + tap on the master bus, writing to a tmp .m4a.
+    /// Tap again: stop, adopt the file into RecordingLibrary, toast.
+    private func toggleBounce() {
+        if isBouncing {
+            sequencer.stop()
+            if let url = app.audio.stopTrackRender() {
+                let stamp = Int(Date().timeIntervalSince1970)
+                if let rec = recordings.adopt(from: url, name: "Bounce \(stamp)") {
+                    showToast("Saved \"\(rec.name)\" — see Mic › Library")
+                } else {
+                    showToast("Bounce failed to save")
+                }
+            }
+            isBouncing = false
+            return
+        }
+        let stamp = Int(Date().timeIntervalSince1970)
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("bounce-\(stamp).m4a")
+        do {
+            try app.audio.startTrackRender(to: url)
+            sequencer.play()
+            isBouncing = true
+        } catch {
+            showToast("Couldn't start bounce")
+        }
+    }
+
+    private func showToast(_ s: String) {
+        toast = s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            if toast == s { toast = nil }
         }
     }
 
