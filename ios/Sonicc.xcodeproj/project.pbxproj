@@ -25,6 +25,7 @@
 		39183776B5BB3C20D0C887CF /* Scale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B2C66453FE59B8DAFC4823 /* Scale.swift */; };
 		4479C62BAB766707881A84F1 /* Knob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */; };
 		473F5876426922D92EE34601 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6539462C6DB9759171C77 /* SynthState.swift */; };
+		54CDA6D33A925BC3F56B5100 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E296F361C007F8DB818A8A /* SettingsSheet.swift */; };
 		5F9F2C2073367774A029642C /* KeyboardShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */; };
 		65C131AE61E6EE73CD4F3CAA /* InspectorStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */; };
 		677307D8916AC370700D6023 /* PresetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EA8FEEA48DE995EAB88C89 /* PresetLibrary.swift */; };
@@ -47,7 +48,9 @@
 		CDD078A764EE4E196C48EC71 /* MicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787CB08DF6C9DD7215EA2960 /* MicView.swift */; };
 		CF26AC6B1D9AD84E96582967 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */; };
 		CF8CB5E3BE709EDDDB1E713C /* BiquadLowpass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4548D28AAC44FCEFD42ED754 /* BiquadLowpass.swift */; };
+		D54085DFBA6E36925A5A1677 /* WelcomeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBAB9F661ED7B128C2D7D90 /* WelcomeSheet.swift */; };
 		D5A00C9D32B84A1BEDC42516 /* PatternLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1095CB002E3634A153387061 /* PatternLibrary.swift */; };
+		DAC5CF6178AEAD30FDCAC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8306992FF9304C363ED7FA65 /* LaunchScreen.storyboard */; };
 		F42564B6C455886CFE8DD760 /* DrumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA5E7ED20653E0D9B788B03 /* DrumsView.swift */; };
 		F5E04ECDA5812A77734E7DE9 /* IPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE46D623614725882A56B8FE /* IPadRootView.swift */; };
 		F9994FCC45FA6598DE042508 /* PatternLibrarySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAFBF7E7784DDD5A3AB0C67D /* PatternLibrarySheet.swift */; };
@@ -59,6 +62,7 @@
 		033896E248E3C9F16816F348 /* WorldInstruments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorldInstruments.swift; sourceTree = "<group>"; };
 		07DF9A8888AB382BBF66B82A /* MIDIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIManager.swift; sourceTree = "<group>"; };
 		0B4AFE8B8133C6D4140DA7B8 /* NotePitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotePitch.swift; sourceTree = "<group>"; };
+		0DBAB9F661ED7B128C2D7D90 /* WelcomeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeSheet.swift; sourceTree = "<group>"; };
 		0E5EEE68F6E159636EDC68D5 /* Sonicc.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Sonicc.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1095CB002E3634A153387061 /* PatternLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternLibrary.swift; sourceTree = "<group>"; };
 		15EA8FEEA48DE995EAB88C89 /* PresetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetLibrary.swift; sourceTree = "<group>"; };
@@ -86,12 +90,14 @@
 		787CB08DF6C9DD7215EA2960 /* MicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicView.swift; sourceTree = "<group>"; };
 		7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8222F16E6DEEBB76A0980823 /* RecordingLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrary.swift; sourceTree = "<group>"; };
+		8306992FF9304C363ED7FA65 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		85250815695A3FA32172CEE1 /* InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorPanel.swift; sourceTree = "<group>"; };
 		93525619477D7A42067F6E64 /* Waveforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waveforms.swift; sourceTree = "<group>"; };
 		944705F981DFB920DF1BE4A2 /* HeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderBar.swift; sourceTree = "<group>"; };
 		9B2C491EF389094F42485AF2 /* VoiceAllocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAllocator.swift; sourceTree = "<group>"; };
 		9BC808848CED911AB53A82E4 /* SamplerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SamplerView.swift; sourceTree = "<group>"; };
 		A2C65B4A496779BB48252352 /* ThemeLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeLibrary.swift; sourceTree = "<group>"; };
+		A9E296F361C007F8DB818A8A /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
 		AAFC5187DF007D488997EF16 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		ACABC83119AE5DABE1675B4C /* PatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternView.swift; sourceTree = "<group>"; };
 		B3625DFA2473BA7F8534FD56 /* EffectsRack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectsRack.swift; sourceTree = "<group>"; };
@@ -155,6 +161,7 @@
 			children = (
 				3C3AF92EB5E3C995EDED3AD6 /* Assets.xcassets */,
 				27A3ED86D91F61F2A99583FD /* ContentView.swift */,
+				8306992FF9304C363ED7FA65 /* LaunchScreen.storyboard */,
 				7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */,
 				21806C20957F7D98CBDA4D32 /* SoniccApp.swift */,
 				2AC41E7926154A90D63F214E /* Audio */,
@@ -180,6 +187,8 @@
 				C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */,
 				C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */,
 				1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */,
+				A9E296F361C007F8DB818A8A /* SettingsSheet.swift */,
+				0DBAB9F661ED7B128C2D7D90 /* WelcomeSheet.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -364,6 +373,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				37932CB88BAFD43F7D543937 /* Assets.xcassets in Resources */,
+				DAC5CF6178AEAD30FDCAC6F9 /* LaunchScreen.storyboard in Resources */,
 				CF26AC6B1D9AD84E96582967 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -412,12 +422,14 @@
 				FCA2F6621E4C8682797001AF /* SamplerView.swift in Sources */,
 				39183776B5BB3C20D0C887CF /* Scale.swift in Sources */,
 				A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */,
+				54CDA6D33A925BC3F56B5100 /* SettingsSheet.swift in Sources */,
 				309B3249C3C403425143FAC5 /* SoniccApp.swift in Sources */,
 				473F5876426922D92EE34601 /* SynthState.swift in Sources */,
 				76FA7BC7942FA46896217CCC /* SynthVoice.swift in Sources */,
 				C82863A2BA7287C79AD55DA3 /* ThemeLibrary.swift in Sources */,
 				867C59C9FBB69C8C9971C166 /* VoiceAllocator.swift in Sources */,
 				14E483F8FBA9ABD71739134A /* Waveforms.swift in Sources */,
+				D54085DFBA6E36925A5A1677 /* WelcomeSheet.swift in Sources */,
 				309F5497F8261EB9021CFFFD /* WorldInstruments.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

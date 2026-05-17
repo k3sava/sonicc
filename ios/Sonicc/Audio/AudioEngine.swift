@@ -115,19 +115,33 @@ final class AudioEngine {
     private var renderFile: AVAudioFile?
     private(set) var isRendering: Bool = false
 
+    enum RenderFormat { case m4a, wav }
+
     /// Begin capturing everything coming out of the master bus to a new
-    /// .m4a file. The caller is responsible for actually playing the
-    /// sequencer / keyboard during the capture window.
+    /// audio file. .m4a → AAC, small files for sharing; .wav → 16-bit PCM,
+    /// uncompressed for DAW import.
     @discardableResult
-    func startTrackRender(to url: URL) throws -> URL {
-        // .m4a (AAC) settings — matches what Voice Memos exports.
+    func startTrackRender(to url: URL, format: RenderFormat = .m4a) throws -> URL {
         let masterBus = engine.mainMixerNode.outputFormat(forBus: 0)
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: masterBus.sampleRate,
-            AVNumberOfChannelsKey: 2,
-            AVEncoderBitRateKey: 192_000,
-        ]
+        let settings: [String: Any]
+        switch format {
+        case .m4a:
+            settings = [
+                AVFormatIDKey: kAudioFormatMPEG4AAC,
+                AVSampleRateKey: masterBus.sampleRate,
+                AVNumberOfChannelsKey: 2,
+                AVEncoderBitRateKey: 192_000,
+            ]
+        case .wav:
+            settings = [
+                AVFormatIDKey: kAudioFormatLinearPCM,
+                AVSampleRateKey: masterBus.sampleRate,
+                AVNumberOfChannelsKey: 2,
+                AVLinearPCMBitDepthKey: 16,
+                AVLinearPCMIsBigEndianKey: false,
+                AVLinearPCMIsFloatKey: false,
+            ]
+        }
         let file = try AVAudioFile(forWriting: url, settings: settings)
         renderFile = file
         isRendering = true

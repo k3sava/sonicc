@@ -8,15 +8,27 @@ struct IPhoneRootView: View {
     @EnvironmentObject var app: AppState
     @State private var showInspector = false
     @State private var showPresets = false
+    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
-            HeaderBar()
+            HeaderBar(onSettings: { showSettings = true })
             transport
             currentMode
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(app.theme.semantic.canvas)
             modeTabs
+        }
+        .sheet(isPresented: Binding(
+            get: { !app.hasOnboarded },
+            set: { _ in }
+        )) {
+            WelcomeSheet()
+                .interactiveDismissDisabled(true)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsSheet()
+                .presentationDetents([.large])
         }
         .sheet(isPresented: $showInspector) {
             NavigationStack {

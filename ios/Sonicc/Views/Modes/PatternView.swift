@@ -64,28 +64,65 @@ struct PatternView: View {
     // MARK: - Controls
 
     private var controlsBar: some View {
-        HStack(spacing: DS.Space.md) {
-            layerToggle
-            stepSizePicker
-            Spacer(minLength: 0)
-            actionButton("Save", systemImage: "square.and.arrow.down") {
-                showSaveDialog = true
-                Haptics.select()
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DS.Space.md) {
+                layerToggle
+                stepSizePicker
+                subdivisionPicker
+                Spacer(minLength: DS.Space.md)
+                actionButton("Save", systemImage: "square.and.arrow.down") {
+                    showSaveDialog = true
+                    Haptics.select()
+                }
+                actionButton("Library", systemImage: "tray.full") {
+                    showLibrary = true
+                    Haptics.select()
+                }
+                actionButton(isBouncing ? "Bouncing…" : "Bounce",
+                             systemImage: isBouncing ? "stop.circle.fill" : "waveform.path.badge.plus",
+                             destructive: isBouncing,
+                             action: toggleBounce)
+                actionButton("Clear", systemImage: "trash") {
+                    sequencer.clear()
+                    Haptics.notify(.warning)
+                    show(.warning, "Pattern cleared")
+                }
             }
-            actionButton("Library", systemImage: "tray.full") {
-                showLibrary = true
-                Haptics.select()
-            }
-            actionButton(isBouncing ? "Bouncing…" : "Bounce",
-                         systemImage: isBouncing ? "stop.circle.fill" : "waveform.path.badge.plus",
-                         destructive: isBouncing,
-                         action: toggleBounce)
-            actionButton("Clear", systemImage: "trash") {
-                sequencer.clear()
-                Haptics.notify(.warning)
-                show(.warning, "Pattern cleared")
-            }
+            .padding(.horizontal, DS.Space.xs)
         }
+    }
+
+    private var subdivisionPicker: some View {
+        Menu {
+            ForEach(Sequencer.Subdivision.allCases) { s in
+                Button {
+                    sequencer.subdivision = s
+                    Haptics.select()
+                } label: {
+                    HStack {
+                        Text(s.rawValue)
+                        if sequencer.subdivision == s {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: DS.Space.xs) {
+                Image(systemName: "music.note").imageScale(.small)
+                Text(sequencer.subdivision.rawValue)
+                    .font(DS.font(.caption, weight: .semibold, monospaced: true))
+                Image(systemName: "chevron.down").imageScale(.small)
+            }
+            .padding(.horizontal, DS.Space.md)
+            .frame(minHeight: DS.minTarget)
+            .background(Capsule().fill(app.theme.semantic.surface))
+            .overlay(Capsule().stroke(app.theme.semantic.hairline))
+            .foregroundStyle(app.theme.semantic.ink)
+        }
+        .a11y("Subdivision", value: sequencer.subdivision.rawValue,
+              hint: "Sets rhythmic resolution. Use 1/16t for sixteenth triplets.")
     }
 
     private var layerToggle: some View {
@@ -164,29 +201,103 @@ struct PatternView: View {
     private var grid: some View {
         let rows = 8
         let steps = sequencer.stepCount.rawValue
+        let labelWidth: CGFloat = 36
         return GeometryReader { geo in
             let gap: CGFloat = 4
             let cellH = (geo.size.height - gap * CGFloat(rows + 1)) / CGFloat(rows)
-            let fitWidth = (geo.size.width - gap * CGFloat(steps + 1)) / CGFloat(steps)
+            let fitWidth = (geo.size.width - labelWidth - gap * CGFloat(steps + 1)) / CGFloat(steps)
             let cellW = max(28, fitWidth)
             let size = min(cellW, max(28, cellH))
             let needsScroll = cellW > fitWidth
-            let body = VStack(spacing: gap) {
-                ForEach(0..<rows, id: \.self) { row in
-                    HStack(spacing: gap) {
-                        ForEach(0..<steps, id: \.self) { step in
-                            cell(row: row, step: step)
-                                .frame(width: size, height: size)
+            HStack(alignment: .top, spacing: gap) {
+                rowLabels(rows: rows, size: size, gap: gap, width: labelWidth)
+                cellsBody(rows: rows, steps: steps, size: size, gap: gap, needsScroll: needsScroll)
+            }
+            .padding(gap)
+        }
+    }
+
+    private func rowLabels(rows: Int, size: CGFloat, gap: CGFloat, width: CGFloat) -> some View {
+        VStack(spacing: gap) {
+            ForEach(0..<rows, id: \.self) { row in
+                rowLabel(row: row)
+                    .frame(width: width, height: size)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func rowLabel(row: Int) -> some View {
+        let isSynth = sequencer.layer == .synth
+        let text: String = {
+            if isSynth, row < sequencer.synthRowPitches.count {
+                return sequencer.synthRowPitches[row].label
+            }
+            if !isSynth, let kind = DrumKind(rawValue: row) {
+                return kind.label.uppercased()
+            }
+            return ""
+        }()
+        Menu {
+            if isSynth {
+                ForEach(synthPitchOptions, id: \.midi) { p in
+                    Button {
+                        sequencer.synthRowPitches[row] = p
+                        Haptics.select()
+                    } label: {
+                        HStack {
+                            Text(p.label)
+                            if sequencer.synthRowPitches[row].id == p.id {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
                         }
                     }
                 }
             }
-            .padding(gap)
-            if needsScroll {
-                ScrollView(.horizontal, showsIndicators: false) { body }
-            } else {
-                body
+        } label: {
+            Text(text)
+                .font(DS.font(.micro, weight: .semibold, monospaced: true))
+                .foregroundStyle(app.theme.semantic.inkMuted)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(app.theme.semantic.surface.opacity(0.6))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(app.theme.semantic.hairline)
+                )
+        }
+        .a11y(text, hint: isSynth ? "Tap to change the pitch this row plays." : "")
+    }
+
+    private var synthPitchOptions: [NotePitch] {
+        var out: [NotePitch] = []
+        for octave in 2...6 {
+            for n in 0..<12 {
+                out.append(NotePitch(note: n, octave: octave))
             }
+        }
+        return out
+    }
+
+    @ViewBuilder
+    private func cellsBody(rows: Int, steps: Int, size: CGFloat, gap: CGFloat, needsScroll: Bool) -> some View {
+        let inner = VStack(spacing: gap) {
+            ForEach(0..<rows, id: \.self) { row in
+                HStack(spacing: gap) {
+                    ForEach(0..<steps, id: \.self) { step in
+                        cell(row: row, step: step)
+                            .frame(width: size, height: size)
+                    }
+                }
+            }
+        }
+        if needsScroll {
+            ScrollView(.horizontal, showsIndicators: false) { inner }
+        } else {
+            inner
         }
     }
 
@@ -236,10 +347,12 @@ struct PatternView: View {
             return
         }
         let stamp = Int(Date().timeIntervalSince1970)
+        let ext = app.preferredExportFormat.rawValue
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("bounce-\(stamp).m4a")
+            .appendingPathComponent("bounce-\(stamp).\(ext)")
+        let fmt: AudioEngine.RenderFormat = app.preferredExportFormat == .wav ? .wav : .m4a
         do {
-            try app.audio.startTrackRender(to: url)
+            try app.audio.startTrackRender(to: url, format: fmt)
             sequencer.play()
             isBouncing = true
             Haptics.tap(.medium)
