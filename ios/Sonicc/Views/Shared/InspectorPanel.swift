@@ -1,15 +1,17 @@
 import SwiftUI
 
-/// FX toggles + ADSR + filter knobs. Used by both the iPad inspector and
-/// the iPhone settings sheet.
+/// FX toggles + ADSR + filter knobs. Lives as a thin right-rail on iPad
+/// (~200pt wide) and as a settings sheet on iPhone. All sections collapse
+/// to a single-column vertical layout so they fit a narrow rail cleanly.
 struct InspectorPanel: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 18) {
                 section("WAVEFORM") {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 80), spacing: 6)], spacing: 6) {
+                    // Two compact columns of pills — readable at ~180pt, comfy at ~220pt.
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 6)], spacing: 6) {
                         ForEach(Waveform.allCases) { w in
                             Button {
                                 var s = app.synth
@@ -19,7 +21,7 @@ struct InspectorPanel: View {
                                 Text(w.displayName)
                                     .font(.system(size: 11, design: .monospaced))
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
+                                    .padding(.vertical, 7)
                                     .background(app.synth.waveform == w ? app.theme.accent : app.theme.surface)
                                     .foregroundStyle(app.synth.waveform == w ? .white : app.theme.text)
                                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(app.theme.border))
@@ -31,41 +33,54 @@ struct InspectorPanel: View {
                 }
 
                 section("ENVELOPE") {
-                    HStack {
-                        Knob(label: "ATTACK", value: $app.synth.attack, range: 0.001...2, defaultValue: 0.01)
-                        Knob(label: "DECAY", value: $app.synth.decay, range: 0.01...2, defaultValue: 0.2)
-                        Knob(label: "SUSTAIN", value: $app.synth.sustain, range: 0...1, defaultValue: 0.7)
-                        Knob(label: "RELEASE", value: $app.synth.release, range: 0.01...3, defaultValue: 0.3)
-                    }
+                    sliderRow("ATTACK",  value: $app.synth.attack,     range: 0.001...2)
+                    sliderRow("DECAY",   value: $app.synth.decay,      range: 0.01...2)
+                    sliderRow("SUSTAIN", value: $app.synth.sustain,    range: 0...1)
+                    sliderRow("RELEASE", value: $app.synth.release,    range: 0.01...3)
                 }
 
                 section("FILTER") {
-                    HStack {
-                        Knob(label: "CUTOFF", value: $app.synth.filterFreq, range: 50...15000, defaultValue: 4000) { String(format: "%.0fHz", $0) }
-                        Knob(label: "RES", value: $app.synth.filterRes, range: 0.1...20, defaultValue: 1.0)
-                        Knob(label: "VOL", value: $app.synth.volume, range: 0...1, defaultValue: 0.7)
-                        Knob(label: "PAN", value: $app.synth.pan, range: -1...1, defaultValue: 0)
-                    }
+                    sliderRow("CUTOFF", value: $app.synth.filterFreq, range: 50...15000, format: "%.0fHz")
+                    sliderRow("RES",    value: $app.synth.filterRes,  range: 0.1...20)
+                    sliderRow("VOL",    value: $app.synth.volume,     range: 0...1)
+                    sliderRow("PAN",    value: $app.synth.pan,        range: -1...1)
                 }
 
                 section("FX") {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 6)], spacing: 6) {
-                        fxToggle("Reverb", \.reverb)
-                        fxToggle("Delay", \.delay)
+                    VStack(spacing: 4) {
+                        fxToggle("Reverb",     \.reverb)
+                        fxToggle("Delay",      \.delay)
                         fxToggle("Distortion", \.distortion)
-                        fxToggle("Lo-Fi", \.lofi)
-                        fxToggle("Chorus", \.chorus)
-                        fxToggle("Phaser", \.phaser)
+                        fxToggle("Lo-Fi",      \.lofi)
+                        fxToggle("Chorus",     \.chorus)
+                        fxToggle("Phaser",     \.phaser)
                         fxToggle("Compressor", \.compressor)
                         fxToggle("Bitcrusher", \.bitcrusher)
-                        fxToggle("Tremolo", \.tremolo)
-                        fxToggle("EQ", \.eq)
-                        fxToggle("Flanger", \.flanger)
-                        fxToggle("Autowah", \.autowah)
+                        fxToggle("Tremolo",    \.tremolo)
+                        fxToggle("EQ",         \.eq)
+                        fxToggle("Flanger",    \.flanger)
+                        fxToggle("Autowah",    \.autowah)
                     }
                 }
             }
-            .padding(16)
+            .padding(14)
+        }
+    }
+
+    @ViewBuilder
+    private func sliderRow(_ label: String, value: Binding<Double>, range: ClosedRange<Double>, format: String = "%.2f") -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack {
+                Text(label)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundStyle(app.theme.textMuted)
+                Spacer()
+                Text(String(format: format, value.wrappedValue))
+                    .font(.system(size: 10, design: .monospaced))
+                    .foregroundStyle(app.theme.textMuted.opacity(0.8))
+            }
+            Slider(value: value, in: range)
+                .tint(app.theme.accent)
         }
     }
 
@@ -78,13 +93,13 @@ struct InspectorPanel: View {
         } label: {
             HStack {
                 Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                 Text(label)
                     .font(.system(size: 11, design: .monospaced))
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             .background(isOn ? app.theme.accentSoft : app.theme.surface)
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(isOn ? app.theme.accent : app.theme.border))
             .foregroundStyle(isOn ? app.theme.accent : app.theme.textMuted)

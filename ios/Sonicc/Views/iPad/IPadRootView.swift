@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// iPad-native shell. Three-column NavigationSplitView so users see
-/// modes/presets, performance surface, and inspector all at once. The
-/// inspector is always visible by default on 12.9" iPad and collapses on
-/// 11" portrait, matching iPadOS norms.
+/// iPad-native shell. Sidebar (mode + presets) + performance surface
+/// (keyboard / drums / pattern / sampler) + a thin right rail with the
+/// patch inspector (waveform, envelope, filter, FX). The keyboard claims
+/// the bulk of the canvas; the inspector is glanceable, not dominant.
 struct IPadRootView: View {
     @EnvironmentObject var app: AppState
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
@@ -13,13 +13,15 @@ struct IPadRootView: View {
             HeaderBar()
             NavigationSplitView(columnVisibility: $columnVisibility) {
                 sidebar
-                    .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 320)
+                    .navigationSplitViewColumnWidth(min: 200, ideal: 240, max: 300)
             } content: {
                 center
                     .navigationSplitViewColumnWidth(min: 480, ideal: 700)
             } detail: {
                 InspectorPanel()
-                    .navigationSplitViewColumnWidth(min: 280, ideal: 360, max: 420)
+                    .frame(width: 200)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .navigationSplitViewColumnWidth(200)
             }
             .navigationSplitViewStyle(.balanced)
         }
