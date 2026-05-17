@@ -57,21 +57,30 @@ struct PatternView: View {
         let steps = sequencer.stepCount.rawValue
         return GeometryReader { geo in
             let gap: CGFloat = 4
-            let cellW = (geo.size.width - gap * CGFloat(steps + 1)) / CGFloat(steps)
+            // Target ~32pt per cell for comfortable tapping; if the grid would
+            // need to be smaller than that to fit, switch to horizontal scroll.
             let cellH = (geo.size.height - gap * CGFloat(rows + 1)) / CGFloat(rows)
-            let size = min(cellW, cellH)
-            VStack(spacing: gap) {
+            let fitWidth = (geo.size.width - gap * CGFloat(steps + 1)) / CGFloat(steps)
+            let minTouch: CGFloat = 32
+            let cellW = max(minTouch, fitWidth)
+            let size = min(cellW, max(minTouch, cellH))
+            let needsScroll = cellW > fitWidth
+            let body = VStack(spacing: gap) {
                 ForEach(0..<rows, id: \.self) { row in
                     HStack(spacing: gap) {
                         ForEach(0..<steps, id: \.self) { step in
                             cell(row: row, step: step)
                                 .frame(width: size, height: size)
                         }
-                        Spacer(minLength: 0)
                     }
                 }
             }
             .padding(gap)
+            if needsScroll {
+                ScrollView(.horizontal, showsIndicators: false) { body }
+            } else {
+                body
+            }
         }
     }
 

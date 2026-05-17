@@ -42,6 +42,7 @@
 		B00000000000000000000023 /* IPadRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000023 /* IPadRootView.swift */; };
 		B00000000000000000000024 /* IPhoneRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000024 /* IPhoneRootView.swift */; };
 		B00000000000000000000025 /* KeyboardShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000025 /* KeyboardShortcuts.swift */; };
+		B00000000000000000000026 /* MultiTouchKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00000000000000000000026 /* MultiTouchKeyboard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +84,7 @@
 		F00000000000000000000023 /* IPadRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPadRootView.swift; sourceTree = "<group>"; };
 		F00000000000000000000024 /* IPhoneRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRootView.swift; sourceTree = "<group>"; };
 		F00000000000000000000025 /* KeyboardShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcuts.swift; sourceTree = "<group>"; };
+		F00000000000000000000026 /* MultiTouchKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiTouchKeyboard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -240,6 +242,7 @@
 			isa = PBXGroup;
 			children = (
 				F0000000000000000000001B /* KeyboardView.swift */,
+				F00000000000000000000026 /* MultiTouchKeyboard.swift */,
 				F0000000000000000000001A /* DrumsView.swift */,
 				F0000000000000000000001D /* PatternView.swift */,
 				F0000000000000000000001E /* SamplerView.swift */,
@@ -379,6 +382,7 @@
 				B00000000000000000000023 /* IPadRootView.swift in Sources */,
 				B00000000000000000000024 /* IPhoneRootView.swift in Sources */,
 				B00000000000000000000025 /* KeyboardShortcuts.swift in Sources */,
+				B00000000000000000000026 /* MultiTouchKeyboard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

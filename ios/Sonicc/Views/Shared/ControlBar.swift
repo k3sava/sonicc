@@ -89,6 +89,7 @@ struct PresetPill: View {
 struct TransportControls: View {
     @EnvironmentObject var app: AppState
     @ObservedObject var sequencer: Sequencer
+    @State private var tapTimestamps: [Date] = []
 
     var body: some View {
         HStack(spacing: 6) {
@@ -136,6 +137,48 @@ struct TransportControls: View {
             .background(app.theme.surface)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(app.theme.border))
             .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Button {
+                tapTempo()
+            } label: {
+                Text("TAP")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .foregroundStyle(app.theme.text)
+                    .background(app.theme.surface)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(app.theme.border))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+            .buttonStyle(.plain)
+
+            HStack(spacing: 4) {
+                Text("SWING")
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(app.theme.textMuted)
+                Slider(value: $sequencer.swing, in: 0...0.5)
+                    .frame(width: 80)
+                Text("\(Int(sequencer.swing * 100))%")
+                    .font(.system(size: 9, design: .monospaced))
+                    .foregroundStyle(app.theme.textMuted)
+                    .frame(minWidth: 28, alignment: .trailing)
+            }
+        }
+    }
+
+    /// Tap tempo: average the interval between the last 4 taps to derive a BPM.
+    /// Taps older than 2 seconds are discarded so a fresh count starts cleanly.
+    private func tapTempo() {
+        let now = Date()
+        tapTimestamps.append(now)
+        tapTimestamps = tapTimestamps.filter { now.timeIntervalSince($0) < 2.0 }
+        if tapTimestamps.count >= 2 {
+            var diffs: [TimeInterval] = []
+            for i in 1..<tapTimestamps.count {
+                diffs.append(tapTimestamps[i].timeIntervalSince(tapTimestamps[i - 1]))
+            }
+            let avg = diffs.reduce(0, +) / Double(diffs.count)
+            let bpm = 60.0 / avg
+            sequencer.bpm = min(300, max(40, bpm))
         }
     }
 }

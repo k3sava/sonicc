@@ -85,8 +85,9 @@ final class Sequencer: ObservableObject {
     private func scheduleNextStep() {
         let q = DispatchQueue.global(qos: .userInteractive)
         let t = DispatchSource.makeTimerSource(queue: q)
-        let interval = stepInterval()
-        t.schedule(deadline: .now() + interval, repeating: interval)
+        // Schedule a *non-repeating* fire; each tick reschedules so the swing
+        // offset (which alternates per step) is applied to the next interval.
+        t.schedule(deadline: .now() + nextStepInterval())
         t.setEventHandler { [weak self] in
             Task { @MainActor in self?.tick() }
         }
@@ -94,17 +95,20 @@ final class Sequencer: ObservableObject {
         timer = t
     }
 
-    private func stepInterval() -> DispatchTimeInterval {
-        // 60 / bpm = beat seconds; 4 sixteenth-notes per beat
+    private func nextStepInterval() -> DispatchTimeInterval {
         let secondsPerStep = 60.0 / (bpm * 4.0)
-        let micros = Int(secondsPerStep * 1_000_000)
-        return .microseconds(micros)
+        // Swing pushes every off-beat step (odd index) later by up to half a step.
+        let isOffBeat = (currentStep + 1) % 2 != 0
+        let factor = isOffBeat ? (1.0 + swing) : (1.0 - swing)
+        let micros = Int(secondsPerStep * factor * 1_000_000)
+        return .microseconds(max(1, micros))
     }
 
     private func tick() {
         guard isPlaying else { return }
         currentStep = (currentStep + 1) % stepCount.rawValue
         firePadsAt(step: currentStep)
+        scheduleNextStep()
     }
 
     private func firePadsAt(step: Int) {
