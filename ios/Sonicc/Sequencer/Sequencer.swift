@@ -13,7 +13,30 @@ final class Sequencer: ObservableObject {
         var label: String { "\(rawValue)" }
     }
 
+    /// Rhythmic subdivision of a quarter note. 4 = sixteenth, 6 = triplet
+    /// sixteenth, 3 = eighth triplet, 2 = eighth. Multiplies the tick rate
+    /// per quarter.
+    enum Subdivision: String, CaseIterable, Identifiable {
+        case eighth      = "1/8"
+        case eighthT     = "1/8t"
+        case sixteenth   = "1/16"
+        case sixteenthT  = "1/16t"
+        case thirtySec   = "1/32"
+
+        var id: String { rawValue }
+        var stepsPerQuarter: Double {
+            switch self {
+            case .eighth: return 2
+            case .eighthT: return 3
+            case .sixteenth: return 4
+            case .sixteenthT: return 6
+            case .thirtySec: return 8
+            }
+        }
+    }
+
     @Published var stepCount: StepSize = .s16
+    @Published var subdivision: Subdivision = .sixteenth
     @Published var bpm: Double = 120
     @Published var swing: Double = 0 // 0..1
     @Published var isPlaying: Bool = false
@@ -23,8 +46,20 @@ final class Sequencer: ObservableObject {
 
     @Published var synthGrid: SequencerGrid = SequencerGrid(rows: 8, steps: 16)
     @Published var drumGrid: SequencerGrid = SequencerGrid(rows: 8, steps: 16)
-    /// Per-step note pitches recorded by the user (only synth layer).
+    /// Per-step note pitches recorded by the user via real-time record.
     @Published var synthNotes: [Int: NotePitch] = [:]
+    /// One pitch per row of the synth grid — top row = highest, bottom row
+    /// = lowest. Default is a C major scale across one octave.
+    @Published var synthRowPitches: [NotePitch] = [
+        NotePitch(note: 0,  octave: 5), // C5
+        NotePitch(note: 11, octave: 4), // B4
+        NotePitch(note: 9,  octave: 4), // A4
+        NotePitch(note: 7,  octave: 4), // G4
+        NotePitch(note: 5,  octave: 4), // F4
+        NotePitch(note: 4,  octave: 4), // E4
+        NotePitch(note: 2,  octave: 4), // D4
+        NotePitch(note: 0,  octave: 4), // C4
+    ]
 
     private weak var audio: AudioEngine?
     private weak var state: AppState?
@@ -154,8 +189,9 @@ final class Sequencer: ObservableObject {
     }
 
     private func nextStepInterval() -> DispatchTimeInterval {
-        let secondsPerStep = 60.0 / (bpm * 4.0)
-        // Swing pushes every off-beat step (odd index) later by up to half a step.
+        // stepsPerQuarter from the active Subdivision; e.g. 4 for sixteenth,
+        // 6 for sixteenth-triplet. So secondsPerStep = 60 / (bpm * sPQ).
+        let secondsPerStep = 60.0 / (bpm * subdivision.stepsPerQuarter)
         let isOffBeat = (currentStep + 1) % 2 != 0
         let factor = isOffBeat ? (1.0 + swing) : (1.0 - swing)
         let micros = Int(secondsPerStep * factor * 1_000_000)
@@ -171,12 +207,19 @@ final class Sequencer: ObservableObject {
 
     private func firePadsAt(step: Int) {
         guard let audio else { return }
-        // Synth layer: triggers a stored pitch if present and the row is lit.
-        if synthGrid.anyOn(at: step) {
-            let pitch = synthNotes[step] ?? NotePitch(note: 0, octave: 4)
-            let synth = state?.synth ?? SynthState()
-            audio.noteOn(pitch: pitch, velocity: 1, synth: synth)
-            // Quick auto-noteoff so the sequencer doesn't hold notes.
+        let synth = state?.synth ?? SynthState()
+        // Synth layer: every lit row triggers its own pitch — top row is
+        // the highest, bottom is the lowest. If a real-time recording put
+        // a specific pitch on this step, that overrides the row mapping
+        // (only when the bottom row is the one lit, matching the recorder).
+        for row in 0..<8 where synthGrid.isOn(row: row, step: step) {
+            let pitch: NotePitch
+            if row == 0, let recorded = synthNotes[step] {
+                pitch = recorded
+            } else {
+                pitch = row < synthRowPitches.count ? synthRowPitches[row] : NotePitch(note: 0, octave: 4)
+            }
+            audio.noteOn(pitch: pitch, velocity: 0.9, synth: synth)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { [weak audio] in
                 audio?.noteOff(pitch: pitch)
             }

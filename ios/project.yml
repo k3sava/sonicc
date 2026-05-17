@@ -49,8 +49,7 @@ targets:
     info:
       path: Sonicc/Info.plist
       properties:
-        UILaunchScreen:
-          UIColorName: ""
+        UILaunchStoryboardName: LaunchScreen
         UIRequiresFullScreen: true
         UIStatusBarStyle: UIStatusBarStyleDefault
         UIUserInterfaceStyle: Light

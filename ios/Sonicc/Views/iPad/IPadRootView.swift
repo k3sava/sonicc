@@ -5,10 +5,11 @@ import SwiftUI
 /// keyboard and pattern grid get the full screen width.
 struct IPadRootView: View {
     @EnvironmentObject var app: AppState
+    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
-            HeaderBar()
+            HeaderBar(onSettings: { showSettings = true })
             ControlBar(sequencer: app.sequencer)
             InspectorStrip()
             currentMode
@@ -16,6 +17,16 @@ struct IPadRootView: View {
                 .background(app.theme.bg)
         }
         .background(app.theme.bg)
+        .sheet(isPresented: Binding(
+            get: { !app.hasOnboarded },
+            set: { _ in }
+        )) {
+            WelcomeSheet()
+                .interactiveDismissDisabled(true)
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsSheet()
+        }
     }
 
     @ViewBuilder

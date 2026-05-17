@@ -4,6 +4,7 @@ import SwiftUI
 /// so the play surface gets every pixel below it.
 struct HeaderBar: View {
     @EnvironmentObject var app: AppState
+    var onSettings: (() -> Void)? = nil
 
     var body: some View {
         HStack(spacing: DS.Space.md) {
@@ -22,6 +23,19 @@ struct HeaderBar: View {
                     .a11y("MIDI connected")
             }
             ThemePicker()
+            if let onSettings {
+                Button {
+                    onSettings()
+                    Haptics.select()
+                } label: {
+                    Image(systemName: "gearshape")
+                        .imageScale(.medium)
+                        .frame(width: DS.minTarget, height: DS.minTarget)
+                        .foregroundStyle(app.theme.semantic.ink)
+                        .contentShape(Rectangle())
+                }
+                .a11y("Settings")
+            }
         }
         .padding(.horizontal, DS.Space.lg)
         .frame(height: 52)

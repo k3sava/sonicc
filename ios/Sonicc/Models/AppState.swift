@@ -25,6 +25,43 @@ final class AppState: ObservableObject {
     // Notes that are released by user touch but still held by sustain.
     @Published var sustainedNotes: Set<NotePitch> = []
 
+    // MARK: - User preferences (persisted via UserDefaults)
+
+    @Published var masterVolume: Double {
+        didSet {
+            audio.masterGain.outputVolume = Float(masterVolume)
+            UserDefaults.standard.set(masterVolume, forKey: "sonicc.pref.masterVolume")
+        }
+    }
+    @Published var hapticsEnabled: Bool {
+        didSet {
+            Haptics.enabled = hapticsEnabled
+            UserDefaults.standard.set(hapticsEnabled, forKey: "sonicc.pref.haptics")
+        }
+    }
+    @Published var preferredExportFormat: ExportFormat {
+        didSet {
+            UserDefaults.standard.set(preferredExportFormat.rawValue, forKey: "sonicc.pref.exportFormat")
+        }
+    }
+    @Published var hasOnboarded: Bool {
+        didSet {
+            UserDefaults.standard.set(hasOnboarded, forKey: "sonicc.pref.hasOnboarded")
+        }
+    }
+
+    enum ExportFormat: String, CaseIterable, Identifiable {
+        case m4a = "m4a"
+        case wav = "wav"
+        var id: String { rawValue }
+        var displayName: String {
+            switch self {
+            case .m4a: return "M4A (small, AAC)"
+            case .wav: return "WAV (uncompressed, for DAWs)"
+            }
+        }
+    }
+
     func setTheme(_ theme: AppTheme) {
         self.theme = theme
         UserDefaults.standard.set(theme.id, forKey: AppTheme.storageKey)
@@ -58,6 +95,15 @@ final class AppState: ObservableObject {
     init() {
         let savedID = UserDefaults.standard.string(forKey: AppTheme.storageKey)
         self.theme = AppTheme.all.first(where: { $0.id == savedID }) ?? .default
+        // Load preferences (with sane defaults)
+        let mv = UserDefaults.standard.object(forKey: "sonicc.pref.masterVolume") as? Double ?? 0.85
+        self.masterVolume = mv
+        let hp = UserDefaults.standard.object(forKey: "sonicc.pref.haptics") as? Bool ?? true
+        self.hapticsEnabled = hp
+        Haptics.enabled = hp
+        let ef = UserDefaults.standard.string(forKey: "sonicc.pref.exportFormat") ?? "m4a"
+        self.preferredExportFormat = ExportFormat(rawValue: ef) ?? .m4a
+        self.hasOnboarded = UserDefaults.standard.bool(forKey: "sonicc.pref.hasOnboarded")
         sequencer.bind(audio: audio, state: self)
         midi.bind(audio: audio, sequencer: sequencer, state: self)
         applyPreset(id: currentPresetID)
