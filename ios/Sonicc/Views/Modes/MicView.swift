@@ -1,74 +1,36 @@
 import SwiftUI
 import AVFoundation
 
+/// Microphone mode — record, preview, save, send to sampler. Big level
+/// meter, prominent record button, clear toast feedback after every
+/// action so the player always knows what happened.
 struct MicView: View {
     @EnvironmentObject var app: AppState
     @ObservedObject var mic: MicrophoneRecorder
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @StateObject private var library = RecordingLibrary.shared
     @State private var showSaveDialog: Bool = false
     @State private var saveName: String = ""
     @State private var showLibrary: Bool = false
-    @State private var toast: String?
+    @State private var toast: PatternView.ToastMessage?
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: DS.Space.lg) {
+            Spacer(minLength: 0)
             levelMeter
-                .frame(height: 16)
-            Text(timeString(mic.elapsed))
-                .font(.system(size: 32, weight: .semibold, design: .monospaced))
-                .foregroundStyle(app.theme.text)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    Button(action: toggleRecord) {
-                        actionLabel(
-                            mic.isRecording ? "Stop" : "Record",
-                            symbol: mic.isRecording ? "stop.fill" : "record.circle.fill",
-                            background: mic.isRecording ? Color.red : app.theme.accent,
-                            foreground: .white
-                        )
-                    }
-                    .buttonStyle(.plain)
-
-                    actionButton("Preview", symbol: "play.fill", action: mic.preview)
-                        .disabled(mic.lastBuffer == nil)
-
-                    actionButton("Save", symbol: "square.and.arrow.down") {
-                        showSaveDialog = true
-                    }
-                    .disabled(mic.lastBuffer == nil)
-
-                    actionButton("To sampler", symbol: "scissors") {
-                        mic.sendToSampler(app.sampler)
-                        app.mode = .sampler
-                    }
-                    .disabled(mic.lastBuffer == nil)
-
-                    actionButton("Clear", symbol: "trash") {
-                        mic.clear()
-                    }
-                    .disabled(mic.lastBuffer == nil)
-                }
-                .padding(.horizontal, 4)
+                .frame(height: 18)
+            timer
+            actionButtons
+            librarySummary
+            if let toast {
+                ToastView(message: toast)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-
-            HStack {
-                Button { showLibrary = true } label: {
-                    Label("\(library.recordings.count) saved", systemImage: "tray.full")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(app.theme.textMuted)
-                }
-                .buttonStyle(.plain)
-                if let toast {
-                    Text(toast)
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(app.theme.accent)
-                        .transition(.opacity)
-                }
-            }
+            Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(16)
+        .padding(DS.Space.lg)
+        .animation(DS.ease(reduceMotion: reduceMotion), value: toast)
         .alert("Save recording", isPresented: $showSaveDialog) {
             TextField("Name", text: $saveName)
             Button("Save", action: persistRecording)
@@ -79,7 +41,125 @@ struct MicView: View {
         .sheet(isPresented: $showLibrary) {
             RecordingLibrarySheet(library: library, onPlay: playRecording)
         }
-        .animation(.easeInOut, value: toast)
+    }
+
+    // MARK: - Level + timer
+
+    private var levelMeter: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(app.theme.semantic.surface)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(app.theme.semantic.hairline))
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(LinearGradient(colors: [app.theme.semantic.accent,
+                                                  app.theme.semantic.destructive],
+                                          startPoint: .leading, endPoint: .trailing))
+                    .frame(width: geo.size.width * CGFloat(mic.level))
+                    .animation(reduceMotion ? .linear(duration: 0.001) : .easeOut(duration: 0.05),
+                               value: mic.level)
+            }
+        }
+        .a11y("Input level", value: "\(Int(mic.level * 100)) percent")
+    }
+
+    private var timer: some View {
+        Text(timeString(mic.elapsed))
+            .font(.system(.largeTitle, design: .monospaced).weight(.semibold))
+            .foregroundStyle(mic.isRecording ? app.theme.semantic.destructive : app.theme.semantic.ink)
+            .contentTransition(.numericText())
+            .a11y("Elapsed", value: timeString(mic.elapsed))
+    }
+
+    // MARK: - Actions
+
+    private var actionButtons: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: DS.Space.sm) {
+                recordButton
+                actionButton("Preview", systemImage: "play.fill", action: mic.preview)
+                    .disabled(mic.lastBuffer == nil)
+                actionButton("Save", systemImage: "square.and.arrow.down") {
+                    showSaveDialog = true
+                    Haptics.select()
+                }
+                .disabled(mic.lastBuffer == nil)
+                actionButton("To Sampler", systemImage: "scissors") {
+                    mic.sendToSampler(app.sampler)
+                    app.mode = .sampler
+                    Haptics.notify(.success)
+                    show(.success, "Loaded into sampler")
+                }
+                .disabled(mic.lastBuffer == nil)
+                actionButton("Clear", systemImage: "trash", destructive: true) {
+                    mic.clear()
+                    Haptics.notify(.warning)
+                }
+                .disabled(mic.lastBuffer == nil)
+            }
+            .padding(.horizontal, DS.Space.xs)
+        }
+    }
+
+    private var recordButton: some View {
+        Button(action: toggleRecord) {
+            HStack(spacing: DS.Space.xs) {
+                Image(systemName: mic.isRecording ? "stop.fill" : "record.circle.fill")
+                    .imageScale(.medium)
+                Text(mic.isRecording ? "Stop" : "Record")
+                    .font(DS.font(.label, weight: .semibold))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .padding(.horizontal, DS.Space.lg)
+            .frame(minHeight: DS.minTarget + 4)
+            .background(Capsule().fill(mic.isRecording ? app.theme.semantic.destructive : app.theme.semantic.accent))
+            .foregroundStyle(Color.white)
+        }
+        .buttonStyle(.plain)
+        .a11y(mic.isRecording ? "Stop recording" : "Start recording")
+    }
+
+    @ViewBuilder
+    private func actionButton(_ text: String, systemImage: String,
+                              destructive: Bool = false,
+                              action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: DS.Space.xs) {
+                Image(systemName: systemImage).imageScale(.small)
+                Text(text)
+                    .font(DS.font(.label, weight: .medium))
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .padding(.horizontal, DS.Space.md)
+            .frame(minHeight: DS.minTarget)
+            .foregroundStyle(destructive ? app.theme.semantic.destructive : app.theme.semantic.ink)
+            .background(Capsule().fill(app.theme.semantic.surface))
+            .overlay(Capsule().stroke(destructive ? app.theme.semantic.destructive : app.theme.semantic.hairline))
+        }
+        .buttonStyle(.plain)
+        .a11y(text)
+    }
+
+    private var librarySummary: some View {
+        Button { showLibrary = true; Haptics.select() } label: {
+            Label("\(library.recordings.count) saved · open library",
+                  systemImage: "tray.full")
+                .font(DS.font(.caption, monospaced: true))
+                .foregroundStyle(app.theme.semantic.inkMuted)
+                .frame(minHeight: 32)
+        }
+        .buttonStyle(.plain)
+        .a11y("Saved recordings", value: "\(library.recordings.count)",
+              hint: "Opens your recording library.")
+    }
+
+    // MARK: - Actions
+
+    private func toggleRecord() {
+        if mic.isRecording { mic.stop(); Haptics.notify(.success) }
+        else { mic.start(); Haptics.tap(.heavy) }
     }
 
     private func persistRecording() {
@@ -88,14 +168,12 @@ struct MicView: View {
         do {
             let tmpURL = try mic.writeToDisk()
             if let rec = library.adopt(from: tmpURL, name: name) {
-                toast = "Saved \"\(rec.name)\""
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    if toast?.contains(rec.name) == true { toast = nil }
-                }
+                show(.success, "Saved \"\(rec.name)\"")
+                Haptics.notify(.success)
             }
         } catch {
-            toast = "Save failed"
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { toast = nil }
+            show(.warning, "Save failed")
+            Haptics.notify(.error)
         }
     }
 
@@ -109,46 +187,16 @@ struct MicView: View {
             try file.read(into: buffer)
             app.audio.playSample(buffer)
         } catch {
-            toast = "Playback failed"
+            show(.warning, "Playback failed")
         }
     }
 
-    private var levelMeter: some View {
-        GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(app.theme.surface)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(app.theme.border))
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(LinearGradient(colors: [app.theme.accent, .red], startPoint: .leading, endPoint: .trailing))
-                    .frame(width: geo.size.width * CGFloat(mic.level))
-                    .animation(.easeOut(duration: 0.05), value: mic.level)
-            }
+    private func show(_ kind: PatternView.ToastMessage.Kind, _ text: String) {
+        toast = PatternView.ToastMessage(text: text, kind: kind)
+        let token = toast?.id
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) {
+            if toast?.id == token { toast = nil }
         }
-    }
-
-    private func toggleRecord() {
-        if mic.isRecording { mic.stop() } else { mic.start() }
-    }
-
-    @ViewBuilder
-    private func actionButton(_ text: String, symbol: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            actionLabel(text, symbol: symbol, background: app.theme.surface, foreground: app.theme.text)
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func actionLabel(_ text: String, symbol: String, background: Color, foreground: Color) -> some View {
-        Label(text, systemImage: symbol)
-            .font(.system(size: 13, weight: .medium))
-            .lineLimit(1)
-            .fixedSize(horizontal: true, vertical: false)
-            .padding(.horizontal, 16).padding(.vertical, 10)
-            .background(background)
-            .foregroundStyle(foreground)
-            .overlay(Capsule().stroke(background == app.theme.surface ? app.theme.border : .clear))
-            .clipShape(Capsule())
     }
 
     private func timeString(_ t: TimeInterval) -> String {

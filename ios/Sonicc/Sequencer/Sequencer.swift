@@ -34,6 +34,29 @@ final class Sequencer: ObservableObject {
     func bind(audio: AudioEngine, state: AppState) {
         self.audio = audio
         self.state = state
+        restoreWorking()
+    }
+
+    // MARK: - Auto-save working pattern (never lose work)
+
+    private static let workingKey = "sonicc.sequencer.working"
+
+    /// Save the current sequencer state to UserDefaults under a single key.
+    /// Called on every cell toggle, layer change, step-size change.
+    func saveWorking() {
+        let snapshot = snapshot(named: "_working")
+        if let data = try? JSONEncoder().encode(snapshot) {
+            UserDefaults.standard.set(data, forKey: Self.workingKey)
+        }
+    }
+
+    /// Restore the last-saved working pattern, if any. Called from bind().
+    private func restoreWorking() {
+        guard let data = UserDefaults.standard.data(forKey: Self.workingKey),
+              let snapshot = try? JSONDecoder().decode(SavedPattern.self, from: data) else {
+            return
+        }
+        restore(snapshot)
     }
 
     func setStepCount(_ size: StepSize) {
@@ -42,6 +65,7 @@ final class Sequencer: ObservableObject {
         drumGrid.resize(steps: size.rawValue)
         synthNotes = synthNotes.filter { $0.key < size.rawValue }
         if currentStep >= size.rawValue { currentStep = 0 }
+        saveWorking()
     }
 
     func play() {
@@ -66,6 +90,7 @@ final class Sequencer: ObservableObject {
         case .synth: synthGrid.toggle(row: row, step: step)
         case .drum: drumGrid.toggle(row: row, step: step)
         }
+        saveWorking()
     }
 
     func recordNote(pitch: NotePitch) {
@@ -80,6 +105,7 @@ final class Sequencer: ObservableObject {
         synthGrid.clear()
         drumGrid.clear()
         synthNotes.removeAll()
+        saveWorking()
     }
 
     // MARK: - Snapshot / restore

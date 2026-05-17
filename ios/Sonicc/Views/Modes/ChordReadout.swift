@@ -1,13 +1,11 @@
 import SwiftUI
 
-/// Fills the breathing room between the transport bar and the keyboard.
-/// Held notes drive a live chord recognizer: 1 note → big note name,
-/// 2 notes → interval, 3+ notes → chord with quality (maj/min/dim/aug,
-/// 7ths, sus, add). Below the headline, a recent-notes ticker remembers
-/// the last 12 pitches played, so the player can see the last bar or two
-/// of what they touched without looking down at the keys.
+/// Lives between the performance bar and the keyboard. When notes are
+/// held it shows a big serif chord name + held-note pills. When idle,
+/// it shows a soft prompt + the recent-notes ticker.
 struct ChordReadout: View {
     @EnvironmentObject var app: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var recent: [Recent] = []
 
     private struct Recent: Identifiable {
@@ -17,101 +15,103 @@ struct ChordReadout: View {
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: DS.Space.xs) {
             chordHeadline
             heldRow
             Spacer(minLength: 0)
             recentRow
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, DS.Space.md)
+        .padding(.vertical, DS.Space.sm)
+        .background(
+            RoundedRectangle(cornerRadius: DS.Radius.card)
+                .fill(app.theme.semantic.surface.opacity(0.6))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DS.Radius.card)
+                .stroke(app.theme.semantic.hairline)
+        )
         .onChange(of: app.heldNotes) { _, new in
-            // Track every new pitch as it gets held — the ticker grows
-            // monotonically while you play.
             for pitch in new where !recent.contains(where: { $0.pitch == pitch }) {
                 recent.append(Recent(pitch: pitch, at: .now))
-                if recent.count > 12 { recent.removeFirst(recent.count - 12) }
+                if recent.count > 16 { recent.removeFirst(recent.count - 16) }
             }
         }
     }
-
-    // MARK: - Headline
 
     private var chordHeadline: some View {
         let label = ChordNamer.name(for: app.heldNotes)
-        return Text(label.isEmpty ? "—" : label)
-            .font(.system(size: 44, weight: .semibold, design: .serif))
-            .foregroundStyle(label.isEmpty ? app.theme.textMuted.opacity(0.4) : app.theme.text)
+        return Text(label.isEmpty ? "play a chord" : label)
+            .font(.system(.title2, design: .serif).weight(.semibold))
+            .foregroundStyle(label.isEmpty ? app.theme.semantic.inkMuted : app.theme.semantic.ink)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
-            .animation(.easeInOut(duration: 0.15), value: label)
+            .animation(DS.ease(reduceMotion: reduceMotion, duration: 0.18), value: label)
             .frame(maxWidth: .infinity)
     }
 
-    // MARK: - Held pills
-
     private var heldRow: some View {
         let sorted = app.heldNotes.sorted { $0.midi < $1.midi }
-        return HStack(spacing: 6) {
+        return HStack(spacing: 4) {
             if sorted.isEmpty {
-                Text("press a key")
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundStyle(app.theme.textMuted.opacity(0.6))
+                EmptyView()
             } else {
                 ForEach(sorted, id: \.id) { p in
                     Text(p.label)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(app.theme.accent.opacity(0.15))
-                        .foregroundStyle(app.theme.accent)
-                        .clipShape(Capsule())
+                        .font(DS.font(.caption, weight: .medium, monospaced: true))
+                        .padding(.horizontal, DS.Space.sm)
+                        .padding(.vertical, DS.Space.xxs)
+                        .background(Capsule().fill(app.theme.semantic.accentSoft))
+                        .foregroundStyle(app.theme.semantic.accent)
                 }
             }
         }
-        .frame(maxWidth: .infinity)
+        .frame(minHeight: 22)
     }
-
-    // MARK: - Recent ticker
 
     private var recentRow: some View {
         HStack(spacing: 0) {
-            Text("LAST")
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundStyle(app.theme.textMuted)
-                .padding(.trailing, 8)
+            Text(recent.isEmpty ? "RECENT" : "LAST")
+                .font(DS.font(.micro, weight: .semibold, monospaced: true))
+                .tracking(1)
+                .foregroundStyle(app.theme.semantic.inkMuted)
+                .padding(.trailing, DS.Space.xs)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 4) {
-                    ForEach(recent.reversed()) { r in
-                        Text(r.pitch.label)
-                            .font(.system(size: 10, design: .monospaced))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .foregroundStyle(app.theme.textMuted)
-                            .overlay(
-                                Capsule().stroke(app.theme.border)
-                            )
+                HStack(spacing: 3) {
+                    if recent.isEmpty {
+                        Text("history of what you play appears here")
+                            .font(DS.font(.micro))
+                            .foregroundStyle(app.theme.semantic.inkMuted.opacity(0.7))
+                    } else {
+                        ForEach(recent.reversed()) { r in
+                            Text(r.pitch.label)
+                                .font(DS.font(.micro, monospaced: true))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 2)
+                                .foregroundStyle(app.theme.semantic.inkSoft)
+                                .overlay(Capsule().stroke(app.theme.semantic.hairline))
+                        }
                     }
                 }
             }
-            Spacer(minLength: 0)
             if !recent.isEmpty {
-                Button { recent.removeAll() } label: {
+                Button { recent.removeAll(); Haptics.tap(.soft) } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(app.theme.textMuted.opacity(0.6))
+                        .font(.caption)
+                        .foregroundStyle(app.theme.semantic.inkMuted.opacity(0.7))
+                        .padding(.leading, DS.Space.xs)
                 }
                 .buttonStyle(.plain)
+                .a11y("Clear recent notes")
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
 // MARK: - Chord naming
 
 enum ChordNamer {
-    /// Returns a chord/interval label for the given set of held notes.
-    /// Empty if nothing is held.
     static func name(for pitches: Set<NotePitch>) -> String {
         let sorted = pitches.sorted { $0.midi < $1.midi }
         guard let lowest = sorted.first else { return "" }
@@ -145,8 +145,6 @@ enum ChordNamer {
         ([0, 5, 7],     "sus4"),
     ]
 
-    /// Try each pitch as the potential root and look for a known interval
-    /// set match. First hit wins, ordered most-specific → most-generic.
     private static func chordLabel(for sorted: [NotePitch]) -> String? {
         let midis = sorted.map(\.midi)
         let pitchClasses = Set(midis.map { $0 % 12 })
