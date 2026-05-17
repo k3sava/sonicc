@@ -22,37 +22,40 @@ Paste each field into App Store Connect → My Apps → Sonicc → Distribution.
 
 ## Promotional text (170 char)
 
-> Now with pattern chain, triplet subdivisions, WAV export, and a built-in chord recognizer that names every chord you play.
+```
+Pattern chains, triplet subdivisions, WAV export, and a chord recognizer that names what you play as you play it.
+```
 
 ## Description (4000 char)
 
 ```
-sonicc is a real instrument built for your phone and your iPad.
+sonicc is a small synthesizer that sits in your pocket.
 
-Five sound surfaces, one tap apart:
+There are five surfaces. You move between them with a tap.
 
 KEYS
-Velocity-sensitive piano with a real pitch-bend wheel and a sustain pedal. Pick a scale and in-key notes glow softly so you can play without thinking. Hold three or four fingers and the chord recognizer names what you're playing — Cmaj7, Dm7♭5, sus4 — live as you play it.
+A piano with weight. Press near the top of a key for a soft note. Press near the bottom for a louder one. Pick a scale and the notes that belong glow softly so you don't have to think about which to play. Hold three or four fingers at once and the chord name shows up above the keys, in real time. Cmaj7. Dm7♭5. Gsus4. Pitch bend wheel. Sustain pedal. Velocity. The way a piano should feel.
 
 DRUMS
-Eight sound-designed kit elements with hit-pulse haptics. Tap, lay down a beat, hand off to the sequencer.
+Eight kit pieces with a haptic pulse on every hit. Kick. Snare. Hi-hat. Clap. Tom. Crash. Perc. Cowbell. Tap a few, hand the loop to the sequencer.
 
 PATTERN
-A real step sequencer. 8, 16, 32, or 64 steps. Subdivisions from 1/8 to 1/16-triplet. Swing. Auto-save. Per-row pitches so every cell is a melody, not just an on/off. Four song slots (A, B, C, D) chain into full arrangements. Bounce to M4A for sharing or WAV for Logic and Ableton.
+A step sequencer that remembers everything. Eight, sixteen, thirty-two, or sixty-four steps. Subdivisions from straight eighths down to sixteenth triplets. Swing. Every row plays its own pitch, so the grid is a melody, not a metronome. Four song slots, A through D, that chain into a full arrangement when you turn chain mode on. Bounce to M4A for sharing. Bounce to WAV for Logic or Ableton.
 
 SAMPLER
-Record any sound, slice it, drop it onto a pad, loop it.
+Record a sound. Trim it. Drop it onto one of four pads. Loop it. Play it.
 
 MIC
-Record vocals or anything in the room. Preview, save, share, or send to the sampler.
+Catch your voice or anything in the room. Preview. Save. Hand it to the sampler.
 
-WHY YOU'LL LIKE IT
-— No subscription. Seven-day trial, then a one-time payment. Yours forever.
-— Built for VoiceOver. Every control labeled, every value spoken.
-— Honors Dynamic Type, Reduce Motion, and your system haptic preference.
-— Universal app. iPhone and iPad, portrait and landscape.
-— Background audio, MIDI in, low-latency AVAudioEngine.
-— Auto-save on every change. You can't lose a pattern.
+Other things you might care about:
+
+— No subscription. Seven days free. One payment after that. Yours.
+— Built with VoiceOver in mind. Every control has a label, every value gets read aloud.
+— Honors Dynamic Type. Honors Reduce Motion. Honors your haptic preference.
+— Universal. iPhone and iPad. Portrait and landscape.
+— Plays in the background. Accepts MIDI. Low latency through AVAudioEngine.
+— Saves your pattern on every change. You can't lose work.
 
 Made by kami studios.
 ```
@@ -63,24 +66,21 @@ Made by kami studios.
 synth,piano,sequencer,drum machine,music maker,beat maker,chord,MIDI,recording,sampler
 ```
 
-## What's New in This Version (release notes — 4000 char)
+## What's New in This Version
 
 ### Version 1.0 (build 1)
 
 ```
 First release.
 
-Five performance surfaces — Keys, Drums, Pattern, Sampler, Mic — with a
-shared sound engine, MIDI in, auto-save, and clean export to M4A or WAV.
+Five surfaces with one shared sound engine. MIDI in. Auto-save. M4A or WAV export.
 
-Highlights:
-• Velocity-sensitive piano with scale picker, sustain, and a real
-  pitch-bend wheel
-• Live chord recognition (Cmaj7, Dm7♭5, sus4) right above the keyboard
-• 4 song slots with chain mode
-• Triplet and dotted subdivisions
-• WAV export for DAWs
-• Auto-save — your pattern survives every launch
+A few things worth knowing about this build:
+• Touch position on a key sets velocity, so the same finger gets soft and loud notes
+• Pick a key and a scale and stay in it without thinking
+• The chord above the keyboard names itself as you play
+• Pattern A through D chain into a song when you turn chain on
+• Triplet subdivisions for grooves the grid usually can't hold
 
 Welcome.
 ```
@@ -94,7 +94,7 @@ Welcome.
 | Privacy Policy URL | https://kami.studio/privacy |
 | Copyright | © 2026 kami studios |
 
-If the URLs don't resolve yet, point them to a single placeholder page at
+If the URLs don't resolve yet, point them at a placeholder at
 https://kami.studio so App Store Review doesn't reject. The links can be
 updated after the first build is approved.
 
@@ -106,8 +106,7 @@ In App Store Connect → App Privacy → Get Started:
 
 ### Does this app collect data from this app? **No**
 
-(The app uses the microphone and stores data locally only. Nothing is
-transmitted to any server, including ours.)
+The mic recording stays on the device. Nothing is transmitted to any server, including ours.
 
 ### Data Used to Track You: **None**
 ### Data Linked to You: **None**
@@ -115,8 +114,8 @@ transmitted to any server, including ours.)
 
 ### Privacy Practices Disclosures
 - App Functionality
-  - Audio data (for recording / playback only, **stays on device**)
-  - Microphone (for recording feature)
+  - Audio data (recording / playback only, stays on device)
+  - Microphone (recording feature only)
 
 ---
 
@@ -138,19 +137,17 @@ Sonicc Lifetime
 
 ### Description
 ```
-Unlock sonicc forever. One-time payment, no subscription. Available on
-every device signed in to your Apple ID. Family Sharing supported.
+Keep using sonicc after the seven-day trial. One payment. No subscription.
+Carries to every device signed in to your Apple ID. Family Sharing works.
 ```
 
 ### Review information
-- Screenshot: take from app's Settings → tap "Unlock sonicc" to open the
-  paywall. Upload a 1290×2796 PNG.
-- Review notes: "Non-consumable IAP. Unlocks all features permanently
-  after the in-app 7-day trial. Test via the in-app paywall."
+- Screenshot: open Settings inside the app, tap "Unlock sonicc" to reach the purchase sheet. Upload a 1290×2796 PNG.
+- Review notes: "Non-consumable. Unlocks all features after the in-app seven-day trial. Test from the paywall in Settings."
 
 ---
 
-## Marketing screenshots required by App Store Connect
+## Marketing screenshots App Store Connect requires
 
 | Device | Size | Count |
 |---|---|---|
@@ -158,31 +155,30 @@ every device signed in to your Apple ID. Family Sharing supported.
 | 6.7" iPhone | 1290 × 2796 | 3–10 |
 | 13" iPad Pro M5 | 2064 × 2752 | 3–10 |
 
-The `release/capture-screenshots.sh` script generates these
-automatically from the simulator and saves them to `release/marketing/`.
+The `release/capture-screenshots.sh` script captures these from the sim.
 
-Recommended screenshots:
-1. Keys mode with a held chord (Cmaj7 visible in the chord readout)
-2. Pattern mode with a few cells lit + chain slots
-3. Mic mode mid-record (red recording state)
-4. Drums mode with hit pulse
-5. Settings sheet showing the trial state
+Suggested scenes:
+1. Keys with a held chord (Cmaj7 visible above the keys)
+2. Pattern with a few cells lit and the slot row visible
+3. Mic mid-record (the red recording state)
+4. Drums with a hit pulse
+5. Settings showing the trial state
 
 ---
 
 ## App Review notes
 
 ```
-Sonicc is a music-making tool with five performance surfaces. All
-features are available during the 7-day trial. After the trial, the
-in-app purchase "Sonicc Lifetime" unlocks the app permanently.
+sonicc is a music-making tool with five performance surfaces. Every feature
+is open during the seven-day trial. After the trial, the in-app purchase
+"Sonicc Lifetime" keeps the app available permanently.
 
 For review:
-- Microphone permission gates only the Mic recording surface
-- IAP product: studio.kami.sonicc.lifetime ($7.99 non-consumable)
-- Restore Purchases is in Settings (gear icon in top-right)
+- Microphone permission only gates the Mic surface
+- IAP: studio.kami.sonicc.lifetime ($7.99, non-consumable, family-shareable)
+- Restore Purchases lives in Settings (gear icon at top right)
 - No login or account required
-- No data is transmitted off-device
+- No data leaves the device
 
 Test account: not needed. The trial begins on first launch.
 ```

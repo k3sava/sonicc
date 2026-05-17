@@ -23,7 +23,6 @@
 		33E981EE23423A1D19757A56 /* PatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACABC83119AE5DABE1675B4C /* PatternView.swift */; };
 		37932CB88BAFD43F7D543937 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C3AF92EB5E3C995EDED3AD6 /* Assets.xcassets */; };
 		39183776B5BB3C20D0C887CF /* Scale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B2C66453FE59B8DAFC4823 /* Scale.swift */; };
-		4479C62BAB766707881A84F1 /* Knob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */; };
 		473F5876426922D92EE34601 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6539462C6DB9759171C77 /* SynthState.swift */; };
 		4EA206E59106E89ADDE082EA /* FloatingTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F5BA3ECBD23E98793D6F1B /* FloatingTransport.swift */; };
 		54CDA6D33A925BC3F56B5100 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E296F361C007F8DB818A8A /* SettingsSheet.swift */; };
@@ -72,7 +71,6 @@
 		15EA8FEEA48DE995EAB88C89 /* PresetLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresetLibrary.swift; sourceTree = "<group>"; };
 		1736B93276E0A1D3C9DA2853 /* DrumSynth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrumSynth.swift; sourceTree = "<group>"; };
 		1739AA45D4E5DE0145B5D584 /* ControlBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlBar.swift; sourceTree = "<group>"; };
-		1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knob.swift; sourceTree = "<group>"; };
 		21806C20957F7D98CBDA4D32 /* SoniccApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoniccApp.swift; sourceTree = "<group>"; };
 		24748FE3AAE76D99ED72366C /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		2650D5561737FDF5978C761E /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
@@ -196,7 +194,6 @@
 				85250815695A3FA32172CEE1 /* InspectorPanel.swift */,
 				C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */,
 				C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */,
-				1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */,
 				A9E296F361C007F8DB818A8A /* SettingsSheet.swift */,
 				0DBAB9F661ED7B128C2D7D90 /* WelcomeSheet.swift */,
 			);
@@ -428,7 +425,6 @@
 				65C131AE61E6EE73CD4F3CAA /* InspectorStrip.swift in Sources */,
 				5F9F2C2073367774A029642C /* KeyboardShortcuts.swift in Sources */,
 				1D64FE8910B1005DBCB4DB60 /* KeyboardView.swift in Sources */,
-				4479C62BAB766707881A84F1 /* Knob.swift in Sources */,
 				AE6E09A320F9D4913740C188 /* MIDIManager.swift in Sources */,
 				CDD078A764EE4E196C48EC71 /* MicView.swift in Sources */,
 				FADE730B90213BA258CD9823 /* MicrophoneRecorder.swift in Sources */,
