@@ -10,6 +10,7 @@
 		05BDE4FE0895F8A1A8C48285 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFC5187DF007D488997EF16 /* AppState.swift */; };
 		063D4E63C0272CC184CB1EB7 /* HeaderBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 944705F981DFB920DF1BE4A2 /* HeaderBar.swift */; };
 		070D4BB2D8124C923DB8FEC6 /* SamplerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F64BD8C3457F897BC7CE6F0 /* SamplerEngine.swift */; };
+		07950A36C22FD09922713A1C /* RecordingLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8222F16E6DEEBB76A0980823 /* RecordingLibrary.swift */; };
 		0F151394D6DD80F995CF7C4A /* InspectorPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85250815695A3FA32172CEE1 /* InspectorPanel.swift */; };
 		1120DC06A86D6BA24D61EC8D /* EffectsRack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3625DFA2473BA7F8534FD56 /* EffectsRack.swift */; };
 		14E483F8FBA9ABD71739134A /* Waveforms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93525619477D7A42067F6E64 /* Waveforms.swift */; };
@@ -31,6 +32,7 @@
 		8CF07F656FDEC3D9A19C7ABF /* CustomEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BCA1304FD82AC4903061F6 /* CustomEffects.swift */; };
 		8F0E37FDAF934655C26AD506 /* AudioSessionConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */; };
 		A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB14523BF1614EF619DA06F /* Sequencer.swift */; };
+		AC01B25AA26D7D9DEA44E58E /* RecordingLibrarySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */; };
 		AE66455732D00E217519F5FB /* DrumSynth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1736B93276E0A1D3C9DA2853 /* DrumSynth.swift */; };
 		AE6E09A320F9D4913740C188 /* MIDIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DF9A8888AB382BBF66B82A /* MIDIManager.swift */; };
 		AEE6CF3172D498108C2B9929 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27A3ED86D91F61F2A99583FD /* ContentView.swift */; };
@@ -73,6 +75,7 @@
 		6FB14523BF1614EF619DA06F /* Sequencer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequencer.swift; sourceTree = "<group>"; };
 		72BCA1304FD82AC4903061F6 /* CustomEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEffects.swift; sourceTree = "<group>"; };
 		787CB08DF6C9DD7215EA2960 /* MicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicView.swift; sourceTree = "<group>"; };
+		8222F16E6DEEBB76A0980823 /* RecordingLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrary.swift; sourceTree = "<group>"; };
 		85250815695A3FA32172CEE1 /* InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorPanel.swift; sourceTree = "<group>"; };
 		93525619477D7A42067F6E64 /* Waveforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waveforms.swift; sourceTree = "<group>"; };
 		944705F981DFB920DF1BE4A2 /* HeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderBar.swift; sourceTree = "<group>"; };
@@ -83,6 +86,7 @@
 		ACABC83119AE5DABE1675B4C /* PatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternView.swift; sourceTree = "<group>"; };
 		B3625DFA2473BA7F8534FD56 /* EffectsRack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectsRack.swift; sourceTree = "<group>"; };
 		C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcuts.swift; sourceTree = "<group>"; };
+		C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrarySheet.swift; sourceTree = "<group>"; };
 		CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionConfigurator.swift; sourceTree = "<group>"; };
 		E6DA072ED414BC023EEC79CB /* ADSREnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADSREnvelope.swift; sourceTree = "<group>"; };
 		FAFBF7E7784DDD5A3AB0C67D /* PatternLibrarySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternLibrarySheet.swift; sourceTree = "<group>"; };
@@ -210,6 +214,8 @@
 			isa = PBXGroup;
 			children = (
 				5E60733D3E339125BC07DD71 /* MicrophoneRecorder.swift */,
+				8222F16E6DEEBB76A0980823 /* RecordingLibrary.swift */,
+				C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */,
 			);
 			path = Microphone;
 			sourceTree = "<group>";
@@ -369,6 +375,8 @@
 				F9994FCC45FA6598DE042508 /* PatternLibrarySheet.swift in Sources */,
 				33E981EE23423A1D19757A56 /* PatternView.swift in Sources */,
 				677307D8916AC370700D6023 /* PresetLibrary.swift in Sources */,
+				07950A36C22FD09922713A1C /* RecordingLibrary.swift in Sources */,
+				AC01B25AA26D7D9DEA44E58E /* RecordingLibrarySheet.swift in Sources */,
 				070D4BB2D8124C923DB8FEC6 /* SamplerEngine.swift in Sources */,
 				FCA2F6621E4C8682797001AF /* SamplerView.swift in Sources */,
 				A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */,
