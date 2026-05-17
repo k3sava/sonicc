@@ -21,6 +21,7 @@
 		309B3249C3C403425143FAC5 /* SoniccApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21806C20957F7D98CBDA4D32 /* SoniccApp.swift */; };
 		309F5497F8261EB9021CFFFD /* WorldInstruments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033896E248E3C9F16816F348 /* WorldInstruments.swift */; };
 		33E981EE23423A1D19757A56 /* PatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACABC83119AE5DABE1675B4C /* PatternView.swift */; };
+		36D6CECA246DB47BADF6E385 /* AppShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D54C02669B58370431187C /* AppShortcuts.swift */; };
 		37932CB88BAFD43F7D543937 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C3AF92EB5E3C995EDED3AD6 /* Assets.xcassets */; };
 		39183776B5BB3C20D0C887CF /* Scale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B2C66453FE59B8DAFC4823 /* Scale.swift */; };
 		473F5876426922D92EE34601 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6539462C6DB9759171C77 /* SynthState.swift */; };
@@ -85,6 +86,7 @@
 		4BE6539462C6DB9759171C77 /* SynthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthState.swift; sourceTree = "<group>"; };
 		4D058BB315A208D9D5680287 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		4F65A9E4E0274D5EE22BBD7F /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
+		56D54C02669B58370431187C /* AppShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShortcuts.swift; sourceTree = "<group>"; };
 		5ACC89B6E4D8406B086745C2 /* IPhoneRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRootView.swift; sourceTree = "<group>"; };
 		5E60733D3E339125BC07DD71 /* MicrophoneRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneRecorder.swift; sourceTree = "<group>"; };
 		67702B37FE907E752ECFEDDC /* IAPStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPStore.swift; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 		3665F40DC30D765F5A38062D /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				56D54C02669B58370431187C /* AppShortcuts.swift */,
 				4D058BB315A208D9D5680287 /* DesignSystem.swift */,
 				24748FE3AAE76D99ED72366C /* Haptics.swift */,
 			);
@@ -403,6 +406,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B61EC327AD8D998F0318370C /* ADSREnvelope.swift in Sources */,
+				36D6CECA246DB47BADF6E385 /* AppShortcuts.swift in Sources */,
 				05BDE4FE0895F8A1A8C48285 /* AppState.swift in Sources */,
 				1F056C928F5A82A34F4950D6 /* AudioEngine.swift in Sources */,
 				8F0E37FDAF934655C26AD506 /* AudioSessionConfigurator.swift in Sources */,
