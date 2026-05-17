@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var app: AppState
+    @StateObject private var intents = IntentMailbox.shared
     @Environment(\.horizontalSizeClass) private var hSize
     @Environment(\.verticalSizeClass) private var vSize
     @Environment(\.scenePhase) private var scenePhase
@@ -27,6 +28,20 @@ struct ContentView: View {
                 app.trial.recompute()
                 Task { await app.iap.refreshEntitlements() }
             }
+        }
+        .onChange(of: intents.pendingMode) { _, v in
+            guard let v, let m = AppState.Mode(rawValue: v) else { return }
+            app.mode = m
+            intents.pendingMode = nil
+        }
+        .onChange(of: intents.pendingPlay) { _, v in
+            if v { app.sequencer.play(); intents.pendingPlay = false }
+        }
+        .onChange(of: intents.pendingStop) { _, v in
+            if v { app.sequencer.stop(); intents.pendingStop = false }
+        }
+        .onChange(of: intents.pendingRecord) { _, v in
+            if v { app.sequencer.toggleRecord(); intents.pendingRecord = false }
         }
     }
 

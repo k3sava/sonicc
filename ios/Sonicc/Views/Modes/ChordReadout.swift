@@ -1,8 +1,9 @@
 import SwiftUI
 
 /// Lives between the performance bar and the keyboard. When notes are
-/// held it shows a big serif chord name + held-note pills. When idle,
-/// it shows a soft prompt + the recent-notes ticker.
+/// held it shows a big serif chord name + a soft animated keyboard
+/// diagram lighting up the actual notes being held. When idle, it shows
+/// a quiet prompt + the recent-notes ticker.
 struct ChordReadout: View {
     @EnvironmentObject var app: AppState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -15,14 +16,21 @@ struct ChordReadout: View {
     }
 
     var body: some View {
-        VStack(spacing: DS.Space.xs) {
-            chordHeadline
-            heldRow
-            Spacer(minLength: 0)
-            recentRow
+        ZStack {
+            ChordKeyboardVisualizer(held: app.heldNotes, theme: app.theme)
+                .opacity(app.heldNotes.isEmpty ? 0 : 0.55)
+                .blendMode(.multiply)
+                .animation(reduceMotion ? .none : .spring(response: 0.34, dampingFraction: 0.78),
+                           value: app.heldNotes)
+            VStack(spacing: DS.Space.xs) {
+                chordHeadline
+                heldRow
+                Spacer(minLength: 0)
+                recentRow
+            }
+            .padding(.horizontal, DS.Space.md)
+            .padding(.vertical, DS.Space.sm)
         }
-        .padding(.horizontal, DS.Space.md)
-        .padding(.vertical, DS.Space.sm)
         .background(
             RoundedRectangle(cornerRadius: DS.Radius.card)
                 .fill(app.theme.semantic.surface.opacity(0.6))
@@ -31,6 +39,7 @@ struct ChordReadout: View {
             RoundedRectangle(cornerRadius: DS.Radius.card)
                 .stroke(app.theme.semantic.hairline)
         )
+        .clipShape(RoundedRectangle(cornerRadius: DS.Radius.card))
         .onChange(of: app.heldNotes) { _, new in
             for pitch in new where !recent.contains(where: { $0.pitch == pitch }) {
                 recent.append(Recent(pitch: pitch, at: .now))
@@ -106,6 +115,67 @@ struct ChordReadout: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Chord keyboard visualizer
+
+/// Stylized two-octave keyboard rendered with Canvas. Held notes glow
+/// with the accent color. Pure decoration — non-interactive.
+struct ChordKeyboardVisualizer: View {
+    let held: Set<NotePitch>
+    let theme: AppTheme
+
+    var body: some View {
+        Canvas { ctx, size in
+            // Centre the held notes around the median, render 24 white keys
+            // (two octaves) regardless of where the user is playing.
+            let whiteCount = 14
+            let whiteW = size.width / CGFloat(whiteCount)
+            let height = size.height
+            let baseMidi = anchorMidi
+            let pitchClassSet = Set(held.map { $0.note })
+
+            // White keys
+            for i in 0..<whiteCount {
+                let pitchClass = whiteIndexToPitchClass(i + baseMidi)
+                let rect = CGRect(x: CGFloat(i) * whiteW, y: 0, width: whiteW, height: height)
+                let isHeld = pitchClassSet.contains(pitchClass)
+                ctx.fill(Path(rect),
+                         with: .color(isHeld ? theme.semantic.accent.opacity(0.55) : theme.semantic.surface.opacity(0.0)))
+                if isHeld {
+                    let glow = rect.insetBy(dx: 2, dy: 4)
+                    ctx.fill(Path(roundedRect: glow, cornerRadius: 4),
+                             with: .color(theme.semantic.accent.opacity(0.85)))
+                }
+            }
+            // Black keys
+            let blackPattern = [1, 3, 6, 8, 10]   // C-major-relative pitch classes
+            for i in 0..<whiteCount {
+                let pc = whiteIndexToPitchClass(i + baseMidi)
+                if blackPattern.contains((pc + 1) % 12) && i < whiteCount - 1 {
+                    let blackPitchClass = (pc + 1) % 12
+                    let isHeld = pitchClassSet.contains(blackPitchClass)
+                    let blackW = whiteW * 0.6
+                    let x = CGFloat(i + 1) * whiteW - blackW / 2
+                    let blackH = height * 0.62
+                    let rect = CGRect(x: x, y: 0, width: blackW, height: blackH)
+                    ctx.fill(Path(roundedRect: rect, cornerRadius: 2),
+                             with: .color(isHeld ? theme.semantic.accent : theme.semantic.ink.opacity(0.15)))
+                }
+            }
+        }
+        .accessibilityHidden(true)
+    }
+
+    /// Where to anchor the visualizer's range. 0 starts at C of the
+    /// median octave so we always see the held notes centred.
+    private var anchorMidi: Int { 0 }
+
+    private func whiteIndexToPitchClass(_ idx: Int) -> Int {
+        // White-key pitch classes in C major: C(0) D(2) E(4) F(5) G(7) A(9) B(11)
+        let whites = [0, 2, 4, 5, 7, 9, 11]
+        return whites[idx % 7]
     }
 }
 
