@@ -82,6 +82,38 @@ final class Sequencer: ObservableObject {
         synthNotes.removeAll()
     }
 
+    // MARK: - Snapshot / restore
+
+    /// Serialize all pattern state for PatternLibrary persistence.
+    func snapshot(named name: String) -> SavedPattern {
+        SavedPattern(
+            name: name,
+            bpm: bpm,
+            swing: swing,
+            stepCount: stepCount.rawValue,
+            synthCells: synthGrid.cells,
+            drumCells: drumGrid.cells,
+            synthNotes: synthNotes.mapValues { NotePitchSnapshot(note: $0.note, octave: $0.octave) },
+            presetID: state?.currentPresetID,
+            themeID: state?.theme.id
+        )
+    }
+
+    /// Replace current sequencer state from a SavedPattern.
+    func restore(_ p: SavedPattern) {
+        bpm = p.bpm
+        swing = p.swing
+        if let size = StepSize(rawValue: p.stepCount) {
+            stepCount = size
+        }
+        synthGrid = SequencerGrid(rows: 8, steps: p.stepCount, cells: p.synthCells)
+        drumGrid = SequencerGrid(rows: 8, steps: p.stepCount, cells: p.drumCells)
+        synthNotes = p.synthNotes.reduce(into: [:]) { acc, kv in
+            acc[kv.key] = NotePitch(note: kv.value.note, octave: kv.value.octave)
+        }
+        if let presetID = p.presetID { state?.applyPreset(id: presetID) }
+    }
+
     private func scheduleNextStep() {
         let q = DispatchQueue.global(qos: .userInteractive)
         let t = DispatchSource.makeTimerSource(queue: q)
@@ -139,6 +171,24 @@ struct SequencerGrid: Equatable {
         self.rows = rows
         self.steps = steps
         self.cells = Array(repeating: Array(repeating: false, count: steps), count: rows)
+    }
+
+    /// Restore from a saved snapshot. Pads / truncates rows to expected size.
+    init(rows: Int, steps: Int, cells: [[Bool]]) {
+        self.rows = rows
+        self.steps = steps
+        var normalized: [[Bool]] = []
+        for r in 0..<rows {
+            let source = r < cells.count ? cells[r] : []
+            var row = source
+            if row.count < steps {
+                row.append(contentsOf: Array(repeating: false, count: steps - row.count))
+            } else if row.count > steps {
+                row = Array(row.prefix(steps))
+            }
+            normalized.append(row)
+        }
+        self.cells = normalized
     }
 
     mutating func resize(steps newSteps: Int) {

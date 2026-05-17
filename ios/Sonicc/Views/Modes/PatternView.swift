@@ -4,6 +4,10 @@ import SwiftUI
 struct PatternView: View {
     @EnvironmentObject var app: AppState
     @ObservedObject var sequencer: Sequencer
+    @StateObject private var library = PatternLibrary.shared
+    @State private var showLibrary: Bool = false
+    @State private var showSaveDialog: Bool = false
+    @State private var saveName: String = ""
 
     var body: some View {
         VStack(spacing: 12) {
@@ -12,6 +16,27 @@ struct PatternView: View {
             grid
         }
         .padding(16)
+        .sheet(isPresented: $showLibrary) {
+            PatternLibrarySheet(
+                library: library,
+                onLoad: { p in
+                    sequencer.restore(p)
+                    showLibrary = false
+                }
+            )
+        }
+        .alert("Save pattern", isPresented: $showSaveDialog) {
+            TextField("Name", text: $saveName)
+            Button("Save") {
+                let name = saveName.trimmingCharacters(in: .whitespacesAndNewlines)
+                let final = name.isEmpty ? "Pattern \(library.patterns.count + 1)" : name
+                library.save(sequencer.snapshot(named: final))
+                saveName = ""
+            }
+            Button("Cancel", role: .cancel) { saveName = "" }
+        } message: {
+            Text("\(sequencer.stepCount.rawValue) steps · \(Int(sequencer.bpm)) BPM")
+        }
     }
 
     private var controls: some View {
@@ -43,9 +68,15 @@ struct PatternView: View {
 
             Spacer()
 
-            Button {
-                sequencer.clear()
-            } label: {
+            Button { showSaveDialog = true } label: {
+                Label("Save", systemImage: "square.and.arrow.down")
+                    .font(.system(size: 11, design: .monospaced))
+            }
+            Button { showLibrary = true } label: {
+                Label("Library", systemImage: "tray.full")
+                    .font(.system(size: 11, design: .monospaced))
+            }
+            Button { sequencer.clear() } label: {
                 Label("Clear", systemImage: "trash")
                     .font(.system(size: 11, design: .monospaced))
             }
