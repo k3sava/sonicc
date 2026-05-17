@@ -25,8 +25,10 @@ struct KeyboardView: View {
     }
 
     private func octaveCount(width: CGFloat) -> Int {
-        // Target ~64pt per white key for comfortable touch.
-        let target: CGFloat = 64
+        // Target ~36pt per white key. The keys are tall touch zones, so a
+        // narrower key is still comfortable, and this lets 2 octaves fit
+        // in an iPad center column with both side rails open (~544pt).
+        let target: CGFloat = 36
         return Int(max(1, min(4, floor(width / (target * 7)))))
     }
 

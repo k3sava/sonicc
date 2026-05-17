@@ -6,7 +6,7 @@ enum AudioSessionConfigurator {
         do {
             try session.setCategory(
                 .playAndRecord,
-                mode: .measurement,
+                mode: .default,
                 options: [.defaultToSpeaker, .mixWithOthers, .allowBluetoothA2DP, .allowAirPlay]
             )
             try session.setPreferredIOBufferDuration(0.005)
