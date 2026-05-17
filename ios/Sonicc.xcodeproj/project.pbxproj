@@ -25,10 +25,12 @@
 		4479C62BAB766707881A84F1 /* Knob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */; };
 		473F5876426922D92EE34601 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6539462C6DB9759171C77 /* SynthState.swift */; };
 		5F9F2C2073367774A029642C /* KeyboardShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */; };
+		65C131AE61E6EE73CD4F3CAA /* InspectorStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */; };
 		677307D8916AC370700D6023 /* PresetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EA8FEEA48DE995EAB88C89 /* PresetLibrary.swift */; };
 		76FA7BC7942FA46896217CCC /* SynthVoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B05113F32DA55C56CE394B5 /* SynthVoice.swift */; };
 		7C124A9140F8207BD3D82CA0 /* NotePitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4AFE8B8133C6D4140DA7B8 /* NotePitch.swift */; };
 		867C59C9FBB69C8C9971C166 /* VoiceAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2C491EF389094F42485AF2 /* VoiceAllocator.swift */; };
+		8A10313ADFB0D462040D55D9 /* ChordReadout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE3DD21FFB4DE9BDB4E5D07E /* ChordReadout.swift */; };
 		8CF07F656FDEC3D9A19C7ABF /* CustomEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BCA1304FD82AC4903061F6 /* CustomEffects.swift */; };
 		8F0E37FDAF934655C26AD506 /* AudioSessionConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */; };
 		A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB14523BF1614EF619DA06F /* Sequencer.swift */; };
@@ -85,6 +87,8 @@
 		AAFC5187DF007D488997EF16 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		ACABC83119AE5DABE1675B4C /* PatternView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternView.swift; sourceTree = "<group>"; };
 		B3625DFA2473BA7F8534FD56 /* EffectsRack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EffectsRack.swift; sourceTree = "<group>"; };
+		BE3DD21FFB4DE9BDB4E5D07E /* ChordReadout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordReadout.swift; sourceTree = "<group>"; };
+		C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorStrip.swift; sourceTree = "<group>"; };
 		C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcuts.swift; sourceTree = "<group>"; };
 		C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrarySheet.swift; sourceTree = "<group>"; };
 		CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionConfigurator.swift; sourceTree = "<group>"; };
@@ -162,6 +166,7 @@
 				1739AA45D4E5DE0145B5D584 /* ControlBar.swift */,
 				944705F981DFB920DF1BE4A2 /* HeaderBar.swift */,
 				85250815695A3FA32172CEE1 /* InspectorPanel.swift */,
+				C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */,
 				C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */,
 				1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */,
 			);
@@ -171,6 +176,7 @@
 		4642145278FB4EA92C03F437 /* Modes */ = {
 			isa = PBXGroup;
 			children = (
+				BE3DD21FFB4DE9BDB4E5D07E /* ChordReadout.swift */,
 				3AA5E7ED20653E0D9B788B03 /* DrumsView.swift */,
 				2650D5561737FDF5978C761E /* KeyboardView.swift */,
 				787CB08DF6C9DD7215EA2960 /* MicView.swift */,
@@ -353,6 +359,7 @@
 				1F056C928F5A82A34F4950D6 /* AudioEngine.swift in Sources */,
 				8F0E37FDAF934655C26AD506 /* AudioSessionConfigurator.swift in Sources */,
 				CF8CB5E3BE709EDDDB1E713C /* BiquadLowpass.swift in Sources */,
+				8A10313ADFB0D462040D55D9 /* ChordReadout.swift in Sources */,
 				AEE6CF3172D498108C2B9929 /* ContentView.swift in Sources */,
 				292BE6F44A7F0D8309B498F5 /* ControlBar.swift in Sources */,
 				8CF07F656FDEC3D9A19C7ABF /* CustomEffects.swift in Sources */,
@@ -363,6 +370,7 @@
 				F5E04ECDA5812A77734E7DE9 /* IPadRootView.swift in Sources */,
 				186E68B22B2889663CC80D9B /* IPhoneRootView.swift in Sources */,
 				0F151394D6DD80F995CF7C4A /* InspectorPanel.swift in Sources */,
+				65C131AE61E6EE73CD4F3CAA /* InspectorStrip.swift in Sources */,
 				5F9F2C2073367774A029642C /* KeyboardShortcuts.swift in Sources */,
 				1D64FE8910B1005DBCB4DB60 /* KeyboardView.swift in Sources */,
 				4479C62BAB766707881A84F1 /* Knob.swift in Sources */,

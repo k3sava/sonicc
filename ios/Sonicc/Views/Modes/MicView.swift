@@ -18,67 +18,38 @@ struct MicView: View {
                 .font(.system(size: 32, weight: .semibold, design: .monospaced))
                 .foregroundStyle(app.theme.text)
 
-            HStack(spacing: 12) {
-                Button(action: toggleRecord) {
-                    Label(
-                        mic.isRecording ? "Stop" : "Record",
-                        systemImage: mic.isRecording ? "stop.fill" : "record.circle.fill"
-                    )
-                    .padding(.horizontal, 16).padding(.vertical, 10)
-                    .background(mic.isRecording ? .red : app.theme.accent)
-                    .foregroundStyle(.white)
-                    .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    Button(action: toggleRecord) {
+                        actionLabel(
+                            mic.isRecording ? "Stop" : "Record",
+                            symbol: mic.isRecording ? "stop.fill" : "record.circle.fill",
+                            background: mic.isRecording ? Color.red : app.theme.accent,
+                            foreground: .white
+                        )
+                    }
+                    .buttonStyle(.plain)
 
-                Button {
-                    mic.preview()
-                } label: {
-                    Label("Preview", systemImage: "play.fill")
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .background(app.theme.surface)
-                        .overlay(Capsule().stroke(app.theme.border))
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .disabled(mic.lastBuffer == nil)
+                    actionButton("Preview", symbol: "play.fill", action: mic.preview)
+                        .disabled(mic.lastBuffer == nil)
 
-                Button {
-                    showSaveDialog = true
-                } label: {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .background(app.theme.surface)
-                        .overlay(Capsule().stroke(app.theme.border))
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .disabled(mic.lastBuffer == nil)
+                    actionButton("Save", symbol: "square.and.arrow.down") {
+                        showSaveDialog = true
+                    }
+                    .disabled(mic.lastBuffer == nil)
 
-                Button {
-                    mic.sendToSampler(app.sampler)
-                    app.mode = .sampler
-                } label: {
-                    Label("To sampler", systemImage: "scissors")
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .background(app.theme.surface)
-                        .overlay(Capsule().stroke(app.theme.border))
-                        .clipShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .disabled(mic.lastBuffer == nil)
+                    actionButton("To sampler", symbol: "scissors") {
+                        mic.sendToSampler(app.sampler)
+                        app.mode = .sampler
+                    }
+                    .disabled(mic.lastBuffer == nil)
 
-                Button {
-                    mic.clear()
-                } label: {
-                    Label("Clear", systemImage: "trash")
-                        .padding(.horizontal, 16).padding(.vertical, 10)
-                        .background(app.theme.surface)
-                        .overlay(Capsule().stroke(app.theme.border))
-                        .clipShape(Capsule())
+                    actionButton("Clear", symbol: "trash") {
+                        mic.clear()
+                    }
+                    .disabled(mic.lastBuffer == nil)
                 }
-                .buttonStyle(.plain)
-                .disabled(mic.lastBuffer == nil)
+                .padding(.horizontal, 4)
             }
 
             HStack {
@@ -158,6 +129,26 @@ struct MicView: View {
 
     private func toggleRecord() {
         if mic.isRecording { mic.stop() } else { mic.start() }
+    }
+
+    @ViewBuilder
+    private func actionButton(_ text: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            actionLabel(text, symbol: symbol, background: app.theme.surface, foreground: app.theme.text)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func actionLabel(_ text: String, symbol: String, background: Color, foreground: Color) -> some View {
+        Label(text, systemImage: symbol)
+            .font(.system(size: 13, weight: .medium))
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(background)
+            .foregroundStyle(foreground)
+            .overlay(Capsule().stroke(background == app.theme.surface ? app.theme.border : .clear))
+            .clipShape(Capsule())
     }
 
     private func timeString(_ t: TimeInterval) -> String {

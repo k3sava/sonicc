@@ -43,11 +43,13 @@ struct ModeChip: View {
     var body: some View {
         let isActive = app.mode == mode
         Button { app.mode = mode } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Image(systemName: mode.sfSymbol)
                     .font(.system(size: 11))
                 Text(mode.title.uppercased())
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .fixedSize(horizontal: true, vertical: false)
+                    .lineLimit(1)
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
