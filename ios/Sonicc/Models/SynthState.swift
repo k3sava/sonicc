@@ -1,6 +1,6 @@
 import Foundation
 
-struct SynthState: Equatable {
+struct SynthState: Equatable, Hashable {
     var waveform: Waveform = .sine
     var attack: Double = 0.01     // seconds
     var decay: Double = 0.1
@@ -14,7 +14,7 @@ struct SynthState: Equatable {
 
     var fx: FXState = .init()
 
-    struct FXState: Equatable {
+    struct FXState: Equatable, Hashable {
         var reverb: Bool = false
         var delay: Bool = false
         var distortion: Bool = false
@@ -30,7 +30,7 @@ struct SynthState: Equatable {
     }
 }
 
-enum Waveform: String, CaseIterable, Identifiable, Equatable {
+enum Waveform: String, CaseIterable, Identifiable, Equatable, Hashable {
     case sine, square, sawtooth, triangle
     case pulse, supersaw, noise, fm, organ
     // World instruments — synthesis presets
