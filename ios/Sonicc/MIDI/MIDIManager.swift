@@ -112,7 +112,7 @@ final class MIDIManager {
         case 45: return 4 // tom
         case 49: return 5 // crash
         case 56: return 6 // perc
-        case 53, 54, 56: return 7 // cowbell-ish
+        case 53, 54: return 7 // cowbell-ish
         default: return midi % 8
         }
     }

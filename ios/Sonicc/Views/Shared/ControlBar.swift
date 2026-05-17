@@ -12,11 +12,13 @@ struct ControlBar: View {
             modeChips
             Divider().frame(height: 28)
             presetScroll
+                .layoutPriority(0)   // yield space to transport when crowded
             Divider().frame(height: 28)
             TransportControls(sequencer: sequencer)
+                .layoutPriority(1)
         }
         .padding(.horizontal, DS.Space.lg)
-        .frame(minHeight: 56)
+        .frame(minHeight: 68)
         .background(app.theme.semantic.surface)
         .overlay(Divider(), alignment: .bottom)
     }
@@ -126,10 +128,10 @@ struct TransportControls: View {
             Haptics.tap(.medium)
         } label: {
             Image(systemName: sequencer.isPlaying ? "stop.fill" : "play.fill")
-                .font(.body.weight(.semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(sequencer.isPlaying ? Color.white : app.theme.semantic.accent)
-                .frame(width: DS.minTarget, height: DS.minTarget)
-                .background(RoundedRectangle(cornerRadius: DS.Radius.chip)
+                .frame(width: 52, height: 52)
+                .background(RoundedRectangle(cornerRadius: 14)
                     .fill(sequencer.isPlaying ? app.theme.semantic.accent : app.theme.semantic.accentSoft))
         }
         .buttonStyle(.plain)
@@ -144,14 +146,16 @@ struct TransportControls: View {
             ZStack {
                 Circle()
                     .stroke(sequencer.isRecording ? app.theme.semantic.destructive : app.theme.semantic.inkSoft, lineWidth: 2)
-                    .frame(width: 26, height: 26)
+                    .frame(width: 30, height: 30)
                 Circle()
                     .fill(sequencer.isRecording ? app.theme.semantic.destructive : app.theme.semantic.inkSoft)
-                    .frame(width: sequencer.isRecording ? 20 : 16,
-                           height: sequencer.isRecording ? 20 : 16)
+                    .frame(width: sequencer.isRecording ? 22 : 18,
+                           height: sequencer.isRecording ? 22 : 18)
             }
-            .frame(width: DS.minTarget, height: DS.minTarget)
-            .contentShape(Circle())
+            .frame(width: 52, height: 52)
+            .background(RoundedRectangle(cornerRadius: 14).fill(app.theme.semantic.surface))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(app.theme.semantic.hairline))
+            .contentShape(RoundedRectangle(cornerRadius: 14))
         }
         .buttonStyle(.plain)
         .a11y("Record", value: sequencer.isRecording ? "on" : "off",
@@ -184,6 +188,8 @@ struct TransportControls: View {
         Button(action: tapTempo) {
             Text("TAP")
                 .font(DS.font(.caption, weight: .semibold, monospaced: true))
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
                 .padding(.horizontal, DS.Space.md)
                 .frame(minHeight: DS.minTarget)
                 .foregroundStyle(app.theme.semantic.ink)
@@ -199,6 +205,8 @@ struct TransportControls: View {
             Text("SWING")
                 .font(DS.font(.micro, weight: .semibold, monospaced: true))
                 .foregroundStyle(app.theme.semantic.inkMuted)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             Slider(value: $sequencer.swing, in: 0...0.5)
                 .tint(app.theme.semantic.accent)
                 .frame(width: 88)

@@ -25,10 +25,12 @@
 		39183776B5BB3C20D0C887CF /* Scale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B2C66453FE59B8DAFC4823 /* Scale.swift */; };
 		4479C62BAB766707881A84F1 /* Knob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */; };
 		473F5876426922D92EE34601 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6539462C6DB9759171C77 /* SynthState.swift */; };
+		4EA206E59106E89ADDE082EA /* FloatingTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47F5BA3ECBD23E98793D6F1B /* FloatingTransport.swift */; };
 		54CDA6D33A925BC3F56B5100 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E296F361C007F8DB818A8A /* SettingsSheet.swift */; };
 		5F9F2C2073367774A029642C /* KeyboardShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */; };
 		65C131AE61E6EE73CD4F3CAA /* InspectorStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */; };
 		677307D8916AC370700D6023 /* PresetLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15EA8FEEA48DE995EAB88C89 /* PresetLibrary.swift */; };
+		7296D7F94A5AFA76775B12A6 /* TrialGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84FCC655BAA9FE6EBDE5AAB6 /* TrialGate.swift */; };
 		76FA7BC7942FA46896217CCC /* SynthVoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B05113F32DA55C56CE394B5 /* SynthVoice.swift */; };
 		7C124A9140F8207BD3D82CA0 /* NotePitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B4AFE8B8133C6D4140DA7B8 /* NotePitch.swift */; };
 		867C59C9FBB69C8C9971C166 /* VoiceAllocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B2C491EF389094F42485AF2 /* VoiceAllocator.swift */; };
@@ -36,6 +38,7 @@
 		8CF07F656FDEC3D9A19C7ABF /* CustomEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BCA1304FD82AC4903061F6 /* CustomEffects.swift */; };
 		8F0E37FDAF934655C26AD506 /* AudioSessionConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */; };
 		9357884910843FCCC6195F02 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24748FE3AAE76D99ED72366C /* Haptics.swift */; };
+		97BDF56F8C025E2FBFA007AC /* IAPStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67702B37FE907E752ECFEDDC /* IAPStore.swift */; };
 		A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB14523BF1614EF619DA06F /* Sequencer.swift */; };
 		A776A829723A3E9130455DCF /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D058BB315A208D9D5680287 /* DesignSystem.swift */; };
 		AC01B25AA26D7D9DEA44E58E /* RecordingLibrarySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */; };
@@ -48,6 +51,7 @@
 		CDD078A764EE4E196C48EC71 /* MicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787CB08DF6C9DD7215EA2960 /* MicView.swift */; };
 		CF26AC6B1D9AD84E96582967 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */; };
 		CF8CB5E3BE709EDDDB1E713C /* BiquadLowpass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4548D28AAC44FCEFD42ED754 /* BiquadLowpass.swift */; };
+		D36162DE9A3B9DE0375AF1F1 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA097B49EB2E8F7A8B052E7A /* PaywallView.swift */; };
 		D54085DFBA6E36925A5A1677 /* WelcomeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DBAB9F661ED7B128C2D7D90 /* WelcomeSheet.swift */; };
 		D5A00C9D32B84A1BEDC42516 /* PatternLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1095CB002E3634A153387061 /* PatternLibrary.swift */; };
 		DAC5CF6178AEAD30FDCAC6F9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8306992FF9304C363ED7FA65 /* LaunchScreen.storyboard */; };
@@ -78,12 +82,14 @@
 		3C3AF92EB5E3C995EDED3AD6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3F64BD8C3457F897BC7CE6F0 /* SamplerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SamplerEngine.swift; sourceTree = "<group>"; };
 		4548D28AAC44FCEFD42ED754 /* BiquadLowpass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiquadLowpass.swift; sourceTree = "<group>"; };
+		47F5BA3ECBD23E98793D6F1B /* FloatingTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingTransport.swift; sourceTree = "<group>"; };
 		4B05113F32DA55C56CE394B5 /* SynthVoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthVoice.swift; sourceTree = "<group>"; };
 		4BE6539462C6DB9759171C77 /* SynthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthState.swift; sourceTree = "<group>"; };
 		4D058BB315A208D9D5680287 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		4F65A9E4E0274D5EE22BBD7F /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		5ACC89B6E4D8406B086745C2 /* IPhoneRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRootView.swift; sourceTree = "<group>"; };
 		5E60733D3E339125BC07DD71 /* MicrophoneRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneRecorder.swift; sourceTree = "<group>"; };
+		67702B37FE907E752ECFEDDC /* IAPStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPStore.swift; sourceTree = "<group>"; };
 		67B2C66453FE59B8DAFC4823 /* Scale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scale.swift; sourceTree = "<group>"; };
 		6FB14523BF1614EF619DA06F /* Sequencer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequencer.swift; sourceTree = "<group>"; };
 		72BCA1304FD82AC4903061F6 /* CustomEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEffects.swift; sourceTree = "<group>"; };
@@ -91,6 +97,7 @@
 		7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8222F16E6DEEBB76A0980823 /* RecordingLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrary.swift; sourceTree = "<group>"; };
 		8306992FF9304C363ED7FA65 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		84FCC655BAA9FE6EBDE5AAB6 /* TrialGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrialGate.swift; sourceTree = "<group>"; };
 		85250815695A3FA32172CEE1 /* InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorPanel.swift; sourceTree = "<group>"; };
 		93525619477D7A42067F6E64 /* Waveforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waveforms.swift; sourceTree = "<group>"; };
 		944705F981DFB920DF1BE4A2 /* HeaderBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderBar.swift; sourceTree = "<group>"; };
@@ -106,6 +113,7 @@
 		C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcuts.swift; sourceTree = "<group>"; };
 		C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrarySheet.swift; sourceTree = "<group>"; };
 		CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionConfigurator.swift; sourceTree = "<group>"; };
+		DA097B49EB2E8F7A8B052E7A /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		E6DA072ED414BC023EEC79CB /* ADSREnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ADSREnvelope.swift; sourceTree = "<group>"; };
 		FAFBF7E7784DDD5A3AB0C67D /* PatternLibrarySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternLibrarySheet.swift; sourceTree = "<group>"; };
 		FE46D623614725882A56B8FE /* IPadRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPadRootView.swift; sourceTree = "<group>"; };
@@ -169,6 +177,7 @@
 				EA671EBFFD004EC7F34B5A60 /* MIDI */,
 				163516736B4304D302857D0C /* Models */,
 				EF444A3CD48B3B5C99CA303B /* Presets */,
+				AA91CEDAB79FF3FCEFE1B95E /* Purchase */,
 				D812463DE467A96E9EF0433D /* Sampler */,
 				0FA8B47D13F9559F612071C8 /* Sequencer */,
 				3665F40DC30D765F5A38062D /* Shared */,
@@ -182,6 +191,7 @@
 			isa = PBXGroup;
 			children = (
 				1739AA45D4E5DE0145B5D584 /* ControlBar.swift */,
+				47F5BA3ECBD23E98793D6F1B /* FloatingTransport.swift */,
 				944705F981DFB920DF1BE4A2 /* HeaderBar.swift */,
 				85250815695A3FA32172CEE1 /* InspectorPanel.swift */,
 				C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */,
@@ -278,6 +288,16 @@
 				31F214A77F50A1414693AE62 /* Sonicc */,
 				245C92AD5DE3AF1FE0C980CD /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		AA91CEDAB79FF3FCEFE1B95E /* Purchase */ = {
+			isa = PBXGroup;
+			children = (
+				67702B37FE907E752ECFEDDC /* IAPStore.swift */,
+				DA097B49EB2E8F7A8B052E7A /* PaywallView.swift */,
+				84FCC655BAA9FE6EBDE5AAB6 /* TrialGate.swift */,
+			);
+			path = Purchase;
 			sourceTree = "<group>";
 		};
 		D812463DE467A96E9EF0433D /* Sampler */ = {
@@ -398,8 +418,10 @@
 				AE66455732D00E217519F5FB /* DrumSynth.swift in Sources */,
 				F42564B6C455886CFE8DD760 /* DrumsView.swift in Sources */,
 				1120DC06A86D6BA24D61EC8D /* EffectsRack.swift in Sources */,
+				4EA206E59106E89ADDE082EA /* FloatingTransport.swift in Sources */,
 				9357884910843FCCC6195F02 /* Haptics.swift in Sources */,
 				063D4E63C0272CC184CB1EB7 /* HeaderBar.swift in Sources */,
+				97BDF56F8C025E2FBFA007AC /* IAPStore.swift in Sources */,
 				F5E04ECDA5812A77734E7DE9 /* IPadRootView.swift in Sources */,
 				186E68B22B2889663CC80D9B /* IPhoneRootView.swift in Sources */,
 				0F151394D6DD80F995CF7C4A /* InspectorPanel.swift in Sources */,
@@ -415,6 +437,7 @@
 				D5A00C9D32B84A1BEDC42516 /* PatternLibrary.swift in Sources */,
 				F9994FCC45FA6598DE042508 /* PatternLibrarySheet.swift in Sources */,
 				33E981EE23423A1D19757A56 /* PatternView.swift in Sources */,
+				D36162DE9A3B9DE0375AF1F1 /* PaywallView.swift in Sources */,
 				677307D8916AC370700D6023 /* PresetLibrary.swift in Sources */,
 				07950A36C22FD09922713A1C /* RecordingLibrary.swift in Sources */,
 				AC01B25AA26D7D9DEA44E58E /* RecordingLibrarySheet.swift in Sources */,
@@ -427,6 +450,7 @@
 				473F5876426922D92EE34601 /* SynthState.swift in Sources */,
 				76FA7BC7942FA46896217CCC /* SynthVoice.swift in Sources */,
 				C82863A2BA7287C79AD55DA3 /* ThemeLibrary.swift in Sources */,
+				7296D7F94A5AFA76775B12A6 /* TrialGate.swift in Sources */,
 				867C59C9FBB69C8C9971C166 /* VoiceAllocator.swift in Sources */,
 				14E483F8FBA9ABD71739134A /* Waveforms.swift in Sources */,
 				D54085DFBA6E36925A5A1677 /* WelcomeSheet.swift in Sources */,

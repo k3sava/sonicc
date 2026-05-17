@@ -7,9 +7,12 @@ struct SettingsSheet: View {
     @EnvironmentObject var app: AppState
     @Environment(\.dismiss) private var dismiss
 
+    @State private var showPaywall = false
+
     var body: some View {
         NavigationStack {
             Form {
+                purchaseSection
                 outputSection
                 inputSection
                 exportSection
@@ -24,6 +27,54 @@ struct SettingsSheet: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(gate: app.trial, store: app.iap, allowDismiss: true)
+                    .environmentObject(app)
+            }
+        }
+    }
+
+    private var purchaseSection: some View {
+        Section {
+            switch app.trial.state {
+            case .trial(let days):
+                Button {
+                    showPaywall = true
+                    Haptics.select()
+                } label: {
+                    HStack {
+                        Image(systemName: "sparkles").foregroundStyle(app.theme.semantic.accent)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Unlock sonicc")
+                                .font(DS.font(.body, weight: .semibold))
+                                .foregroundStyle(app.theme.semantic.ink)
+                            Text("\(days) day\(days == 1 ? "" : "s") of trial left")
+                                .font(DS.font(.caption))
+                                .foregroundStyle(app.theme.semantic.inkSoft)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(app.theme.semantic.inkMuted)
+                    }
+                }
+            case .expired:
+                Button {
+                    showPaywall = true
+                    Haptics.select()
+                } label: {
+                    Label("Unlock sonicc", systemImage: "lock.open.fill")
+                        .foregroundStyle(app.theme.semantic.accent)
+                }
+            case .purchased:
+                Label("sonicc unlocked", systemImage: "checkmark.seal.fill")
+                    .foregroundStyle(app.theme.semantic.success)
+            }
+            Button {
+                Task { await app.iap.restore() }
+                Haptics.select()
+            } label: {
+                Label("Restore Purchases", systemImage: "arrow.clockwise")
+            }
+            .disabled(app.iap.isPurchasing)
         }
     }
 

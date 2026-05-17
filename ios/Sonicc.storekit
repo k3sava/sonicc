@@ -1,0 +1,32 @@
+{
+  "identifier" : "B7F31C3A-0001-0000-0000-000000000000",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "7.99",
+      "familyShareable" : true,
+      "internalID" : "B7F31C3A-0002-0000-0000-000000000001",
+      "localizations" : [
+        {
+          "description" : "Unlock sonicc forever. One-time payment, no subscription.",
+          "displayName" : "Sonicc Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "studio.kami.sonicc.lifetime",
+      "referenceName" : "Sonicc Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

@@ -1,119 +1,151 @@
 import SwiftUI
 
-/// FX toggles + ADSR + filter knobs. Lives as a thin right-rail on iPad
-/// (~200pt wide) and as a settings sheet on iPhone. All sections collapse
-/// to a single-column vertical layout so they fit a narrow rail cleanly.
+/// Sound-design sheet on iPhone — waveform, ADSR, filter, FX. Each
+/// waveform/FX tap previews the new timbre via a quick middle C so the
+/// player hears every change. Reflects the same content as the iPad
+/// InspectorStrip but in a vertical, scroll-friendly form.
 struct InspectorPanel: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                section("WAVEFORM") {
-                    // Two compact columns of pills — readable at ~180pt, comfy at ~220pt.
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 72), spacing: 6)], spacing: 6) {
+            VStack(alignment: .leading, spacing: DS.Space.lg) {
+                section("Waveform") {
+                    LazyVGrid(columns: waveformColumns, spacing: DS.Space.xs) {
                         ForEach(Waveform.allCases) { w in
-                            Button {
-                                var s = app.synth
-                                s.waveform = w
-                                app.synth = s
-                            } label: {
-                                Text(w.displayName)
-                                    .font(.system(size: 11, design: .monospaced))
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 7)
-                                    .background(app.synth.waveform == w ? app.theme.accent : app.theme.surface)
-                                    .foregroundStyle(app.synth.waveform == w ? .white : app.theme.text)
-                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(app.theme.border))
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                            }
-                            .buttonStyle(.plain)
+                            waveformPill(w)
                         }
                     }
                 }
-
-                section("ENVELOPE") {
-                    sliderRow("ATTACK",  value: $app.synth.attack,     range: 0.001...2)
-                    sliderRow("DECAY",   value: $app.synth.decay,      range: 0.01...2)
-                    sliderRow("SUSTAIN", value: $app.synth.sustain,    range: 0...1)
-                    sliderRow("RELEASE", value: $app.synth.release,    range: 0.01...3)
+                section("Envelope") {
+                    VStack(spacing: DS.Space.xs) {
+                        slider("Attack",  $app.synth.attack,  range: 0.001...2, unit: "s")
+                        slider("Decay",   $app.synth.decay,   range: 0.01...2,  unit: "s")
+                        slider("Sustain", $app.synth.sustain, range: 0...1,     unit: "")
+                        slider("Release", $app.synth.release, range: 0.01...3,  unit: "s")
+                    }
                 }
-
-                section("FILTER") {
-                    sliderRow("CUTOFF", value: $app.synth.filterFreq, range: 50...15000, format: "%.0fHz")
-                    sliderRow("RES",    value: $app.synth.filterRes,  range: 0.1...20)
-                    sliderRow("VOL",    value: $app.synth.volume,     range: 0...1)
-                    sliderRow("PAN",    value: $app.synth.pan,        range: -1...1)
+                section("Filter · Level") {
+                    VStack(spacing: DS.Space.xs) {
+                        slider("Cutoff", $app.synth.filterFreq, range: 50...15000, unit: "Hz", format: "%.0f")
+                        slider("Res",    $app.synth.filterRes,  range: 0.1...20,   unit: "Q")
+                        slider("Volume", $app.synth.volume,     range: 0...1,      unit: "")
+                        slider("Pan",    $app.synth.pan,        range: -1...1,     unit: "")
+                    }
                 }
-
-                section("FX") {
-                    VStack(spacing: 4) {
-                        fxToggle("Reverb",     \.reverb)
-                        fxToggle("Delay",      \.delay)
-                        fxToggle("Distortion", \.distortion)
-                        fxToggle("Lo-Fi",      \.lofi)
-                        fxToggle("Chorus",     \.chorus)
-                        fxToggle("Phaser",     \.phaser)
-                        fxToggle("Compressor", \.compressor)
-                        fxToggle("Bitcrusher", \.bitcrusher)
-                        fxToggle("Tremolo",    \.tremolo)
-                        fxToggle("EQ",         \.eq)
-                        fxToggle("Flanger",    \.flanger)
-                        fxToggle("Autowah",    \.autowah)
+                section("Effects") {
+                    LazyVGrid(columns: fxColumns, spacing: DS.Space.xs) {
+                        fx("Reverb",      \.reverb)
+                        fx("Delay",       \.delay)
+                        fx("Distortion",  \.distortion)
+                        fx("Lo-Fi",       \.lofi)
+                        fx("Chorus",      \.chorus)
+                        fx("Phaser",      \.phaser)
+                        fx("Compressor",  \.compressor)
+                        fx("Bitcrusher",  \.bitcrusher)
+                        fx("Tremolo",     \.tremolo)
+                        fx("EQ",          \.eq)
+                        fx("Flanger",     \.flanger)
+                        fx("Autowah",     \.autowah)
                     }
                 }
             }
-            .padding(14)
+            .padding(DS.Space.lg)
         }
     }
 
-    @ViewBuilder
-    private func sliderRow(_ label: String, value: Binding<Double>, range: ClosedRange<Double>, format: String = "%.2f") -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(label)
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(app.theme.textMuted)
-                Spacer()
-                Text(String(format: format, value.wrappedValue))
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(app.theme.textMuted.opacity(0.8))
-            }
+    private var waveformColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: DS.Space.xs), count: 3)
+    }
+
+    private var fxColumns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: DS.Space.xs), count: 2)
+    }
+
+    private func waveformPill(_ w: Waveform) -> some View {
+        let isActive = app.synth.waveform == w
+        return Button {
+            var s = app.synth
+            s.waveform = w
+            app.synth = s
+            Haptics.select()
+            app.previewCurrentTimbre()
+        } label: {
+            Text(w.displayName)
+                .font(DS.font(.caption, weight: isActive ? .semibold : .regular, monospaced: true))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, minHeight: DS.minTarget)
+                .background(RoundedRectangle(cornerRadius: DS.Radius.chip)
+                    .fill(isActive ? app.theme.semantic.accent : app.theme.semantic.canvas))
+                .foregroundStyle(isActive ? Color.white : app.theme.semantic.ink)
+                .overlay(RoundedRectangle(cornerRadius: DS.Radius.chip)
+                    .stroke(isActive ? app.theme.semantic.accent : app.theme.semantic.hairline))
+        }
+        .buttonStyle(.plain)
+        .a11y("Waveform \(w.displayName)", value: isActive ? "selected" : "")
+    }
+
+    private func slider(_ label: String, _ value: Binding<Double>,
+                        range: ClosedRange<Double>, unit: String,
+                        format: String = "%.2f") -> some View {
+        HStack(spacing: DS.Space.sm) {
+            Text(label)
+                .font(DS.font(.label, weight: .medium))
+                .foregroundStyle(app.theme.semantic.inkSoft)
+                .frame(width: 76, alignment: .leading)
             Slider(value: value, in: range)
-                .tint(app.theme.accent)
+                .tint(app.theme.semantic.accent)
+            Text(unitLabel(value.wrappedValue, format: format, unit: unit))
+                .font(DS.font(.label, monospaced: true))
+                .foregroundStyle(app.theme.semantic.inkMuted)
+                .frame(width: 64, alignment: .trailing)
         }
+        .a11y(label, value: unitLabel(value.wrappedValue, format: format, unit: unit))
     }
 
-    private func fxToggle(_ label: String, _ kp: WritableKeyPath<SynthState.FXState, Bool>) -> some View {
+    private func unitLabel(_ v: Double, format: String, unit: String) -> String {
+        let n = String(format: format, v)
+        return unit.isEmpty ? n : "\(n) \(unit)"
+    }
+
+    private func fx(_ label: String, _ kp: WritableKeyPath<SynthState.FXState, Bool>) -> some View {
         let isOn = app.synth.fx[keyPath: kp]
         return Button {
             var s = app.synth
             s.fx[keyPath: kp].toggle()
             app.synth = s
+            Haptics.tap(.light)
+            app.previewCurrentTimbre()
         } label: {
-            HStack {
+            HStack(spacing: DS.Space.xs) {
                 Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 11))
+                    .font(.body)
                 Text(label)
-                    .font(.system(size: 11, design: .monospaced))
-                Spacer()
+                    .font(DS.font(.label, weight: isOn ? .semibold : .regular))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Spacer(minLength: 0)
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(isOn ? app.theme.accentSoft : app.theme.surface)
-            .overlay(RoundedRectangle(cornerRadius: 6).stroke(isOn ? app.theme.accent : app.theme.border))
-            .foregroundStyle(isOn ? app.theme.accent : app.theme.textMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .padding(.horizontal, DS.Space.sm)
+            .frame(maxWidth: .infinity, minHeight: DS.minTarget)
+            .background(RoundedRectangle(cornerRadius: DS.Radius.chip)
+                .fill(isOn ? app.theme.semantic.accentSoft : app.theme.semantic.canvas))
+            .overlay(RoundedRectangle(cornerRadius: DS.Radius.chip)
+                .stroke(isOn ? app.theme.semantic.accent : app.theme.semantic.hairline))
+            .foregroundStyle(isOn ? app.theme.semantic.accent : app.theme.semantic.inkSoft)
         }
         .buttonStyle(.plain)
+        .a11y("Effect \(label)", value: isOn ? "on" : "off")
     }
 
     @ViewBuilder
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: DS.Space.sm) {
             Text(title)
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                .foregroundStyle(app.theme.textMuted)
+                .font(DS.font(.label, weight: .semibold))
+                .tracking(0.5)
+                .foregroundStyle(app.theme.semantic.ink)
             content()
         }
     }
