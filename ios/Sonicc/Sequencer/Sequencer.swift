@@ -40,6 +40,9 @@ final class Sequencer: ObservableObject {
     @Published var bpm: Double = 120
     @Published var swing: Double = 0 // 0..1
     @Published var isPlaying: Bool = false
+    @Published var chainEnabled: Bool = false
+    @Published var activeSlot: Int = 0           // 0..3 → A/B/C/D
+    @Published var slotSnapshots: [Data?] = Array(repeating: nil, count: 4)
     @Published var isRecording: Bool = false
     @Published var currentStep: Int = 0
     @Published var layer: Layer = .synth
@@ -70,6 +73,90 @@ final class Sequencer: ObservableObject {
         self.audio = audio
         self.state = state
         restoreWorking()
+        restoreSlots()
+    }
+
+    // MARK: - Pattern slots (song arrangement)
+
+    private static let slotsKey = "sonicc.sequencer.slots"
+    private static let chainKey = "sonicc.sequencer.chainEnabled"
+    private static let activeSlotKey = "sonicc.sequencer.activeSlot"
+
+    /// Save the current sequencer state into the given slot (0..3 = A..D).
+    func saveSlot(_ index: Int) {
+        guard slotSnapshots.indices.contains(index) else { return }
+        let snap = snapshot(named: slotLetter(index))
+        slotSnapshots[index] = try? JSONEncoder().encode(snap)
+        persistSlots()
+    }
+
+    /// Load the snapshot in the given slot into the live sequencer.
+    /// If the slot is empty, this is a no-op.
+    func loadSlot(_ index: Int) {
+        guard slotSnapshots.indices.contains(index),
+              let data = slotSnapshots[index],
+              let snap = try? JSONDecoder().decode(SavedPattern.self, from: data) else {
+            return
+        }
+        restore(snap)
+        activeSlot = index
+        UserDefaults.standard.set(index, forKey: Self.activeSlotKey)
+    }
+
+    /// Wipe the snapshot in the given slot.
+    func clearSlot(_ index: Int) {
+        guard slotSnapshots.indices.contains(index) else { return }
+        slotSnapshots[index] = nil
+        persistSlots()
+    }
+
+    func slotIsEmpty(_ index: Int) -> Bool {
+        slotSnapshots.indices.contains(index) ? slotSnapshots[index] == nil : true
+    }
+
+    static func slotLetter(_ index: Int) -> String {
+        ["A", "B", "C", "D"][max(0, min(3, index))]
+    }
+    func slotLetter(_ index: Int) -> String { Self.slotLetter(index) }
+
+    /// In chain mode, after a full pattern loop wraps to step 0, advance
+    /// to the next populated slot. If no other slot has data, stay put.
+    func advanceChainIfNeeded() {
+        guard chainEnabled else { return }
+        // Find next populated slot, wrapping around. Skip the current one
+        // unless it's the only populated slot.
+        let total = slotSnapshots.count
+        for offset in 1...total {
+            let idx = (activeSlot + offset) % total
+            if !slotIsEmpty(idx) {
+                if idx != activeSlot {
+                    loadSlot(idx)
+                }
+                return
+            }
+        }
+    }
+
+    func setChain(_ on: Bool) {
+        chainEnabled = on
+        UserDefaults.standard.set(on, forKey: Self.chainKey)
+    }
+
+    private func persistSlots() {
+        // Store snapshots as [base64?] for UserDefaults compatibility.
+        let encoded = slotSnapshots.map { $0?.base64EncodedString() ?? "" }
+        UserDefaults.standard.set(encoded, forKey: Self.slotsKey)
+    }
+
+    private func restoreSlots() {
+        if let strings = UserDefaults.standard.array(forKey: Self.slotsKey) as? [String] {
+            slotSnapshots = strings.map { $0.isEmpty ? nil : Data(base64Encoded: $0) }
+            // Pad/truncate to exactly 4
+            while slotSnapshots.count < 4 { slotSnapshots.append(nil) }
+            if slotSnapshots.count > 4 { slotSnapshots = Array(slotSnapshots.prefix(4)) }
+        }
+        chainEnabled = UserDefaults.standard.bool(forKey: Self.chainKey)
+        activeSlot = max(0, min(3, UserDefaults.standard.integer(forKey: Self.activeSlotKey)))
     }
 
     // MARK: - Auto-save working pattern (never lose work)
@@ -200,7 +287,12 @@ final class Sequencer: ObservableObject {
 
     private func tick() {
         guard isPlaying else { return }
-        currentStep = (currentStep + 1) % stepCount.rawValue
+        let next = (currentStep + 1) % stepCount.rawValue
+        // If the loop wraps and chain mode is on, jump to the next slot.
+        if next == 0 && currentStep != -1 {
+            advanceChainIfNeeded()
+        }
+        currentStep = next
         firePadsAt(step: currentStep)
         scheduleNextStep()
     }
