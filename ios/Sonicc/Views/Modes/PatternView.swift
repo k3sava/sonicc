@@ -25,6 +25,7 @@ struct PatternView: View {
 
     var body: some View {
         VStack(spacing: DS.Space.md) {
+            slotsBar
             controlsBar
             stepIndicator
             grid
@@ -62,6 +63,89 @@ struct PatternView: View {
     }
 
     // MARK: - Controls
+
+    private var slotsBar: some View {
+        HStack(spacing: DS.Space.sm) {
+            ForEach(0..<4, id: \.self) { i in
+                slotChip(i)
+            }
+            Spacer(minLength: DS.Space.sm)
+            chainToggle
+        }
+    }
+
+    private func slotChip(_ index: Int) -> some View {
+        let isActive = sequencer.activeSlot == index
+        let isEmpty = sequencer.slotIsEmpty(index)
+        return Menu {
+            Button {
+                sequencer.saveSlot(index)
+                Haptics.notify(.success)
+                show(.success, "Saved into slot \(sequencer.slotLetter(index))")
+            } label: {
+                Label(isEmpty ? "Save current pattern here" : "Overwrite with current pattern",
+                      systemImage: "square.and.arrow.down")
+            }
+            if !isEmpty {
+                Button {
+                    sequencer.loadSlot(index)
+                    Haptics.tap(.medium)
+                    show(.info, "Loaded slot \(sequencer.slotLetter(index))")
+                } label: {
+                    Label("Load this slot", systemImage: "play.fill")
+                }
+                Button(role: .destructive) {
+                    sequencer.clearSlot(index)
+                    Haptics.notify(.warning)
+                    show(.warning, "Cleared slot \(sequencer.slotLetter(index))")
+                } label: {
+                    Label("Clear this slot", systemImage: "trash")
+                }
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Text(sequencer.slotLetter(index))
+                    .font(DS.font(.body, weight: .semibold, monospaced: true))
+                Text(isEmpty ? "empty" : "saved")
+                    .font(DS.font(.micro, monospaced: true))
+                    .opacity(0.7)
+            }
+            .frame(minWidth: 56, minHeight: DS.minTarget)
+            .foregroundStyle(isActive ? Color.white : (isEmpty ? app.theme.semantic.inkMuted : app.theme.semantic.ink))
+            .background(
+                RoundedRectangle(cornerRadius: DS.Radius.chip)
+                    .fill(isActive ? app.theme.semantic.accent : (isEmpty ? app.theme.semantic.surface : app.theme.semantic.accentSoft))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Radius.chip)
+                    .stroke(isActive ? app.theme.semantic.accent : app.theme.semantic.hairline)
+            )
+        }
+        .a11y("Slot \(sequencer.slotLetter(index))",
+              value: isActive ? "active" : (isEmpty ? "empty" : "saved"),
+              hint: "Hold to save, load, or clear this song slot.")
+    }
+
+    private var chainToggle: some View {
+        Button {
+            sequencer.setChain(!sequencer.chainEnabled)
+            Haptics.select()
+        } label: {
+            HStack(spacing: DS.Space.xs) {
+                Image(systemName: sequencer.chainEnabled ? "link.circle.fill" : "link")
+                    .imageScale(.small)
+                Text("Chain")
+                    .font(DS.font(.caption, weight: .semibold, monospaced: true))
+            }
+            .padding(.horizontal, DS.Space.md)
+            .frame(minHeight: DS.minTarget)
+            .foregroundStyle(sequencer.chainEnabled ? app.theme.semantic.accent : app.theme.semantic.inkSoft)
+            .background(Capsule().fill(sequencer.chainEnabled ? app.theme.semantic.accentSoft : app.theme.semantic.surface))
+            .overlay(Capsule().stroke(sequencer.chainEnabled ? app.theme.semantic.accent : app.theme.semantic.hairline))
+        }
+        .a11y("Chain mode", value: sequencer.chainEnabled ? "on" : "off",
+              hint: "When on, the sequencer advances through populated slots each loop.")
+    }
 
     private var controlsBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
