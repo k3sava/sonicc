@@ -139,6 +139,9 @@ final class MultiTouchKeyboardUIView: UIView {
             let prev = touchPitch[id]
             let now = pitch(at: t.location(in: self))
             if prev?.id != now?.id {
+                // Clear the mapping before release() so its
+                // "still held by another touch?" check is accurate.
+                touchPitch[id] = nil
                 if let prev { release(prev) }
                 if let now { press(now, for: id) }
             }
@@ -164,9 +167,8 @@ final class MultiTouchKeyboardUIView: UIView {
 
     private func handleTouchUp(_ t: UITouch) {
         let id = ObjectIdentifier(t)
-        if let pitch = touchPitch[id] {
+        if let pitch = touchPitch.removeValue(forKey: id) {
             release(pitch)
-            touchPitch[id] = nil
         }
     }
 
