@@ -100,15 +100,26 @@ final class MultiTouchKeyboardUIView: UIView {
     override func draw(_ rect: CGRect) {
         guard let ctx = UIGraphicsGetCurrentContext() else { return }
         let pressed = heldByTouch.union(externalHeld)
+        let inkColor = UIColor(theme.text)
+
+        // Outer keyboard frame so the whole instrument reads as an object
+        ctx.setStrokeColor(inkColor.cgColor)
+        ctx.setLineWidth(1.5)
+        ctx.stroke(bounds.insetBy(dx: 0.75, dy: 0.75))
 
         // White keys
         for (pitch, r) in whiteRects {
             let fill = pressed.contains(pitch) ? theme.accentSoft : theme.surface
             ctx.setFillColor(UIColor(fill).cgColor)
             ctx.fill(r)
-            ctx.setStrokeColor(UIColor(theme.border).cgColor)
-            ctx.setLineWidth(0.5)
-            ctx.stroke(r)
+            // Separator on the right edge of every white key — a real ink
+            // line so adjacent keys are distinguishable from each other and
+            // from the cream background.
+            ctx.setStrokeColor(inkColor.cgColor)
+            ctx.setLineWidth(1)
+            ctx.move(to: CGPoint(x: r.maxX, y: r.minY))
+            ctx.addLine(to: CGPoint(x: r.maxX, y: r.maxY))
+            ctx.strokePath()
             let label = pitch.label as NSString
             label.draw(
                 at: CGPoint(x: r.midX - 8, y: r.maxY - 14),
