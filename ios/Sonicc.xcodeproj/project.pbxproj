@@ -22,6 +22,7 @@
 		309F5497F8261EB9021CFFFD /* WorldInstruments.swift in Sources */ = {isa = PBXBuildFile; fileRef = 033896E248E3C9F16816F348 /* WorldInstruments.swift */; };
 		33E981EE23423A1D19757A56 /* PatternView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACABC83119AE5DABE1675B4C /* PatternView.swift */; };
 		37932CB88BAFD43F7D543937 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3C3AF92EB5E3C995EDED3AD6 /* Assets.xcassets */; };
+		39183776B5BB3C20D0C887CF /* Scale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B2C66453FE59B8DAFC4823 /* Scale.swift */; };
 		4479C62BAB766707881A84F1 /* Knob.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */; };
 		473F5876426922D92EE34601 /* SynthState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BE6539462C6DB9759171C77 /* SynthState.swift */; };
 		5F9F2C2073367774A029642C /* KeyboardShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */; };
@@ -33,7 +34,9 @@
 		8A10313ADFB0D462040D55D9 /* ChordReadout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE3DD21FFB4DE9BDB4E5D07E /* ChordReadout.swift */; };
 		8CF07F656FDEC3D9A19C7ABF /* CustomEffects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72BCA1304FD82AC4903061F6 /* CustomEffects.swift */; };
 		8F0E37FDAF934655C26AD506 /* AudioSessionConfigurator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD53199623A01EABDCDCE829 /* AudioSessionConfigurator.swift */; };
+		9357884910843FCCC6195F02 /* Haptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24748FE3AAE76D99ED72366C /* Haptics.swift */; };
 		A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FB14523BF1614EF619DA06F /* Sequencer.swift */; };
+		A776A829723A3E9130455DCF /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D058BB315A208D9D5680287 /* DesignSystem.swift */; };
 		AC01B25AA26D7D9DEA44E58E /* RecordingLibrarySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2550D6D975FEBEA3C29FE48 /* RecordingLibrarySheet.swift */; };
 		AE66455732D00E217519F5FB /* DrumSynth.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1736B93276E0A1D3C9DA2853 /* DrumSynth.swift */; };
 		AE6E09A320F9D4913740C188 /* MIDIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07DF9A8888AB382BBF66B82A /* MIDIManager.swift */; };
@@ -42,6 +45,7 @@
 		BD0AECE542B978DD60A592CD /* MultiTouchKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36470D7E708B90D90F64C93F /* MultiTouchKeyboard.swift */; };
 		C82863A2BA7287C79AD55DA3 /* ThemeLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C65B4A496779BB48252352 /* ThemeLibrary.swift */; };
 		CDD078A764EE4E196C48EC71 /* MicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787CB08DF6C9DD7215EA2960 /* MicView.swift */; };
+		CF26AC6B1D9AD84E96582967 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */; };
 		CF8CB5E3BE709EDDDB1E713C /* BiquadLowpass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4548D28AAC44FCEFD42ED754 /* BiquadLowpass.swift */; };
 		D5A00C9D32B84A1BEDC42516 /* PatternLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1095CB002E3634A153387061 /* PatternLibrary.swift */; };
 		F42564B6C455886CFE8DD760 /* DrumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AA5E7ED20653E0D9B788B03 /* DrumsView.swift */; };
@@ -62,6 +66,7 @@
 		1739AA45D4E5DE0145B5D584 /* ControlBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlBar.swift; sourceTree = "<group>"; };
 		1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Knob.swift; sourceTree = "<group>"; };
 		21806C20957F7D98CBDA4D32 /* SoniccApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoniccApp.swift; sourceTree = "<group>"; };
+		24748FE3AAE76D99ED72366C /* Haptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Haptics.swift; sourceTree = "<group>"; };
 		2650D5561737FDF5978C761E /* KeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardView.swift; sourceTree = "<group>"; };
 		27A3ED86D91F61F2A99583FD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		36470D7E708B90D90F64C93F /* MultiTouchKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiTouchKeyboard.swift; sourceTree = "<group>"; };
@@ -71,12 +76,15 @@
 		4548D28AAC44FCEFD42ED754 /* BiquadLowpass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiquadLowpass.swift; sourceTree = "<group>"; };
 		4B05113F32DA55C56CE394B5 /* SynthVoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthVoice.swift; sourceTree = "<group>"; };
 		4BE6539462C6DB9759171C77 /* SynthState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynthState.swift; sourceTree = "<group>"; };
+		4D058BB315A208D9D5680287 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		4F65A9E4E0274D5EE22BBD7F /* AudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioEngine.swift; sourceTree = "<group>"; };
 		5ACC89B6E4D8406B086745C2 /* IPhoneRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneRootView.swift; sourceTree = "<group>"; };
 		5E60733D3E339125BC07DD71 /* MicrophoneRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneRecorder.swift; sourceTree = "<group>"; };
+		67B2C66453FE59B8DAFC4823 /* Scale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scale.swift; sourceTree = "<group>"; };
 		6FB14523BF1614EF619DA06F /* Sequencer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sequencer.swift; sourceTree = "<group>"; };
 		72BCA1304FD82AC4903061F6 /* CustomEffects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomEffects.swift; sourceTree = "<group>"; };
 		787CB08DF6C9DD7215EA2960 /* MicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicView.swift; sourceTree = "<group>"; };
+		7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		8222F16E6DEEBB76A0980823 /* RecordingLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingLibrary.swift; sourceTree = "<group>"; };
 		85250815695A3FA32172CEE1 /* InspectorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorPanel.swift; sourceTree = "<group>"; };
 		93525619477D7A42067F6E64 /* Waveforms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Waveforms.swift; sourceTree = "<group>"; };
@@ -112,6 +120,7 @@
 			children = (
 				AAFC5187DF007D488997EF16 /* AppState.swift */,
 				0B4AFE8B8133C6D4140DA7B8 /* NotePitch.swift */,
+				67B2C66453FE59B8DAFC4823 /* Scale.swift */,
 				4BE6539462C6DB9759171C77 /* SynthState.swift */,
 			);
 			path = Models;
@@ -146,6 +155,7 @@
 			children = (
 				3C3AF92EB5E3C995EDED3AD6 /* Assets.xcassets */,
 				27A3ED86D91F61F2A99583FD /* ContentView.swift */,
+				7C47DCC4BCB249379E4F9EA5 /* PrivacyInfo.xcprivacy */,
 				21806C20957F7D98CBDA4D32 /* SoniccApp.swift */,
 				2AC41E7926154A90D63F214E /* Audio */,
 				6AC69DE5C6A31DB683275E40 /* Microphone */,
@@ -154,6 +164,7 @@
 				EF444A3CD48B3B5C99CA303B /* Presets */,
 				D812463DE467A96E9EF0433D /* Sampler */,
 				0FA8B47D13F9559F612071C8 /* Sequencer */,
+				3665F40DC30D765F5A38062D /* Shared */,
 				62D38273B84D3B4A9B5B9EF5 /* Themes */,
 				61379977D00F50EBED4C1538 /* Views */,
 			);
@@ -169,6 +180,15 @@
 				C0952FFD0D11027F2EFA54DF /* InspectorStrip.swift */,
 				C16ABEC586D2E1B627B41BC8 /* KeyboardShortcuts.swift */,
 				1F8E2A9DB01E68F1CA5F5D6F /* Knob.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		3665F40DC30D765F5A38062D /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				4D058BB315A208D9D5680287 /* DesignSystem.swift */,
+				24748FE3AAE76D99ED72366C /* Haptics.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -344,6 +364,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				37932CB88BAFD43F7D543937 /* Assets.xcassets in Resources */,
+				CF26AC6B1D9AD84E96582967 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,9 +384,11 @@
 				AEE6CF3172D498108C2B9929 /* ContentView.swift in Sources */,
 				292BE6F44A7F0D8309B498F5 /* ControlBar.swift in Sources */,
 				8CF07F656FDEC3D9A19C7ABF /* CustomEffects.swift in Sources */,
+				A776A829723A3E9130455DCF /* DesignSystem.swift in Sources */,
 				AE66455732D00E217519F5FB /* DrumSynth.swift in Sources */,
 				F42564B6C455886CFE8DD760 /* DrumsView.swift in Sources */,
 				1120DC06A86D6BA24D61EC8D /* EffectsRack.swift in Sources */,
+				9357884910843FCCC6195F02 /* Haptics.swift in Sources */,
 				063D4E63C0272CC184CB1EB7 /* HeaderBar.swift in Sources */,
 				F5E04ECDA5812A77734E7DE9 /* IPadRootView.swift in Sources */,
 				186E68B22B2889663CC80D9B /* IPhoneRootView.swift in Sources */,
@@ -387,6 +410,7 @@
 				AC01B25AA26D7D9DEA44E58E /* RecordingLibrarySheet.swift in Sources */,
 				070D4BB2D8124C923DB8FEC6 /* SamplerEngine.swift in Sources */,
 				FCA2F6621E4C8682797001AF /* SamplerView.swift in Sources */,
+				39183776B5BB3C20D0C887CF /* Scale.swift in Sources */,
 				A21F9F477BB4D16DE77E1262 /* Sequencer.swift in Sources */,
 				309B3249C3C403425143FAC5 /* SoniccApp.swift in Sources */,
 				473F5876426922D92EE34601 /* SynthState.swift in Sources */,

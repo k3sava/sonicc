@@ -1,69 +1,108 @@
 import AVFoundation
 import SwiftUI
 
-/// Waveform display + slice markers + 4 pads.
+/// Sampler — load audio from the mic, view the waveform, set in/out
+/// points by dragging the green/red markers, and assign the slice to
+/// one of four pads. Tap a pad to play; long-press for clear.
 struct SamplerView: View {
     @EnvironmentObject var app: AppState
     @ObservedObject var sampler: SamplerEngine
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(spacing: 16) {
-            WaveformView(buffer: sampler.currentBuffer, start: $sampler.sliceStart, end: $sampler.sliceEnd)
+        VStack(spacing: DS.Space.md) {
+            WaveformView(buffer: sampler.currentBuffer,
+                         start: $sampler.sliceStart,
+                         end: $sampler.sliceEnd)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(app.theme.canvasBG)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipShape(RoundedRectangle(cornerRadius: DS.Radius.card))
+                .overlay(
+                    RoundedRectangle(cornerRadius: DS.Radius.card)
+                        .stroke(app.theme.semantic.hairline)
+                )
 
-            HStack(spacing: 12) {
-                ForEach(0..<4, id: \.self) { i in
-                    Button {
-                        if sampler.pads[i] != nil {
-                            sampler.playPad(i)
-                        } else {
-                            sampler.sliceToPad(i)
-                        }
-                    } label: {
-                        VStack {
-                            Text("PAD \(i + 1)")
-                                .font(.system(size: 10, design: .monospaced))
-                            Spacer()
-                            Image(systemName: sampler.pads[i] == nil ? "scissors" : "play.fill")
-                                .font(.system(size: 24))
-                            Spacer()
-                            Text(sampler.pads[i] == nil ? "slice" : "play")
-                                .font(.system(size: 10, design: .monospaced))
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, minHeight: 100)
-                        .background(sampler.pads[i] == nil ? app.theme.surface : app.theme.accentSoft)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(app.theme.border))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        Button(role: .destructive) {
-                            sampler.clearPad(i)
-                        } label: {
-                            Label("Clear", systemImage: "trash")
-                        }
-                    }
-                }
-            }
+            padRow
 
-            HStack {
-                Toggle("Loop", isOn: $sampler.loop)
-                    .toggleStyle(.switch)
-                    .font(.system(size: 11, design: .monospaced))
-                Spacer()
-                Text("Start: \(Int(sampler.sliceStart * 100))%   End: \(Int(sampler.sliceEnd * 100))%")
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundStyle(app.theme.textMuted)
+            footerControls
+        }
+        .padding(DS.Space.md)
+    }
+
+    private var padRow: some View {
+        HStack(spacing: DS.Space.md) {
+            ForEach(0..<4, id: \.self) { i in
+                padButton(i)
             }
         }
-        .padding(16)
+        .frame(height: 110)
+    }
+
+    @ViewBuilder
+    private func padButton(_ i: Int) -> some View {
+        let hasSample = sampler.pads[i] != nil
+        Button {
+            if hasSample { sampler.playPad(i); Haptics.tap(.medium) }
+            else { sampler.sliceToPad(i); Haptics.notify(.success) }
+        } label: {
+            VStack(spacing: DS.Space.xs) {
+                Text("PAD \(i + 1)")
+                    .font(DS.font(.micro, weight: .semibold, monospaced: true))
+                    .tracking(1)
+                Spacer(minLength: 0)
+                Image(systemName: hasSample ? "play.fill" : "scissors")
+                    .font(.system(size: 26, weight: .medium))
+                Spacer(minLength: 0)
+                Text(hasSample ? "play" : "slice → pad")
+                    .font(DS.font(.micro, monospaced: true))
+            }
+            .padding(DS.Space.sm)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: DS.Radius.card)
+                    .fill(hasSample ? app.theme.semantic.accentSoft : app.theme.semantic.surface)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: DS.Radius.card)
+                    .stroke(hasSample ? app.theme.semantic.accent : app.theme.semantic.hairline)
+            )
+            .foregroundStyle(hasSample ? app.theme.semantic.accent : app.theme.semantic.inkSoft)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button(role: .destructive) {
+                sampler.clearPad(i); Haptics.notify(.warning)
+            } label: {
+                Label("Clear", systemImage: "trash")
+            }
+        }
+        .a11y("Pad \(i + 1)", value: hasSample ? "loaded" : "empty",
+              hint: hasSample ? "Plays the loaded slice." : "Slices the current selection onto this pad.")
+    }
+
+    private var footerControls: some View {
+        HStack(spacing: DS.Space.md) {
+            Toggle(isOn: $sampler.loop) {
+                HStack(spacing: 4) {
+                    Image(systemName: "repeat").imageScale(.small)
+                    Text("Loop").font(DS.font(.caption, weight: .medium))
+                }
+            }
+            .toggleStyle(.switch)
+            .tint(app.theme.semantic.accent)
+            Spacer(minLength: 0)
+            Text("In: \(Int(sampler.sliceStart * 100))%   Out: \(Int(sampler.sliceEnd * 100))%")
+                .font(DS.font(.caption, monospaced: true))
+                .foregroundStyle(app.theme.semantic.inkMuted)
+        }
+        .padding(.horizontal, DS.Space.xs)
+        .frame(minHeight: DS.minTarget)
     }
 }
 
-/// Renders an AVAudioPCMBuffer as a waveform with two draggable slice handles.
+/// Renders an AVAudioPCMBuffer as a waveform with two draggable slice
+/// handles. When no buffer is loaded, shows a clear empty-state pointing
+/// the user to Mic mode.
 struct WaveformView: View {
     let buffer: AVAudioPCMBuffer?
     @Binding var start: Double
@@ -86,18 +125,31 @@ struct WaveformView: View {
                             path.addLine(to: CGPoint(x: CGFloat(x), y: mid + h / 2))
                         }
                     }
-                    .stroke(app.theme.accent.opacity(0.85), lineWidth: 1)
+                    .stroke(app.theme.semantic.accent.opacity(0.85), lineWidth: 1)
                 } else {
-                    Text("No sample loaded — record in Mic mode or hand-off to a pad")
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundStyle(.white.opacity(0.5))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    emptyState
                 }
-                // Slice markers
                 marker(at: start, color: .green, geo: geo) { v in start = min(end - 0.01, v) }
                 marker(at: end, color: .red, geo: geo) { v in end = max(start + 0.01, v) }
             }
         }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: DS.Space.sm) {
+            Image(systemName: "waveform")
+                .font(.system(size: 32, weight: .light))
+                .foregroundStyle(.white.opacity(0.5))
+            Text("No sample loaded")
+                .font(DS.font(.body, weight: .medium))
+                .foregroundStyle(.white.opacity(0.7))
+            Text("Record in Mic mode, then tap an empty pad to slice it here.")
+                .font(DS.font(.caption))
+                .foregroundStyle(.white.opacity(0.4))
+                .multilineTextAlignment(.center)
+        }
+        .padding(DS.Space.lg)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     @ViewBuilder
@@ -105,7 +157,7 @@ struct WaveformView: View {
         let x = CGFloat(value) * geo.size.width
         Rectangle()
             .fill(color)
-            .frame(width: 2)
+            .frame(width: 3)
             .position(x: x, y: geo.size.height / 2)
             .gesture(
                 DragGesture()

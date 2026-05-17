@@ -47,12 +47,3 @@ extension View {
     }
 }
 
-/// Haptic feedback — sharp click for drum pads and keys.
-enum Haptics {
-    @MainActor static func tap() {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-    }
-    @MainActor static func light() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    }
-}

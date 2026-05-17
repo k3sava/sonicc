@@ -19,6 +19,11 @@ final class AppState: ObservableObject {
     @Published var pitchBend: Double = 0 // -1...1
     @Published var midiConnected: Bool = false
     @Published var theme: AppTheme
+    @Published var scaleSelection: ScaleSelection = .none
+    @Published var sustainHeld: Bool = false
+    @Published var velocitySensitive: Bool = true
+    // Notes that are released by user touch but still held by sustain.
+    @Published var sustainedNotes: Set<NotePitch> = []
 
     func setTheme(_ theme: AppTheme) {
         self.theme = theme
@@ -82,8 +87,11 @@ final class AppState: ObservableObject {
     }
 
     func noteOn(pitch: NotePitch, velocity: Double = 1.0) {
+        // If sustain had this note pending release, take it back.
+        sustainedNotes.remove(pitch)
         guard heldNotes.insert(pitch).inserted else { return }
-        audio.noteOn(pitch: pitch, velocity: velocity, synth: synth)
+        let v = velocitySensitive ? max(0.15, min(1.0, velocity)) : 1.0
+        audio.noteOn(pitch: pitch, velocity: v, synth: synth)
         if sequencer.isRecording {
             sequencer.recordNote(pitch: pitch)
         }
@@ -91,7 +99,34 @@ final class AppState: ObservableObject {
 
     func noteOff(pitch: NotePitch) {
         guard heldNotes.remove(pitch) != nil else { return }
+        if sustainHeld {
+            // Keep ringing — only release on sustain-off.
+            sustainedNotes.insert(pitch)
+            return
+        }
         audio.noteOff(pitch: pitch)
+    }
+
+    /// Toggle sustain pedal behavior. When sustain turns off, any pitches
+    /// that were "held" only by sustain get released cleanly.
+    func setSustain(_ on: Bool) {
+        sustainHeld = on
+        if !on {
+            for pitch in sustainedNotes where !heldNotes.contains(pitch) {
+                audio.noteOff(pitch: pitch)
+            }
+            sustainedNotes.removeAll()
+        }
+    }
+
+    /// Cheap preview tap — used when the user taps a waveform / FX so they
+    /// hear the timbre change. Plays middle C briefly.
+    func previewCurrentTimbre() {
+        let pitch = NotePitch(note: 0, octave: 4) // C4
+        audio.noteOn(pitch: pitch, velocity: 0.6, synth: synth)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) { [weak self] in
+            self?.audio.noteOff(pitch: pitch)
+        }
     }
 
     func setPitchBend(_ value: Double) {

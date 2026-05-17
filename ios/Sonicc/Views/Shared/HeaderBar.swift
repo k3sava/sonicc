@@ -1,41 +1,32 @@
 import SwiftUI
 
+/// Top app chrome — wordmark + status indicators. Keeps to 52pt height
+/// so the play surface gets every pixel below it.
 struct HeaderBar: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: DS.Space.md) {
             Text("sonicc")
-                .font(.system(size: 18, weight: .semibold, design: .default))
+                .font(.system(.title3, design: .default).weight(.semibold))
                 .tracking(-0.5)
-                .foregroundStyle(app.theme.text)
+                .foregroundStyle(app.theme.semantic.ink)
+                .accessibilityAddTraits(.isHeader)
 
             Spacer()
 
-            Text(breadcrumb)
-                .font(.system(size: 12, design: .monospaced))
-                .foregroundStyle(app.theme.textMuted)
-
-            Spacer()
-
-            HStack(spacing: 8) {
-                if app.midiConnected {
-                    Label("MIDI", systemImage: "pianokeys.inverse")
-                        .font(.caption2.monospaced())
-                        .foregroundStyle(app.theme.accent)
-                }
-                ThemePicker()
+            if app.midiConnected {
+                Label("MIDI", systemImage: "pianokeys.inverse")
+                    .font(DS.font(.micro, weight: .semibold, monospaced: true))
+                    .foregroundStyle(app.theme.semantic.accent)
+                    .a11y("MIDI connected")
             }
+            ThemePicker()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, DS.Space.lg)
         .frame(height: 52)
-        .background(app.theme.surface)
+        .background(app.theme.semantic.surface)
         .overlay(Divider(), alignment: .bottom)
-    }
-
-    private var breadcrumb: String {
-        let crumbs = ["Sonicc", app.mode.title, app.presets.preset(id: app.currentPresetID)?.displayName ?? ""]
-        return crumbs.filter { !$0.isEmpty }.joined(separator: " › ")
     }
 }
 
@@ -44,15 +35,26 @@ struct ThemePicker: View {
     var body: some View {
         Menu {
             ForEach(AppTheme.all) { t in
-                Button(t.displayName) { app.setTheme(t) }
+                Button {
+                    app.setTheme(t)
+                    Haptics.select()
+                } label: {
+                    HStack {
+                        Text(t.displayName)
+                        if app.theme.id == t.id {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
             }
         } label: {
             Image(systemName: "paintpalette")
-                .font(.system(size: 14))
-                .frame(width: 30, height: 30)
-                .background(app.theme.surface)
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(app.theme.border))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .imageScale(.medium)
+                .frame(width: DS.minTarget, height: DS.minTarget)
+                .foregroundStyle(app.theme.semantic.ink)
+                .contentShape(Rectangle())
         }
+        .a11y("Theme", value: app.theme.displayName, hint: "Switches the visual palette.")
     }
 }

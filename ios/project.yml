@@ -29,6 +29,8 @@ targets:
         excludes:
           - "Info.plist"
           - "Sonicc.entitlements"
+      - path: Sonicc/PrivacyInfo.xcprivacy
+        buildPhase: resources
     settings:
       base:
         PRODUCT_NAME: Sonicc
@@ -51,6 +53,11 @@ targets:
           UIColorName: ""
         UIRequiresFullScreen: true
         UIStatusBarStyle: UIStatusBarStyleDefault
+        UIUserInterfaceStyle: Light
+        ITSAppUsesNonExemptEncryption: false
+        UIBackgroundModes:
+          - audio
+        NSMicrophoneUsageDescription: "Sonicc uses the microphone so you can record vocals, percussion, or any sound and play it back as a sampled instrument."
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
