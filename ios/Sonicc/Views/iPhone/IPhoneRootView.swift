@@ -11,13 +11,20 @@ struct IPhoneRootView: View {
     @State private var showSettings = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            HeaderBar(onSettings: { showSettings = true })
-            transport
-            currentMode
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(app.theme.semantic.canvas)
-            modeTabs
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                HeaderBar(onSettings: { showSettings = true })
+                topBar
+                currentMode
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(app.theme.semantic.canvas)
+                modeTabs
+            }
+            // Floating thumb-zone cluster — play + record live where the
+            // thumb can reach them on a phone held in one hand.
+            FloatingTransport(sequencer: app.sequencer)
+                .padding(.trailing, DS.Space.md)
+                .padding(.bottom, 60)   // sits above the tab bar
         }
         .sheet(isPresented: Binding(
             get: { !app.hasOnboarded },
@@ -51,12 +58,10 @@ struct IPhoneRootView: View {
         }
     }
 
-    // MARK: - Transport
+    // MARK: - Top bar (chrome — play/record live in the floating cluster)
 
-    private var transport: some View {
+    private var topBar: some View {
         HStack(spacing: DS.Space.sm) {
-            playButton
-            recordButton
             bpmDisplay
             Spacer(minLength: 0)
             Button {
@@ -95,49 +100,39 @@ struct IPhoneRootView: View {
         .overlay(Divider(), alignment: .bottom)
     }
 
-    private var playButton: some View {
-        Button {
-            if app.sequencer.isPlaying { app.sequencer.stop() } else { app.sequencer.play() }
-            Haptics.tap(.medium)
-        } label: {
-            Image(systemName: app.sequencer.isPlaying ? "stop.fill" : "play.fill")
-                .font(.body.weight(.semibold))
-                .frame(width: DS.minTarget, height: DS.minTarget)
-                .foregroundStyle(app.sequencer.isPlaying ? Color.white : app.theme.semantic.accent)
-                .background(RoundedRectangle(cornerRadius: DS.Radius.chip)
-                    .fill(app.sequencer.isPlaying ? app.theme.semantic.accent : app.theme.semantic.accentSoft))
-        }
-        .buttonStyle(.plain)
-        .a11y(app.sequencer.isPlaying ? "Stop" : "Play")
-    }
-
-    private var recordButton: some View {
-        Button {
-            app.sequencer.toggleRecord()
-            Haptics.notify(app.sequencer.isRecording ? .warning : .success)
-        } label: {
-            ZStack {
-                Circle()
-                    .stroke(app.sequencer.isRecording ? app.theme.semantic.destructive : app.theme.semantic.inkSoft,
-                            lineWidth: 2)
-                    .frame(width: 24, height: 24)
-                Circle()
-                    .fill(app.sequencer.isRecording ? app.theme.semantic.destructive : app.theme.semantic.inkSoft)
-                    .frame(width: app.sequencer.isRecording ? 18 : 14,
-                           height: app.sequencer.isRecording ? 18 : 14)
-            }
-            .frame(width: DS.minTarget, height: DS.minTarget)
-            .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .a11y("Record", value: app.sequencer.isRecording ? "on" : "off")
-    }
+    @State private var showBPMEditor = false
 
     private var bpmDisplay: some View {
-        Text("\(Int(app.sequencer.bpm)) BPM")
-            .font(DS.font(.caption, weight: .semibold, monospaced: true))
+        Button {
+            showBPMEditor = true
+            Haptics.select()
+        } label: {
+            HStack(spacing: 4) {
+                Text("\(Int(app.sequencer.bpm))")
+                    .font(DS.font(.body, weight: .semibold, monospaced: true))
+                Text("BPM")
+                    .font(DS.font(.micro, weight: .semibold, monospaced: true))
+                    .foregroundStyle(app.theme.semantic.inkMuted)
+            }
+            .padding(.horizontal, DS.Space.md)
+            .frame(minHeight: DS.minTarget)
+            .background(Capsule().fill(app.theme.semantic.surface))
+            .overlay(Capsule().stroke(app.theme.semantic.hairline))
             .foregroundStyle(app.theme.semantic.ink)
-            .padding(.horizontal, DS.Space.sm)
+        }
+        .buttonStyle(.plain)
+        .alert("Tempo", isPresented: $showBPMEditor) {
+            TextField("BPM", value: Binding(
+                get: { app.sequencer.bpm },
+                set: { app.sequencer.bpm = max(40, min(300, $0)) }
+            ), format: .number)
+                .keyboardType(.decimalPad)
+            Button("OK") { Haptics.notify(.success) }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Range 40 – 300 BPM")
+        }
+        .a11y("Tempo", value: "\(Int(app.sequencer.bpm)) BPM", hint: "Tap to type a value.")
     }
 
     // MARK: - Mode tabs

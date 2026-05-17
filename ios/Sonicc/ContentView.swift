@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject var app: AppState
     @Environment(\.horizontalSizeClass) private var hSize
     @Environment(\.verticalSizeClass) private var vSize
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         Group {
@@ -16,6 +17,17 @@ struct ContentView: View {
         .tint(app.theme.accent)
         .background(app.theme.bg.ignoresSafeArea())
         .keyboardShortcutLayer()
+        // Hard paywall — trial expired, must buy or restore to continue.
+        .fullScreenCover(isPresented: .constant(app.trial.isLocked && !app.trial.isUnlocked)) {
+            PaywallView(gate: app.trial, store: app.iap, allowDismiss: false)
+                .environmentObject(app)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                app.trial.recompute()
+                Task { await app.iap.refreshEntitlements() }
+            }
+        }
     }
 
     private var isPad: Bool {

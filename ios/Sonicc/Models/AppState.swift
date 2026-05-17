@@ -10,6 +10,8 @@ final class AppState: ObservableObject {
     let mic = MicrophoneRecorder()
     let midi = MIDIManager()
     let presets = PresetLibrary()
+    let trial = TrialGate(productID: "studio.kami.sonicc.lifetime")
+    lazy var iap = IAPStore(gate: trial)
 
     @Published var mode: Mode = .keys
     @Published var synth = SynthState()
@@ -124,6 +126,7 @@ final class AppState: ObservableObject {
         sampler.bind(audio: audio)
         mic.bind(audio: audio)
         audio.applySynthState(synth)
+        Task { await iap.refresh() }
     }
 
     func applyPreset(id: String) {

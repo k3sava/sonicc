@@ -1,27 +1,34 @@
 import SwiftUI
 
-/// Horizontal inspector for iPad — lives above the performance surface
-/// and uses the full screen width. Four side-by-side columns: WAVEFORM,
-/// ENVELOPE, FILTER, FX. All labels legible at iPad arm's length; every
-/// numeric value carries a unit. Tapping a waveform or FX previews the
-/// timbre so the player hears the change immediately.
+/// Horizontal inspector for iPad — full-width strip above the keyboard.
+/// Four columns: Waveform · Envelope · Filter · Effects. Lays out
+/// proportionally so columns share the available width evenly, with a
+/// little extra given to Waveform + Effects (which carry more cells).
 struct InspectorStrip: View {
     @EnvironmentObject var app: AppState
 
     var body: some View {
-        HStack(alignment: .top, spacing: DS.Space.lg) {
-            waveformColumn
-                .frame(minWidth: 240, maxWidth: 320)
-            envelopeColumn
-                .frame(minWidth: 220, maxWidth: 280)
-            filterColumn
-                .frame(minWidth: 220, maxWidth: 280)
-            fxColumn
-                .frame(minWidth: 260, maxWidth: .infinity)
+        GeometryReader { geo in
+            let totalGap = DS.Space.lg * 3
+            let totalPad = DS.Space.lg * 2
+            let usable   = max(0, geo.size.width - totalGap - totalPad)
+            // Weighted split: Waveform 3, Envelope 2, Filter 2, Effects 3
+            let unit = usable / 10
+            let wWidth = unit * 3
+            let envW   = unit * 2
+            let filW   = unit * 2
+            let fxW    = unit * 3
+            HStack(alignment: .top, spacing: DS.Space.lg) {
+                waveformColumn.frame(width: wWidth, alignment: .leading)
+                envelopeColumn.frame(width: envW,   alignment: .leading)
+                filterColumn.frame(width: filW,     alignment: .leading)
+                fxColumn.frame(width: fxW,          alignment: .leading)
+            }
+            .padding(.horizontal, DS.Space.lg)
+            .padding(.vertical, DS.Space.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.horizontal, DS.Space.lg)
-        .padding(.vertical, DS.Space.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: 168)
         .background(app.theme.semantic.surface)
         .overlay(Divider(), alignment: .bottom)
     }
@@ -39,10 +46,10 @@ struct InspectorStrip: View {
     private var envelopeColumn: some View {
         sectionHeader("Envelope") {
             VStack(spacing: DS.Space.xs) {
-                sliderRow("Attack",  $app.synth.attack,  range: 0.001...2, unit: "s")
-                sliderRow("Decay",   $app.synth.decay,   range: 0.01...2,  unit: "s")
-                sliderRow("Sustain", $app.synth.sustain, range: 0...1,     unit: "")
-                sliderRow("Release", $app.synth.release, range: 0.01...3,  unit: "s")
+                slider("Atk", $app.synth.attack,  range: 0.001...2, unit: "s")
+                slider("Dec", $app.synth.decay,   range: 0.01...2,  unit: "s")
+                slider("Sus", $app.synth.sustain, range: 0...1,     unit: "")
+                slider("Rel", $app.synth.release, range: 0.01...3,  unit: "s")
             }
         }
     }
@@ -50,10 +57,10 @@ struct InspectorStrip: View {
     private var filterColumn: some View {
         sectionHeader("Filter · Level") {
             VStack(spacing: DS.Space.xs) {
-                sliderRow("Cutoff", $app.synth.filterFreq, range: 50...15000, unit: "Hz", format: "%.0f")
-                sliderRow("Res",    $app.synth.filterRes,  range: 0.1...20,   unit: "Q")
-                sliderRow("Volume", $app.synth.volume,     range: 0...1,      unit: "")
-                sliderRow("Pan",    $app.synth.pan,        range: -1...1,     unit: "")
+                slider("Cut", $app.synth.filterFreq, range: 50...15000, unit: "Hz", format: "%.0f")
+                slider("Res", $app.synth.filterRes,  range: 0.1...20,   unit: "Q")
+                slider("Vol", $app.synth.volume,     range: 0...1,      unit: "")
+                slider("Pan", $app.synth.pan,        range: -1...1,     unit: "")
             }
         }
     }
@@ -61,18 +68,18 @@ struct InspectorStrip: View {
     private var fxColumn: some View {
         sectionHeader("Effects") {
             LazyVGrid(columns: fxGridColumns, spacing: DS.Space.xs) {
-                fxToggle("Reverb",      \.reverb)
-                fxToggle("Delay",       \.delay)
-                fxToggle("Distortion",  \.distortion)
-                fxToggle("Lo-Fi",       \.lofi)
-                fxToggle("Chorus",      \.chorus)
-                fxToggle("Phaser",      \.phaser)
-                fxToggle("Compressor",  \.compressor)
-                fxToggle("Bitcrusher",  \.bitcrusher)
-                fxToggle("Tremolo",     \.tremolo)
-                fxToggle("EQ",          \.eq)
-                fxToggle("Flanger",     \.flanger)
-                fxToggle("Autowah",     \.autowah)
+                fxToggle("Reverb",  \.reverb)
+                fxToggle("Delay",   \.delay)
+                fxToggle("Distort", \.distortion)
+                fxToggle("Lo-Fi",   \.lofi)
+                fxToggle("Chorus",  \.chorus)
+                fxToggle("Phaser",  \.phaser)
+                fxToggle("Comp",    \.compressor)
+                fxToggle("Bitcrsh", \.bitcrusher)
+                fxToggle("Tremolo", \.tremolo)
+                fxToggle("EQ",      \.eq)
+                fxToggle("Flanger", \.flanger)
+                fxToggle("Autowah", \.autowah)
             }
         }
     }
@@ -101,8 +108,8 @@ struct InspectorStrip: View {
             Text(w.displayName)
                 .font(DS.font(.caption, weight: isActive ? .semibold : .regular, monospaced: true))
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity, minHeight: 32)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity, minHeight: 30)
                 .background(RoundedRectangle(cornerRadius: DS.Radius.chip)
                     .fill(isActive ? app.theme.semantic.accent : app.theme.semantic.canvas))
                 .foregroundStyle(isActive ? Color.white : app.theme.semantic.ink)
@@ -121,25 +128,26 @@ struct InspectorStrip: View {
                 .font(DS.font(.label, weight: .semibold))
                 .tracking(0.5)
                 .foregroundStyle(app.theme.semantic.ink)
+                .lineLimit(1)
             content()
         }
     }
 
-    private func sliderRow(_ label: String, _ value: Binding<Double>,
-                           range: ClosedRange<Double>, unit: String,
-                           format: String = "%.2f") -> some View {
-        HStack(spacing: DS.Space.sm) {
+    private func slider(_ label: String, _ value: Binding<Double>,
+                        range: ClosedRange<Double>, unit: String,
+                        format: String = "%.2f") -> some View {
+        HStack(spacing: 6) {
             Text(label)
-                .font(DS.font(.caption, weight: .medium))
+                .font(DS.font(.caption, weight: .medium, monospaced: true))
                 .foregroundStyle(app.theme.semantic.inkSoft)
-                .frame(width: 58, alignment: .leading)
+                .frame(width: 32, alignment: .leading)
             Slider(value: value, in: range)
                 .tint(app.theme.semantic.accent)
-                .minTouchTarget(32)
             Text(unitLabel(value.wrappedValue, format: format, unit: unit))
                 .font(DS.font(.caption, monospaced: true))
                 .foregroundStyle(app.theme.semantic.inkMuted)
-                .frame(width: 56, alignment: .trailing)
+                .frame(width: 52, alignment: .trailing)
+                .lineLimit(1)
         }
         .a11y(label, value: unitLabel(value.wrappedValue, format: format, unit: unit))
     }
@@ -158,7 +166,7 @@ struct InspectorStrip: View {
             Haptics.tap(.light)
             app.previewCurrentTimbre()
         } label: {
-            HStack(spacing: DS.Space.xs) {
+            HStack(spacing: 4) {
                 Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
                     .font(.caption)
                 Text(label)
@@ -167,9 +175,8 @@ struct InspectorStrip: View {
                     .minimumScaleFactor(0.7)
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, DS.Space.sm)
-            .padding(.vertical, DS.Space.xs)
-            .frame(maxWidth: .infinity, minHeight: 32)
+            .padding(.horizontal, 6)
+            .frame(maxWidth: .infinity, minHeight: 30)
             .background(RoundedRectangle(cornerRadius: DS.Radius.chip)
                 .fill(isOn ? app.theme.semantic.accentSoft : app.theme.semantic.canvas))
             .overlay(RoundedRectangle(cornerRadius: DS.Radius.chip)
